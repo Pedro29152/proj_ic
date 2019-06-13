@@ -10,6 +10,7 @@ from io import BytesIO
 
 ALLOWED_EXTENSIONS = set(['pdf'])
 
+#upload de arquivos
 def upload(request):
     if 'file' not in request.files:
         flash("Nenhum arquivo enviado")
