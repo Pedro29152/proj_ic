@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Login</h1>
+<form method=post enctype=multipart/form-data>
+    <table>
+    <tr> 
+        <td><label>Usuario: </label></td>
+        <td><input type=text name=username required><br></td>
+    </tr>
+    <tr> 
+        <td><label>Senha: </label></td>
+        <td><input type="password" name="password" required><br></td>
+    </tr>
+    <tr> 
+        <td><input type=submit value=Logar></td>
+    </tr>
+    </table>
+</form>
+{% endblock %}

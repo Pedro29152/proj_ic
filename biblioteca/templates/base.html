@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="description" content="Site para web devs">
+        <meta name="keywords" content="Biblioteca, TG, Fatec, Fatec Carapicuiba, Devs, Web">
+        <meta name="author" content="Team Holliday">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>
+            Cadastro de alguma coisa
+        </title>
+        <link rel="stylesheet" type="text/css" 
+            href="[[url_for('static', filename='style.css')]]">
+            <link rel="shortcut icon" href="[[ url_for('static', filename='favicon.ico') ]]">
+        
+    </head>
+    <body>
+        <header>
+        <div class="dive">
+            <ul class="topnav">
+                <li class="nav"><a href="/index">Home</a></li>
+                <li class="nav"><a href="/consulta">Consulta</a></li>
+                <li class="nav"><a href="/upload">Upload</a></li>
+                {% if session['username'] %}
+                <li class="nav rig"><a href="/cadastrar">Cadastrar novo usuario</a></li>
+                <li class="nav rig"><a href="/logout">Logout</a></li>
+                <li class="nav rig">[[ session['username'] ]]</li>
+                {% else %}
+                <li class="nav rig"><a href="/login">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
+        <ul>
+            {% with messages = get_flashed_messages() %}
+                {% for message in messages %}
+                    <li>[[ message ]]</li>
+                {% endfor %}
+            {% endwith %}
+        </ul>
+        </header>
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>

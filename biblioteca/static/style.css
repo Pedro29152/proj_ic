@@ -1,0 +1,42 @@
+body {
+    background-color: crimson;
+}
+input{
+    padding: 10px;
+}
+header{
+    width: 100%;
+}
+
+.nav{
+    float: left;
+    list-style-type: none;
+}
+
+.topnav{
+    padding: 10px;
+    overflow:  inherit;
+    height: 100%;
+    background-color: tomato;
+}
+
+.topnav a{
+    padding: 10px;
+    margin: 0px;
+    background-color: tomato;
+    text-decoration: none;
+    color: white;
+    text-align: center;
+}
+
+.topnav a:hover{
+    background-color: lightgray;
+}
+
+.rig {
+    float: right;
+}
+
+.dive{
+    overflow: auto;
+}

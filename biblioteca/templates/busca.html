@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Vue.js</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+	
+		<div id="app">
+    <h1>Dados gravados</h1>
+
+  <section v-if="errored">
+    <p>Pedimos desculpas, não estamos conseguindo recuperar as informações no momento. Por favor, tente novamente mais tarde.</p>
+  </section>
+ 
+  <section v-else>
+    <div v-if="loading">Carregando...</div>
+ 
+    <div
+      v-else
+      v-for="currency in info"
+      class="currency">
+      <p>
+        Nome do arquivo: <span id="nomearq">{{ currency.tituloProjeto }}</span>. <br>
+        Nome do projeto: {{ currency.nomeOrientador }}
+      </p>
+    </div>
+
+  </section>
+</div>
+
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+		<script>
+			new Vue({
+  el: '#app',
+  data () {
+    return {
+      info: null,
+      loading: true,
+      errored: false
+    }
+  },
+  filters: {
+    currencydecimal (value) {
+      return value.toFixed(2)
+    }
+  },
+  mounted () {
+    axios
+      .post('http://localhost:5000/testes/')
+      .then(response => {
+        this.info = response.data
+      })
+      .catch(error => {
+        console.log(error)
+        this.errored = true
+      })
+      .finally(() => this.loading = false)
+  }
+})
+		</script>
+</body>
+</html>

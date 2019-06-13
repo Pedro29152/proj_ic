@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    th, td, caption{
+        padding: 15px;
+        border: 1px yellow solid;
+        text-align: left
+    }
+    caption{
+        text-align: center
+    }
+    button{
+        padding: 15px;
+        background-color: crimson;
+        text-decoration-line: none;
+        background-image: url("[[url_for('static', filename='download.png')]]");
+        background-size: 100% 100%;
+        border-radius: 90px;
+        height: 48px ;
+        width: 48px
+    }
+    table{
+        border-collapse: collapse;
+        min-width: 50%
+    }
+</style>
+<h1>Projetos cadastrados</h1>
+<table>
+    <caption>
+        <b>Projetos enviados</b>
+    </caption>
+    <tr>
+        <th>
+            Nome projeto
+        </th>
+        <th colspan="2">
+            Descricao do projeto
+        </th>
+    </tr>
+{% for tg in tgs %}
+<tr>
+    <td>[[ tg.tituloProjeto ]]</td>
+    <td>[[ tg.descricao ]]</td>
+    <td style="padding: 0px">
+        <a href="/download_file/[[ tg.nomeArquivo ]]">
+            <button>
+            </button>
+        </a>
+    </td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}
