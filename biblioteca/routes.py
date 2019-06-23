@@ -6,8 +6,7 @@ from biblioteca.cls.proj        import proj_bd
 from biblioteca.cls.curso       import curso_bd
 from biblioteca.cls.gerenciador import gerenciador_bd
 from biblioteca.cls.usuario     import usuario_bd
-import simplejson 
-
+import simplejson, json
 
 def login_reqired(f):
     @wraps(f)
@@ -49,8 +48,14 @@ def consulta():
         dados = proj_bd.busca_projeto("")
         return render_template("consulta.html",tgs = dados)
     if request.method == "POST":
-        dados = proj_bd.busca_projeto(request.form['pesquisa'])
-        return jsonify(dados)
+        projs = None
+        if(request.form):
+            projs = proj_bd.busca_projeto(request.form['query'])
+        else:
+            projs = proj_bd.busca_projeto('')
+        res = make_response(jsonify(projs))
+        res.headers['Access-Control-Allow-Origin'] = '*'
+        return res
 
 #rota para download de arquivos
 @app.route("/download_file/<path:filename>", methods=["POST","GET"])
@@ -94,9 +99,9 @@ def cadastro():
 @app.route('/testes/', methods=['POST', 'GET'])
 def teste():
     if request.method == 'POST':
-        moeda = proj_bd.busca_projeto("")
-        res = make_response(jsonify(moeda))
-        res.headers['Access-Control-Allow-Origin'] = '*'
+        projs = proj_bd.busca_projeto(request.form['query'])
+        res = make_response(jsonify(projs))
+        #res.headers['Access-Control-Allow-Origin'] = '*'
         return res
 
     return render_template('busca.html')

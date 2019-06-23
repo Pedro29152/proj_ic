@@ -3,8 +3,8 @@ from flask import flash
 
 def conecta():
     conn = connector.connect(
-        user='pedro', 
-        password='DbTesteIc123#@',
+        user='root', 
+        password='LabRobotica123#@',
         host='127.0.0.1',
         port='3306',
         database='proj_ic')
