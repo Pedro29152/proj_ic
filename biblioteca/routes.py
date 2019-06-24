@@ -42,30 +42,131 @@ def upload_file():
     return render_template("upload.html", cursos= cursos )
 
 #define rota para consulta de tgs cadastrados
-@app.route("/consulta/", methods=["GET", "POST"])
-def consulta():
+@app.route("/consulta_proj/titulo", methods=["GET", "POST"])
+def busca_titulo():
     if request.method == "GET":
-        dados = proj_bd.busca_projeto("")
+        dados = proj_bd.busca_projeto_titulo("")
         return render_template("consulta.html",tgs = dados)
+
     if request.method == "POST":
-        projs = None
-        if(request.form):
-            projs = proj_bd.busca_projeto(request.form['query'])
-        else:
-            projs = proj_bd.busca_projeto('')
+        projs = busca_titulo(request)
+        
         res = make_response(jsonify(projs))
         res.headers['Access-Control-Allow-Origin'] = '*'
         return res
 
+@app.route('/consulta_proj/titulo/likes', methods=['POST'])
+def busca_likes():
+    projs = busca_titulo(request)
+
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+@app.route('/consulta_proj/titulo/deslikes', methods=['POST'])
+def busca_deslikes():
+    projs = busca_titulo(request)
+
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+@app.route('/consulta_proj/titulo/n_downloads', methods=['POST'])
+def busca_n_downloads():
+    projs = busca_titulo(request)
+
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+@app.route('/consulta_proj/titulo/n_visitas', methods=['POST'])
+def busca_n_visitas():
+    projs = busca_titulo(request)
+
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+@app.route('/consulta_proj/titulo/nota_rojeto', methods=['POST'])
+def busca_nota_projeto():
+    projs = busca_titulo(request)
+
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+@app.route('/consulta_proj/titulo/dt_avaliacao', methods=['POST'])
+def busca_dt_avaliacao():
+    projs = busca_titulo(request)
+
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+@app.route('/consulta_proj/titulo/dataEnvio', methods=['POST'])
+def busca_dt_envio():
+    projs = busca_titulo(request)
+
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+def busca_titulo(req):
+    projs = None
+    cres = True
+    if(req.form['crescente'] == 0):
+        cres = False
+
+    if(req.form['query']):
+        projs = proj_bd.busca_projeto_titulo(req.form['query'], ordem = 6, crescente=cres)
+    else:
+        projs = proj_bd.busca_projeto_titulo('', ordem = 6, crescente=cres)
+
+    return projs
+    
+
+@app.route('/consulta_proj/curso', methods=['POST'])
+def busca_curso():
+    projs = None
+    if(request.form['query']):
+        projs = proj_bd.busca_projeto_curso(request.form['query'])
+    else:
+        projs = proj_bd.busca_projeto_curso('')
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+@app.route('/consulta_proj/descricao', methods=['POST'])
+def busca_descricao():
+    projs = None
+    if(request.form['query']):
+        projs = proj_bd.busca_projeto_descricao(request.form['query'])
+    else:
+        projs = proj_bd.busca_projeto_descricao('')
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+@app.route('/consulta_proj/orientador', methods=['POST'])
+def busca_orientador():
+    projs = None
+    if(request.form['query']):
+        projs = proj_bd.busca_projeto_orientador(request.form['query'])
+    else:
+        projs = proj_bd.busca_projeto_orientador('')
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
 #rota para download de arquivos
 @app.route("/download_file/<path:filename>", methods=["POST","GET"])
-def download(filename):
+def download(filename): 
 
     ret = make_response(
         send_from_directory(
             app.config['UPLOAD_FOLDER'],
             filename, 
-            sas_attachment=True
+            as_attachment=True
         )
     )
     ret.headers['Access-Control-Allow-Origin'] = '*'
@@ -106,6 +207,10 @@ def teste():
 
     return render_template('busca.html')
 
+@app.route('/testei/')
+def testei():
+    return render_template('index_teste.html')
+
 #rota padrao de caminhos nao definidos
 @app.errorhandler(404)
 def page_not_found(e):
@@ -114,7 +219,4 @@ def page_not_found(e):
 #rota padrao para caminhos nao autorizados
 @app.errorhandler(405)
 def page_not_allowed(e):
-    return render_template("err404.html")
-
-if __name__ == '__main__':
-    app.run()
+    return render_template("err405.html")
