@@ -43,6 +43,7 @@ def upload_file():
 
 #define rota para consulta de tgs cadastrados
 @app.route("/consulta_proj", methods=["GET", "POST"])
+@app.route("/consulta_proj/titulo", methods=["GET", "POST"])
 def busca_titulo():
     if request.method == "GET":
         dados = proj_bd.busca_projeto_titulo("")
@@ -57,7 +58,7 @@ def busca_titulo():
 
 @app.route('/consulta_proj/titulo/likes', methods=['POST'])
 def busca_likes():
-    projs = busca_titulo(request, 1)
+    projs = busca_titulo(request)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -65,7 +66,7 @@ def busca_likes():
 
 @app.route('/consulta_proj/titulo/deslikes', methods=['POST'])
 def busca_deslikes():
-    projs = busca_titulo(request, 2)
+    projs = busca_titulo(request)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -73,7 +74,7 @@ def busca_deslikes():
 
 @app.route('/consulta_proj/titulo/n_visitas', methods=['POST'])
 def busca_n_visitas():
-    projs = busca_titulo(request, 3)
+    projs = busca_titulo(request)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -81,7 +82,7 @@ def busca_n_visitas():
 
 @app.route('/consulta_proj/titulo/n_downloads', methods=['POST'])
 def busca_n_downloads():
-    projs = busca_titulo(request, 4)
+    projs = busca_titulo(request)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -89,7 +90,7 @@ def busca_n_downloads():
 
 @app.route('/consulta_proj/titulo/dt_avaliacao', methods=['POST'])
 def busca_dt_avaliacao():
-    projs = busca_titulo(request, 5)
+    projs = busca_titulo(request)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -97,7 +98,7 @@ def busca_dt_avaliacao():
 
 @app.route('/consulta_proj/titulo/dataEnvio', methods=['POST'])
 def busca_dt_envio():
-    projs = busca_titulo(request, 6)
+    projs = busca_titulo(request)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -105,7 +106,7 @@ def busca_dt_envio():
 
 @app.route('/consulta_proj/titulo/nota_rojeto', methods=['POST'])
 def busca_nota_projeto():
-    projs = busca_titulo(request, 7)
+    projs = busca_titulo(request)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -144,7 +145,7 @@ def busca_orientador():
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
-def busca_titulo(req, ordem = 0):
+def busca_titulo(req):
     projs = None
     cres = True
     try:
@@ -152,11 +153,11 @@ def busca_titulo(req, ordem = 0):
             cres = False
     except:
         cres = True
-    
+
     try:
-        projs = proj_bd.busca_projeto_titulo(req.args['query'], ordem = ordem, crescente=cres)
+        projs = proj_bd.busca_projeto_titulo(req.args['query'], ordem = req.args['ordem'], crescente=cres)
     except:
-        projs = proj_bd.busca_projeto_titulo('', ordem = ordem, crescente=cres)
+        projs = proj_bd.busca_projeto_titulo('', crescente=cres)
 
     return projs
     

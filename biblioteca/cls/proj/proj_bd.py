@@ -84,6 +84,8 @@ def busca_projeto_titulo(titulo, ordem = 0, crescente = True):
             'ORDER BY notaProjeto ' + cres, 
             titulo
         )
+    else:
+        return None
 
 def busca_projeto_curso(nomeCurso, ordem = 0, crescente = True):
     cres = ""
@@ -270,7 +272,7 @@ def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
         return bd_conn.bd_busca(
             'SELECT * FROM projetos '+
             'WHERE nomeOrientador LIKE (%s) '+
-            'ORDER BY dataAvaliacao  ' + cres, 
+            'ORDER BY dataAvaliacao ' + cres, 
             nomeOrientador
         )
     elif (ordem == 6):
