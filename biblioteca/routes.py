@@ -19,10 +19,10 @@ def login_reqired(f):
 
     return wrap
 
-@app.route('/', defaults={'path': ''})
-@app.route('/static/<path:path>')
+@app.route('/static/<path:path>', defaults={'path': ''})    
+@app.route('/')
 def catch_all(path):
-    return redirect(url_for('index'))
+    return redirect(url_for('/index'))
 
 #define a rota principal
 @app.route("/")
@@ -42,7 +42,7 @@ def upload_file():
     return render_template("upload.html", cursos= cursos )
 
 #define rota para consulta de tgs cadastrados
-@app.route("/consulta_proj/titulo", methods=["GET", "POST"])
+@app.route("/consulta_proj", methods=["GET", "POST"])
 def busca_titulo():
     if request.method == "GET":
         dados = proj_bd.busca_projeto_titulo("")
@@ -57,7 +57,7 @@ def busca_titulo():
 
 @app.route('/consulta_proj/titulo/likes', methods=['POST'])
 def busca_likes():
-    projs = busca_titulo(request)
+    projs = busca_titulo(request, 1)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -65,15 +65,7 @@ def busca_likes():
 
 @app.route('/consulta_proj/titulo/deslikes', methods=['POST'])
 def busca_deslikes():
-    projs = busca_titulo(request)
-
-    res = make_response(jsonify(projs))
-    res.headers['Access-Control-Allow-Origin'] = '*'
-    return res
-
-@app.route('/consulta_proj/titulo/n_downloads', methods=['POST'])
-def busca_n_downloads():
-    projs = busca_titulo(request)
+    projs = busca_titulo(request, 2)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -81,15 +73,15 @@ def busca_n_downloads():
 
 @app.route('/consulta_proj/titulo/n_visitas', methods=['POST'])
 def busca_n_visitas():
-    projs = busca_titulo(request)
+    projs = busca_titulo(request, 3)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
-@app.route('/consulta_proj/titulo/nota_rojeto', methods=['POST'])
-def busca_nota_projeto():
-    projs = busca_titulo(request)
+@app.route('/consulta_proj/titulo/n_downloads', methods=['POST'])
+def busca_n_downloads():
+    projs = busca_titulo(request, 4)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -97,7 +89,7 @@ def busca_nota_projeto():
 
 @app.route('/consulta_proj/titulo/dt_avaliacao', methods=['POST'])
 def busca_dt_avaliacao():
-    projs = busca_titulo(request)
+    projs = busca_titulo(request, 5)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -105,31 +97,25 @@ def busca_dt_avaliacao():
 
 @app.route('/consulta_proj/titulo/dataEnvio', methods=['POST'])
 def busca_dt_envio():
-    projs = busca_titulo(request)
+    projs = busca_titulo(request, 6)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
-def busca_titulo(req):
-    projs = None
-    cres = True
-    if(req.form['crescente'] == 0):
-        cres = False
+@app.route('/consulta_proj/titulo/nota_rojeto', methods=['POST'])
+def busca_nota_projeto():
+    projs = busca_titulo(request, 7)
 
-    if(req.form['query']):
-        projs = proj_bd.busca_projeto_titulo(req.form['query'], ordem = 6, crescente=cres)
-    else:
-        projs = proj_bd.busca_projeto_titulo('', ordem = 6, crescente=cres)
-
-    return projs
-    
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
 
 @app.route('/consulta_proj/curso', methods=['POST'])
 def busca_curso():
     projs = None
-    if(request.form['query']):
-        projs = proj_bd.busca_projeto_curso(request.form['query'])
+    if(request.args['query']):
+        projs = proj_bd.busca_projeto_curso(request.args['query'])
     else:
         projs = proj_bd.busca_projeto_curso('')
     res = make_response(jsonify(projs))
@@ -139,8 +125,8 @@ def busca_curso():
 @app.route('/consulta_proj/descricao', methods=['POST'])
 def busca_descricao():
     projs = None
-    if(request.form['query']):
-        projs = proj_bd.busca_projeto_descricao(request.form['query'])
+    if(request.args['query']):
+        projs = proj_bd.busca_projeto_descricao(request.args['query'])
     else:
         projs = proj_bd.busca_projeto_descricao('')
     res = make_response(jsonify(projs))
@@ -150,18 +136,33 @@ def busca_descricao():
 @app.route('/consulta_proj/orientador', methods=['POST'])
 def busca_orientador():
     projs = None
-    if(request.form['query']):
-        projs = proj_bd.busca_projeto_orientador(request.form['query'])
+    if(request.args['query']):
+        projs = proj_bd.busca_projeto_orientador(request.args['query'])
     else:
         projs = proj_bd.busca_projeto_orientador('')
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
+def busca_titulo(req, ordem = 0):
+    projs = None
+    cres = True
+    try:
+        if(req.args['crescente'] == 0):
+            cres = False
+    except:
+        cres = True
+    
+    try:
+        projs = proj_bd.busca_projeto_titulo(req.args['query'], ordem = ordem, crescente=cres)
+    except:
+        projs = proj_bd.busca_projeto_titulo('', ordem = ordem, crescente=cres)
+
+    return projs
+    
 #rota para download de arquivos
 @app.route("/download_file/<path:filename>", methods=["POST","GET"])
 def download(filename): 
-
     ret = make_response(
         send_from_directory(
             app.config['UPLOAD_FOLDER'],
@@ -200,7 +201,7 @@ def cadastro():
 @app.route('/testes/', methods=['POST', 'GET'])
 def teste():
     if request.method == 'POST':
-        projs = proj_bd.busca_projeto(request.form['query'])
+        projs = proj_bd.busca_projeto_titulo(request.args['query'])
         res = make_response(jsonify(projs))
         #res.headers['Access-Control-Allow-Origin'] = '*'
         return res
