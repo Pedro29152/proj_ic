@@ -1,6 +1,6 @@
 from biblioteca import bd_conn
 
-def busca_projeto_titulo(titulo, ordem = 0, crescente = True):
+def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     '''
     Busca um projeto pelo titulo com base em uma ordenacao 
 
@@ -32,7 +32,8 @@ def busca_projeto_titulo(titulo, ordem = 0, crescente = True):
     if(ordem == 0):
         return bd_conn.bd_busca(
             'SELECT * FROM projetos '+
-            'WHERE tituloProjeto LIKE (%s)', 
+            'WHERE tituloProjeto LIKE (%s)'+
+            'ORDER BY tituloProjeto ' + cres, 
             titulo
         )
     elif (ordem == 1):

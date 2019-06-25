@@ -9,15 +9,30 @@
 </head>
 <body>
 
-  <input type="text" id="teste">
-  <button onclick="app.busca()">buscar</button>
+    <input type="text" id="teste">
+    <button onclick="app.busca()">buscar</button><hr>
+
+    <input type="radio" name="cres" id="cresT" value="Crescente" checked>Crescente<br>
+    <input type="radio" name="cres" id="cresF" value="Decrescente">Decrescente <hr>
+
+    <select name="ordem" id="ordem">
+      <option value="0">Padrao</option>
+      <option value="1">likes</option>
+      <option value="2">deslikes</option>
+      <option value="3">numero de visitas</option>
+      <option value="4">numero de downloads</option>
+      <option value="5">data de avalicao</option>
+      <option value="6">data de envio</option>
+      <option value="7">nota projeto</option>
+    </select>
 		<div id="app">
     <h1>Dados gravados</h1>
+
 
   <section v-if="errored">
     <p>Pedimos desculpas, não estamos conseguindo recuperar as informações no momento. Por favor, tente novamente mais tarde.</p>
   </section>
- 
+
   <section v-else>
     <div v-if="loading">Carregando...</div>
  
@@ -27,8 +42,11 @@
       class="currency">
       <p>
         <h2>Projeto {{ i + 1 }}</h2>
-        Nome do projeto: <span id="nomearq">{{ currency.tituloProjeto }}</span>. <br>
-        Nome do arquivo: <span id="nomearq">{{ currency.nomeArquivo }}</span>. <br>
+        Nome do projeto: {{ currency.tituloProjeto }}. <br>
+        Nome do arquivo: {{ currency.nomeArquivo }}. <br>
+        Data de avalicao: {{ currency.dataAvaliacao }}. <br>
+        Data de envio: {{ currency.dataEnvio }}. <br>
+        Nota: {{ currency.notaProjeto }}. <br>
       </p>
     </div>
 
@@ -59,12 +77,24 @@
       },
       methods: {
         ax: function(query){
+        let cres = 0
+        let ordem = document.getElementById('ordem').value
+        if(document.getElementById('cresT').checked){
+          cres = 1
+        }
+        else if(document.getElementById('cresF').checked){
+          cres = 0
+        }
         let data = new FormData()
         data.append('query', query)
+        data.append('ordem', ordem)
+        data.append('crescente', cres)
+        
         axios
-        .post('http://localhost:5000/testes/', data)
+        .post('http://localhost:5000/consulta_proj/titulo', data)
         .then(response => {
           this.info = response.data
+          console.log(response.data)
         })
           .catch(error => {
           console.log(error)

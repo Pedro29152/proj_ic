@@ -18,11 +18,13 @@ def login_reqired(f):
             return redirect(url_for('login_url'))
 
     return wrap
-
-@app.route('/static/<path:path>', defaults={'path': ''})    
-@app.route('/')
-def catch_all(path):
-    return redirect(url_for('/index'))
+    
+@app.route('/static/secret/<path:path>')
+@app.route('/static/secret/')
+@app.route('/<path:path>', defaults={'path':''})
+@login_reqired
+def not_allowed(path):
+    return redirect(path)
 
 #define a rota principal
 @app.route("/")
@@ -41,7 +43,7 @@ def upload_file():
     cursos = curso_bd.busca_curso("")
     return render_template("upload.html", cursos= cursos )
 
-#define rota para consulta de tgs cadastrados
+#define rota para consulta de projetos cadastrados
 @app.route("/consulta_proj", methods=["GET", "POST"])
 @app.route("/consulta_proj/titulo", methods=["GET", "POST"])
 def busca_titulo():
@@ -115,8 +117,8 @@ def busca_nota_projeto():
 @app.route('/consulta_proj/curso', methods=['POST'])
 def busca_curso():
     projs = None
-    if(request.args['query']):
-        projs = proj_bd.busca_projeto_curso(request.args['query'])
+    if(request.form['query']):
+        projs = proj_bd.busca_projeto_curso(request.form['query'])
     else:
         projs = proj_bd.busca_projeto_curso('')
     res = make_response(jsonify(projs))
@@ -126,8 +128,8 @@ def busca_curso():
 @app.route('/consulta_proj/descricao', methods=['POST'])
 def busca_descricao():
     projs = None
-    if(request.args['query']):
-        projs = proj_bd.busca_projeto_descricao(request.args['query'])
+    if(request.form['query']):
+        projs = proj_bd.busca_projeto_descricao(request.form['query'])
     else:
         projs = proj_bd.busca_projeto_descricao('')
     res = make_response(jsonify(projs))
@@ -137,10 +139,11 @@ def busca_descricao():
 @app.route('/consulta_proj/orientador', methods=['POST'])
 def busca_orientador():
     projs = None
-    if(request.args['query']):
-        projs = proj_bd.busca_projeto_orientador(request.args['query'])
+    if(request.form['query']):
+        projs = proj_bd.busca_projeto_orientador(request.form['query'])
     else:
         projs = proj_bd.busca_projeto_orientador('')
+
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
@@ -148,18 +151,23 @@ def busca_orientador():
 def busca_titulo(req):
     projs = None
     cres = True
+
     try:
-        if(req.args['crescente'] == 0):
+        titulo = req.form['query']
+    except:
+        titulo = ''
+
+    try:
+        ordem = int(req.form['ordem'])
+    except:
+        ordem = 0
+
+    try:
+        if(req.form['crescente'] == '0'):
             cres = False
     except:
         cres = True
-
-    try:
-        projs = proj_bd.busca_projeto_titulo(req.args['query'], ordem = req.args['ordem'], crescente=cres)
-    except:
-        projs = proj_bd.busca_projeto_titulo('', crescente=cres)
-
-    return projs
+    return proj_bd.busca_projeto_titulo(titulo, ordem, cres)
     
 #rota para download de arquivos
 @app.route("/download_file/<path:filename>", methods=["POST","GET"])
@@ -202,7 +210,7 @@ def cadastro():
 @app.route('/testes/', methods=['POST', 'GET'])
 def teste():
     if request.method == 'POST':
-        projs = proj_bd.busca_projeto_titulo(request.args['query'])
+        projs = proj_bd.busca_projeto_titulo(request.form['query'])
         res = make_response(jsonify(projs))
         #res.headers['Access-Control-Allow-Origin'] = '*'
         return res
