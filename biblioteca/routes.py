@@ -2,7 +2,7 @@ from biblioteca                 import (app, arquivos, login, cls)
 from flask                      import (Flask, render_template, redirect, request,\
     flash, url_for, jsonify,send_from_directory, session, make_response)
 from functools                  import wraps
-from biblioteca.cls.proj        import proj_bd
+from biblioteca.cls.proj        import proj_control
 from biblioteca.cls.curso       import curso_bd
 from biblioteca.cls.gerenciador import gerenciador_bd
 from biblioteca.cls.usuario     import usuario_bd
@@ -48,11 +48,11 @@ def upload_file():
 @app.route("/consulta_proj/titulo", methods=["GET", "POST"])
 def busca_titulo():
     if request.method == "GET":
-        dados = proj_bd.busca_projeto_titulo("")
+        dados = proj_control.busca_titulo()
         return render_template("consulta.html",tgs = dados)
 
     if request.method == "POST":
-        projs = busca_titulo(request)
+        projs = proj_control.busca_titulo(request)
         
         res = make_response(jsonify(projs))
         res.headers['Access-Control-Allow-Origin'] = '*'
@@ -60,59 +60,28 @@ def busca_titulo():
 
 @app.route('/consulta_proj/curso', methods=['POST'])
 def busca_curso():
-    projs = None
-    if(request.form['query']):
-        projs = proj_bd.busca_projeto_curso(request.form['query'])
-    else:
-        projs = proj_bd.busca_projeto_curso('')
+    projs = proj_control.busca_curso(request)
+
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
 @app.route('/consulta_proj/descricao', methods=['POST'])
 def busca_descricao():
-    projs = None
-    if(request.form['query']):
-        projs = proj_bd.busca_projeto_descricao(request.form['query'])
-    else:
-        projs = proj_bd.busca_projeto_descricao('')
+    projs = proj_control.busca_descricao(request)
+
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
 @app.route('/consulta_proj/orientador', methods=['POST'])
 def busca_orientador():
-    projs = None
-    if(request.form['query']):
-        projs = proj_bd.busca_projeto_orientador(request.form['query'])
-    else:
-        projs = proj_bd.busca_projeto_orientador('')
+    projs = proj_control.busca_orientador(request)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
-def busca_titulo(req):
-    projs = None
-    cres = True
-
-    try:
-        titulo = req.form['query']
-    except:
-        titulo = ''
-
-    try:
-        ordem = int(req.form['ordem'])
-    except:
-        ordem = 0
-
-    try:
-        if(req.form['crescente'] == '0'):
-            cres = False
-    except:
-        cres = True
-    return proj_bd.busca_projeto_titulo(titulo, ordem, cres)
-    
 #rota para download de arquivos
 @app.route("/download_file/<path:filename>", methods=["POST","GET"])
 def download(filename): 

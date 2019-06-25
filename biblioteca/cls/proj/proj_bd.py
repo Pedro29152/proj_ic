@@ -88,7 +88,7 @@ def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     else:
         return None
 
-def busca_projeto_curso(nomeCurso, ordem = 0, crescente = True):
+def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
     cres = ""
     if(crescente):
         cres = ""
