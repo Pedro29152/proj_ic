@@ -58,62 +58,6 @@ def busca_titulo():
         res.headers['Access-Control-Allow-Origin'] = '*'
         return res
 
-@app.route('/consulta_proj/titulo/likes', methods=['POST'])
-def busca_likes():
-    projs = busca_titulo(request)
-
-    res = make_response(jsonify(projs))
-    res.headers['Access-Control-Allow-Origin'] = '*'
-    return res
-
-@app.route('/consulta_proj/titulo/deslikes', methods=['POST'])
-def busca_deslikes():
-    projs = busca_titulo(request)
-
-    res = make_response(jsonify(projs))
-    res.headers['Access-Control-Allow-Origin'] = '*'
-    return res
-
-@app.route('/consulta_proj/titulo/n_visitas', methods=['POST'])
-def busca_n_visitas():
-    projs = busca_titulo(request)
-
-    res = make_response(jsonify(projs))
-    res.headers['Access-Control-Allow-Origin'] = '*'
-    return res
-
-@app.route('/consulta_proj/titulo/n_downloads', methods=['POST'])
-def busca_n_downloads():
-    projs = busca_titulo(request)
-
-    res = make_response(jsonify(projs))
-    res.headers['Access-Control-Allow-Origin'] = '*'
-    return res
-
-@app.route('/consulta_proj/titulo/dt_avaliacao', methods=['POST'])
-def busca_dt_avaliacao():
-    projs = busca_titulo(request)
-
-    res = make_response(jsonify(projs))
-    res.headers['Access-Control-Allow-Origin'] = '*'
-    return res
-
-@app.route('/consulta_proj/titulo/dataEnvio', methods=['POST'])
-def busca_dt_envio():
-    projs = busca_titulo(request)
-
-    res = make_response(jsonify(projs))
-    res.headers['Access-Control-Allow-Origin'] = '*'
-    return res
-
-@app.route('/consulta_proj/titulo/nota_rojeto', methods=['POST'])
-def busca_nota_projeto():
-    projs = busca_titulo(request)
-
-    res = make_response(jsonify(projs))
-    res.headers['Access-Control-Allow-Origin'] = '*'
-    return res
-
 @app.route('/consulta_proj/curso', methods=['POST'])
 def busca_curso():
     projs = None
