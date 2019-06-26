@@ -21,278 +21,60 @@ def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     Caso crescente for False ele ordena de ordem decrescente
     Por padrao crescente recebe o valor True
     '''
-    cres = ""
-    if(crescente):
-        cres = ""
-    else:
-        cres = "desc"
+    query = 'SELECT * FROM projetos WHERE tituloProjeto LIKE (%s) '
 
     titulo = "%" + titulo + "%"
 
-    if(ordem == 0):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE tituloProjeto LIKE (%s)'+
-            'ORDER BY tituloProjeto ' + cres, 
-            titulo
-        )
-    elif (ordem == 1):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE tituloProjeto LIKE (%s) '+
-            'ORDER BY likes ' + cres, 
-            titulo
-        )
-    elif (ordem == 2):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE tituloProjeto LIKE (%s) '+
-            'ORDER BY deslikes ' + cres, 
-            titulo
-        )
-    elif (ordem == 3):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE tituloProjeto LIKE (%s) '+
-            'ORDER BY numVisitas ' + cres, 
-            titulo
-        )
-    elif (ordem == 4):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE tituloProjeto LIKE (%s) '+
-            'ORDER BY numDownloads ' + cres, 
-            titulo
-        )
-    elif (ordem == 5):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE tituloProjeto LIKE (%s) '+
-            'ORDER BY dataAvaliacao ' + cres, 
-            titulo
-        )
-    elif (ordem == 6):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE tituloProjeto LIKE (%s) '+
-            'ORDER BY dataEnvio ' + cres, 
-            titulo
-        )
-    elif (ordem == 7):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE tituloProjeto LIKE (%s) '+
-            'ORDER BY notaProjeto ' + cres, 
-            titulo
-        )
-    else:
-        return None
+    return bd_conn.bd_busca(
+        query +
+        ordena(ordem, crescente), 
+        titulo
+    )
 
 def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
-    cres = ""
-    if(crescente):
-        cres = ""
-    else:
-        cres = "DESC"
+    query = 'SELECT * FROM projetos NATURAL JOIN cursos WHERE descricaoCurso LIKE (%s) '
 
     nomeCurso = '%' + nomeCurso + '%'
-    if(ordem == 0):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos ' + 
-            'NATURAL JOIN cursos ' +
-            'WHERE descricaoCurso LIKE (%s)',
-            nomeCurso
-        )
-    elif (ordem == 1):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos ' + 
-            'NATURAL JOIN cursos ' +
-            'WHERE descricaoCurso LIKE (%s) '+
-            'ORDER BY likes ' + cres, 
-            nomeCurso
-        )
-    elif (ordem == 2):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos ' + 
-            'NATURAL JOIN cursos ' +
-            'WHERE descricaoCurso LIKE (%s) '+
-            'ORDER BY deslikes ' + cres, 
-            nomeCurso
-        )
-    elif (ordem == 3):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos ' + 
-            'NATURAL JOIN cursos ' +
-            'WHERE descricaoCurso LIKE (%s) '+
-            'ORDER BY numVisitas ' + cres, 
-            nomeCurso
-        )
-    elif (ordem == 4):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos ' + 
-            'NATURAL JOIN cursos ' +
-            'WHERE descricaoCurso LIKE (%s) '+
-            'ORDER BY numDownloads ' + cres, 
-            nomeCurso
-        )
-    elif (ordem == 5):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos ' + 
-            'NATURAL JOIN cursos ' +
-            'WHERE descricaoCurso LIKE (%s) '+
-            'ORDER BY dataAvaliacao ' + cres, 
-            nomeCurso
-        )
-    elif (ordem == 6):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos ' + 
-            'NATURAL JOIN cursos ' +
-            'WHERE descricaoCurso LIKE (%s) '+
-            'ORDER BY dataEnvio ' + cres, 
-            nomeCurso
-        )
-    elif (ordem == 7):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos ' + 
-            'NATURAL JOIN cursos ' +
-            'WHERE descricaoCurso LIKE (%s) '+
-            'ORDER BY notaProjeto ' + cres, 
-            nomeCurso
-        )
+
+    return bd_conn.bd_busca(
+        query +
+        ordena(ordem, crescente), 
+        nomeCurso
+    )
         
 def busca_projeto_descricao(descricao, ordem = 0, crescente = True):
-
-    cres = ""
-    if(crescente):
-        cres = ""
-    else:
-        cres = "DESC"
+    query = 'SELECT * FROM projetos WHERE descricao LIKE (%s) '
 
     descricao = '%' + descricao + '%'
-    if(ordem == 0):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE descricao LIKE (%s)', 
-            descricao
-        )
-    elif (ordem == 1):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE descricao LIKE (%s) '+
-            'ORDER BY likes  ' + cres, 
-            descricao
-        )
-    elif (ordem == 2):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE descricao LIKE (%s) '+
-            'ORDER BY deslikes  ' + cres, 
-            descricao
-        )
-    elif (ordem == 3):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE descricao LIKE (%s) '+
-            'ORDER BY numVisitas  ' + cres, 
-            descricao
-        )
-    elif (ordem == 4):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE descricao LIKE (%s) '+
-            'ORDER BY numDownloads  ' + cres, 
-            descricao
-        )
-    elif (ordem == 5):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE descricao LIKE (%s) '+
-            'ORDER BY dataAvaliacao  ' + cres, 
-            descricao
-        )
-    elif (ordem == 6):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE descricao LIKE (%s) '+
-            'ORDER BY dataEnvio  ' + cres, 
-            descricao
-        )
-    elif (ordem == 7):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE descricao LIKE (%s) '+
-            'ORDER BY notaProjeto  ' + cres, 
-            descricao
-        )
+
+    return bd_conn.bd_busca(
+        query +
+        ordena(ordem, crescente), 
+        descricao
+    )
 
 
 def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
-
-    cres = ""
-    if(crescente):
-        cres = ""
-    else:
-        cres = "DESC"
-
+    query = 'SELECT * FROM projetos WHERE nomeOrientador LIKE (%s) '
+    
     nomeOrientador = '%' + nomeOrientador + '%'
-    if(ordem == 0):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE nomeOrientador LIKE (%s)', 
-            nomeOrientador
-        )
-    elif (ordem == 1):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE nomeOrientador LIKE (%s) '+
-            'ORDER BY likes  ' + cres, 
-            nomeOrientador
-        )
-    elif (ordem == 2):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE nomeOrientador LIKE (%s) '+
-            'ORDER BY deslikes  ' + cres, 
-            nomeOrientador
-        )
-    elif (ordem == 3):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE nomeOrientador LIKE (%s) '+
-            'ORDER BY numVisitas  ' + cres, 
-            nomeOrientador
-        )
-    elif (ordem == 4):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE nomeOrientador LIKE (%s) '+
-            'ORDER BY numDownloads  ' + cres, 
-            nomeOrientador
-        )
-    elif (ordem == 5):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE nomeOrientador LIKE (%s) '+
-            'ORDER BY dataAvaliacao ' + cres, 
-            nomeOrientador
-        )
-    elif (ordem == 6):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE nomeOrientador LIKE (%s) '+
-            'ORDER BY dataEnvio  ' + cres, 
-            nomeOrientador
-        )
-    elif (ordem == 7):
-        return bd_conn.bd_busca(
-            'SELECT * FROM projetos '+
-            'WHERE nomeOrientador LIKE (%s) '+
-            'ORDER BY notaProjeto  ' + cres, 
-            nomeOrientador
-        )
+    
+    return bd_conn.bd_busca(
+        query +
+        ordena(ordem, crescente), 
+        nomeOrientador
+    )    
 
 
-def grava_projeto(titulo, nomeOrientador, descricao, nomeArquivo, notaProj, dataAvaliacao,codGer,codCurso):
+def grava_projeto(
+    titulo, 
+    nomeOrientador, 
+    descricao, 
+    nomeArquivo, 
+    notaProj, 
+    dataAvaliacao,
+    codGer,
+    codCurso):
     bd_conn.bd_gravar(
         'insert into projetos'+
         '(tituloProjeto,nomeOrientador,descricao,nomeArquivo,notaProjeto,dataAvaliacao,codGerenciador,codCurso,ativo)'+
@@ -300,3 +82,34 @@ def grava_projeto(titulo, nomeOrientador, descricao, nomeArquivo, notaProj, data
         (titulo,nomeOrientador,descricao,nomeArquivo,notaProj,dataAvaliacao,codGer,codCurso)
     )
 
+def ordena(ordem, crescente):
+    cres = ""
+    if(not crescente):
+        cres = "DESC"
+
+    elif(ordem == 0):
+        return ''
+    
+    elif(ordem == 1):
+        return 'ORDER BY likes  ' + cres
+    
+    elif(ordem == 2):
+        return 'ORDER BY deslikes  ' + cres
+    
+    elif(ordem == 3):
+        return 'ORDER BY numVisitas  ' + cres
+    
+    elif(ordem == 4):
+        return 'ORDER BY numDownloads  ' + cres
+    
+    elif(ordem == 5):
+        return 'ORDER BY dataAvaliacao ' + cres
+    
+    elif(ordem == 6):
+        return 'ORDER BY dataEnvio  ' + cres
+    
+    elif(ordem == 7):
+        return 'ORDER BY notaProjeto  ' + cres
+    else:
+        return ''
+    
