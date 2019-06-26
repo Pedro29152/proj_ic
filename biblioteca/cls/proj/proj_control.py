@@ -1,7 +1,14 @@
+from biblioteca import app
+from biblioteca.cls.curso.curso_bd import get_codCurso, get_abbr_curso
+from biblioteca.cls.gerenciador import gerenciador_bd
 from biblioteca.cls.proj.proj_bd import (busca_projeto_curso, busca_projeto_descricao, \
     busca_projeto_orientador, busca_projeto_titulo, grava_projeto)
+from flask import redirect, url_for
+from random import randint
+import datetime, os
+from werkzeug.utils import secure_filename
 
-def upload_arquivo(req, nomeGer):
+def upload_projeto(req, nomeGer):
     titulo = req.form['titulo']
     nomeOrientador = req.form['nomeOrientador']
     descricao = req.form['descricao']
@@ -10,7 +17,7 @@ def upload_arquivo(req, nomeGer):
     curso = req.form['curso']
     file = req.files['file']
 
-    codCurso =  curso_bd.get_codCurso(curso)
+    codCurso =  get_codCurso(curso)
 
     rand = hex(randint(0x100000,0xffffff))
     data = datetime.datetime.now()
@@ -20,7 +27,7 @@ def upload_arquivo(req, nomeGer):
     nfilename = filename.rsplit('.',2)[0]
 
     if len(curso) >= 10:
-        curso = curso_bd.get_abbr_curso(curso)
+        curso = get_abbr_curso(curso)
 
     tituloarq = titulo
     if len(titulo) > 41:
@@ -39,7 +46,7 @@ def upload_arquivo(req, nomeGer):
     
     codGer = gerenciador_bd.get_codGer_usr(nomeGer)
     
-    proj_bd.grava_projeto(
+    grava_projeto(
         titulo, nomeOrientador, descricao,
         filename, notaProj, dataAvaliacao, 
         codGer, codCurso

@@ -10,24 +10,23 @@ from io import BytesIO
 
 ALLOWED_EXTENSIONS = set(['pdf'])
 
-def upload(request):
-    if 'file' not in request.files:
+def upload(req):
+    if 'file' not in req.files:
         flash("Nenhum arquivo enviado")
-        return redirect(request.url)
-    req = request
+        return redirect(req.url)
 
     if req.files['file'].filename == '':
         flash('Nenhum arquivo selecionado')
-        return redirect(request.url)
+        return redirect(req.url)
 
     if req.files['file'] and allowed_file(req.files['file'].filename):
-        proj_control.upload_arquivo(req, session['username'])
+        proj_control.upload_projeto(req, session['username'])
         flash("Arquvio enviado com sucesso")
         return redirect(url_for('upload_file', filename=req.files['file'].filename))
             
     elif not allowed_file(req.files['file'].filename):
         flash('Erro: extensão nao suportada')
-        return redirect(request.url)
+        return redirect(req.url)
 
 def allowed_file(filename):
     return '.' in filename and \

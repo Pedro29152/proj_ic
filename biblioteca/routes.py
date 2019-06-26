@@ -108,7 +108,7 @@ def login_url():
 def logout():
     login.logout_url()
 
-    return redirect(url_for('index'))
+    return redirect(request.url)
 
 @app.route("/cadastrar/", methods=["GET", "POST"])
 @login_reqired

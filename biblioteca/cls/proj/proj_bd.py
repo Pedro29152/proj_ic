@@ -27,7 +27,7 @@ def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
 
     return bd_conn.bd_busca(
         query +
-        ordena(ordem, crescente), 
+        ordena(ordem, crescente),
         titulo
     )
 
@@ -83,11 +83,11 @@ def grava_projeto(
     )
 
 def ordena(ordem, crescente):
-    cres = ""
+    cres = ''
     if(not crescente):
-        cres = "DESC"
+        cres = 'DESC'
 
-    elif(ordem == 0):
+    if(ordem == 0):
         return ''
     
     elif(ordem == 1):
