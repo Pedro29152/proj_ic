@@ -14,13 +14,10 @@ def conecta():
 
     return conn, cursor
 
-def bd_busca(query, busca):
+def bd_busca(query, *args):
     try:
         conn, cursor = conecta()
-        cursor.execute(
-            query,
-            [busca,]
-        )
+        cursor.execute(query, *args)
 
         val = cursor.fetchall()
 
@@ -29,13 +26,10 @@ def bd_busca(query, busca):
 
     return val
 
-def bd_busca_um(query, busca):
+def bd_busca_um(query, *args):
     try:
         conn, cursor = conecta()
-        cursor.execute(
-            query,
-            [busca,]
-        )
+        cursor.execute(query, *args)
 
         val = cursor.fetchone()
 

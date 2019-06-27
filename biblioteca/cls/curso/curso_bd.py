@@ -4,7 +4,7 @@ def busca_curso(nomeCurso):
     nomeCurso = '%' + nomeCurso + '%'
     val = bd_conn.bd_busca(
         'select * from cursos where descricaoCurso like (%s)',
-        nomeCurso
+        (nomeCurso,)
     )
 
     return val
@@ -17,14 +17,17 @@ def grava_curso(desc):
 
 def get_codCurso(curso):
     val = bd_conn.bd_busca(
-        'select * from cursos where descricaoCurso = %s', 
-        curso
+        'select * from cursos where descricaoCurso = (%s)', 
+        (curso, )
     )
     if(val != None):
         val = val[0]['codCurso']
 
     return val
 
-def get_abbr_curso(nomeCurso):
-    curso = busca_curso(nomeCurso)
-    return curso[0]['abreviacao']
+def get_abbr_curso(descricaoCurso):
+    curso = bd_conn.bd_busca_um(
+        'select abreviacao from cursos where descricaoCurso = (%s)',
+        (descricaoCurso, )
+    )
+    return curso['abreviacao']

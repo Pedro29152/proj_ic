@@ -22,7 +22,6 @@ def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     Caso ordem seja 4 ordena com base no numero de downloads
     Caso ordem seja 5 ordena com base na data de avalicao
     Caso ordem seja 6 ordena com base na data de envio
-    Caso ordem seja 7 ordena com base na nota projeto
     Por padrao ordem recebe o valor 0
 
     Caso crescente for True ele ordena de ordem crescente
@@ -36,7 +35,7 @@ def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     return bd_conn.bd_busca(
         query +
         ordena(ordem, crescente),
-        titulo
+        (titulo,)
     )
 
 def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
@@ -47,7 +46,7 @@ def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
     return bd_conn.bd_busca(
         query +
         ordena(ordem, crescente), 
-        nomeCurso
+        (nomeCurso,)
     )
         
 def busca_projeto_descricao(descricao, ordem = 0, crescente = True):
@@ -58,7 +57,7 @@ def busca_projeto_descricao(descricao, ordem = 0, crescente = True):
     return bd_conn.bd_busca(
         query +
         ordena(ordem, crescente), 
-        descricao
+        (descricao,)
     )
 
 def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
@@ -69,13 +68,16 @@ def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
     return bd_conn.bd_busca(
         query +
         ordena(ordem, crescente), 
-        nomeOrientador
+        (nomeOrientador,)
     )    
 
 def busca_cod_projeto(titulo):
-    query = 'select codProjeto from projetos where tituloProjeto = %s order by codProjeto desc'
+    query = 'SELECT codProjeto FROM projetos WHERE tituloProjeto = (%s) ORDER BY codProjeto DESC'
 
-    val = bd_conn.bd_busca_um(query, titulo)
+    val = bd_conn.bd_busca_um(
+        query, 
+        (titulo,)
+    )
 
     return val
 
@@ -83,32 +85,43 @@ def grava_projeto(
     titulo, 
     nomeOrientador, 
     descricao, 
-    nomeArquivo, 
-    notaProj, 
+    nomeArquivo,
     dataAvaliacao,
     codGer,
     codCurso,
-    autor):
+    autor,
+    palavrasChave
+):
     bd_conn.bd_gravar(
         'insert into projetos'+
-        '(tituloProjeto, nomeOrientador, descricao, nomeArquivo, notaProjeto, dataAvaliacao, codGerenciador, codCurso, ativo)'+
-        'values(%s,%s,%s,%s,%s,%s,%s,%s,1)',
-        (titulo, nomeOrientador, descricao, nomeArquivo, notaProj, dataAvaliacao, codGer, codCurso)
+        '(tituloProjeto, nomeOrientador, descricao, nomeArquivo, dataAvaliacao, codGerenciador, codCurso, ativo)'+
+        'values(%s,%s,%s,%s,%s,%s,%s,1)',
+        (titulo, nomeOrientador, descricao, nomeArquivo, dataAvaliacao, codGer, codCurso)
     )
 
-    codProjeto = busca_cod_projeto(titulo)
+    codProjeto = busca_cod_projeto(titulo)['codProjeto']
     
-    i = 0
     for aut in autor:
-        autor_bd.grava_autor(str(aut['nome']), str(aut['ra']), codProjeto['codProjeto'])
-        i += 1
+        autor_bd.grava_autor(str(aut['nome']), str(aut['ra']), codProjeto)
+
+    for palavra in palavrasChave:
+        grava_palavra_chave(palavra, codProjeto)
+
+def grava_palavra_chave(palavra, codProjeto):
+    val = bd_conn.bd_busca_um(
+        'SELECT codPalavra FROM palavras_chave WHERE palavraChave = %s AND codProjeto = %s',
+        (palavra, codProjeto)
+    )
+    if(val == None):
+        bd_conn.bd_gravar(
+            'INSERT INTO palavras_chave(palavraChave, codProjeto) values(%s, %s)',
+            (palavra, codProjeto)
+        )
 
 def upload_projeto(req, nomeGer):
-
     titulo = req.form['titulo']
     nomeOrientador = req.form['nomeOrientador']
     descricao = req.form['descricao']
-    notaProj = req.form['notaProj']
     dataAvaliacao = req.form['dataAvaliacao']
     curso = req.form['curso']
     file = req.files['file']
@@ -133,6 +146,19 @@ def upload_projeto(req, nomeGer):
                 i += 1
     except BadRequestKeyError:
         None
+
+    palavrasChave = []
+    palavrasChave.append(req.form['palavraChave'])
+    j = 1
+    try:
+        while (req.form['palavraChave_' + str(j)] != None):
+            palavra = req.form['palavraChave_' + str(j)]
+            if(palavra != ''):
+                palavrasChave.append(palavra)
+                j += 1
+    except BadRequestKeyError:
+        None
+
     codCurso = get_codCurso(curso)
 
     rand = hex(randint(0x100000,0xffffff))
@@ -163,8 +189,8 @@ def upload_projeto(req, nomeGer):
     
     grava_projeto(
         titulo, nomeOrientador, descricao,
-        filename, notaProj, dataAvaliacao, 
-        codGer, codCurso, autor
+        filename, dataAvaliacao, 
+        codGer, codCurso, autor, palavrasChave
     )
 
     file.save(
@@ -201,9 +227,6 @@ def ordena(ordem, crescente):
     
     elif(ordem == 6):
         return 'ORDER BY dataEnvio  ' + cres
-    
-    elif(ordem == 7):
-        return 'ORDER BY notaProjeto  ' + cres
     else:
         return ''
     

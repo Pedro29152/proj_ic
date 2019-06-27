@@ -12,7 +12,7 @@ def login_url(request):
         flash("Ususario ou senha incorretos, tente novamente")
         return redirect(url_for('login_url'))
  
-    return redirect(request.url)
+    return redirect(url_for('index'))
 
 def logout_url():
     session.clear()

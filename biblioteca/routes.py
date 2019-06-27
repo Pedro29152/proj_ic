@@ -19,6 +19,17 @@ def login_reqired(f):
 
     return wrap
     
+def not_logged_in(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' not in session:
+            return f(*args, **kwargs)
+        else:
+            flash('Voce ja esta logado em uma conta, deslogue-se para poder acessar esta pagina')
+            return redirect(url_for('index'))
+    
+    return wrap
+
 @app.route('/static/secret/<path:path>')
 @app.route('/static/secret/')
 @app.route('/<path:path>', defaults={'path':''})
@@ -97,6 +108,7 @@ def download(filename):
     return ret
 
 @app.route("/login/", methods=['POST','GET'])
+@not_logged_in
 def login_url():
     if request.method == "POST":
         return login.login_url(request)

@@ -3,91 +3,105 @@
 {% block content %}
 <h1>Gravar arquivo</h1>
 <form method=post enctype=multipart/form-data>
-    <table style="float: left; width: 50%">
-        <tr>
-            <td> 
-                titulo:
-            </td>
-            <td>
-                <input type="text" name="titulo" maxlength="100" required>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                nome orientador:
-            </td>
-            <td>
-                <input type="text" name="nomeOrientador" maxlength="100" required>
-            </td>   
-        </tr>
-        <tr>
-            <td>
-                descricao:
-            </td>
-            <td>
-                <textarea name="descricao" style="width: 200px; height: 200px;" required></textarea>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                nota:
-            </td>
-            <td>
-                <input type="number" name="notaProj" min="0" max="10" step="0.01" value="0" required>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                data avalicao:
-            </td>
-            <td>
-                <input type="date" name="dataAvaliacao" required>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                curso:
-            </td>
-            <td>
-                <input list="cursos" name="curso" required>
-                <datalist id="cursos">
-                    {% for curso in cursos %}
-                        <option value="[[ curso['descricaoCurso'] ]]">
-                    {% endfor %}
-                </datalist>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                arquivo:
-            </td>
-            <td>
-                <input type="file" name="file" 
-                onchange="document.getElementById('nome').innerHTML = this.value" id="file" required>
-            </td>
-        </tr>
-    </table>
-    <div style="float: left; width: 49%">
-        <fieldset>
-            <legend>
-                Autor 1
-            </legend>
-        <label for="autor">Nome:</label>
-        <input type="text" name="autor" placeholder="Digite o nome do autor"/>
-        <br>
-        <label for="ra">Ra:</label>
-        <input type="text" name="ra_autor" placeholder="Digite o RA" maxlength="13"/>
-             
-        </fieldset>
-        <div id="imendaHTMLautor">
-    
+    <fieldset>
+        <legend>
+            <h2>Campos para preenchimento </h2>
+        </legend>
+        <table style="float: left; width: 50%">
+            <tr>
+                <td> 
+                    <h3>Titulo:</h3>
+                </td>
+                <td>
+                    <input type="text" name="titulo" maxlength="100" 
+                    placeholder="Digite o titulo" required>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h3>Nome do Orientador:</h3>
+                </td>
+                <td>
+                    <input type="text" name="nomeOrientador" maxlength="100"
+                    placeholder="Digite o nome do orientador" required>
+                </td>   
+            </tr>
+            <tr>
+                <td>
+                    <h3>Descrição:</h3>
+                </td>
+                <td>
+                    <textarea name="descricao" style="width: 85%; height: 100px; resize: none; font-family: Arial, Helvetica, sans-serif; padding: 10px" 
+                    placeholder="Digite uma descricao breve do projeto(resumo)" required></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h3>Data avalicao:</h3>
+                </td>
+                <td>
+                    <input type="date" name="dataAvaliacao" required>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h3>Curso:</h3>
+                </td>
+                <td>
+                    <input list="cursos" name="curso" required>
+                    <datalist id="cursos">
+                        {% for curso in cursos %}
+                            <option value="[[ curso['descricaoCurso'] ]]">
+                        {% endfor %}
+                    </datalist>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h3>Arquivo:</h3>
+                </td>
+                <td>
+                    <input type="file" name="file" 
+                    onchange="document.getElementById('nome').innerHTML = this.value" id="file" required>
+                </td>
+            </tr>
+        </table>
+        <div style="float: left; width: 49%">
+            <div style="margin-bottom: 10px">
+                <fieldset>
+                    <legend>
+                        <h2>Autores</h2>
+                    </legend>
+                    <fieldset>
+                        <legend>
+                            <h3>Autor 1</h3>
+                        </legend>
+                        <label for="autor">Nome:</label>
+                        <input type="text" name="autor" placeholder="Digite o nome do autor"/>
+                        <br>
+                        <label for="ra">Ra:</label>
+                        <input type="text" name="ra_autor" placeholder="Digite o RA" maxlength="13"/>
+                    </fieldset>
+                    <div id="imendaHTMLautor">
+                    </div>
+                            
+                    <input type="button" id="btnAdicionaAutor" value="adicionar mais um autor" style="padding: 2px"
+                    onclick="adicionaAutor()">      
+                </fieldset>
+            </div>
+            <div>
+                <fieldset>
+                    <legend>
+                        <h2>Palavras chave</h2>
+                    </legend>
+                    <label for="palavraChave">Palavra:</label>
+                    <input type="text" name="palavraChave" placeholder="Digite a palavra chave"/>
+                    <br>
+                </fieldset>
+            </div>
+            <input type=submit value=Upload>
         </div>
-                
-        <input type="button" id="btnAdicionaAutor" value="adicionar mais um autor" style="padding: 2px"
-        onclick="adicionaAutor()">      
-        <br>
-        <input type=submit value=Upload>
-    </div>
+    </fieldset>
 </form>
 <p>[[ filename ]]</p>
 <p id="nome"></p>
@@ -95,24 +109,16 @@
 <script type="text/javascript">
 var idContador = 0
 
-function exclui(id){
-	var campo = $("#"+id.id);
-	campo.hide(200);
-}
+
 
 function adicionaAutor(){
-	let tipoCampo = "autor";
-	adicionaCampo(tipoCampo);
-}
-
-function adicionaCampo(tipo){
-    if(idContador > 2){
+    if(idContador > 3)
         return
-    }
+
     idContador++
-    let idNome = `${tipo}_${ idContador }`
-    let idRa = `ra_${tipo}_${ idContador }`
-    let idDiv = `${ tipo }_div_${ idContador }`
+    let idNome = `autor_${ idContador }`
+    let idRa = `ra_autor_${ idContador }`
+    let idDiv = `autor_div_${ idContador }`
 
     let tituloNome = document.createElement('label')
     tituloNome.innerHTML = `Autor extra ${ idContador }:`
@@ -146,11 +152,11 @@ function adicionaCampo(tipo){
     btnRemove.type = 'button'
     btnRemove.value = 'Remover'
     btnRemove.onclick = function(){
-        document.getElementById(`${ tipo }_div_${ idContador }`).remove()
+        document.getElementById(`autor_div_${ idContador }`).remove()
         idContador--
     }
 
-    let container = document.getElementById('imendaHTML'+ tipo)
+    let container = document.getElementById('imendaHTMLautor')
     fieldset.append(tituloNome, inputNome)
     fieldset.innerHTML += '<br>'
     fieldset.append(tituloRa, inputRa)

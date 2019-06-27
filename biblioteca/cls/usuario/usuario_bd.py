@@ -5,7 +5,7 @@ def busca_usuario(nomeUsuario):
     nomeUsuario = '%' + nomeUsuario + '%'
     val = bd_conn.bd_busca(
         'select * from usuarios where nomeUsuario like (%s)',
-        nomeUsuario
+        (nomeUsuario,)
     )
     if(not val):
         val = ''
@@ -16,7 +16,7 @@ def busca_usuario(nomeUsuario):
 def busca_usuario_cmp(nomeUsuario):
     val = bd_conn.bd_busca(
         'select * from usuarios where nomeUsuario = %s',
-        nomeUsuario
+        (nomeUsuario,)
     )
     if(not val):
         val = ''
