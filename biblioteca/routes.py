@@ -42,8 +42,7 @@ def not_logged_in(f):
     return wrap
 
 @app.route('/static/secret/<path:path>')
-@app.route('/static/secret/')
-@app.route('/<path:path>', defaults={'path':''})
+@app.route('/static/secret/', defaults={'path':''})
 @login_reqired
 def not_allowed(path):
     return redirect(path)
