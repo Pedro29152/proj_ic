@@ -68,11 +68,18 @@
         </tr>
     </table>
     <div style="float: left; width: 49%">
-        Autores
-        
-        <input type="text" name="autor" placeholder="Este campo é fixo!"/>
-                
-        <div id="imendaHTMLautor">
+        <fieldset>
+            <legend>
+                Autor 1
+            </legend>
+        <label for="Autor">Nome:</label>
+        <input type="text" name="Autor" placeholder="Digite o nome do autor"/>
+        <br>
+        <label for="ra">Ra:</label>
+        <input type="text" name="ra_autor" placeholder="Digite o RA" maxlength="13"/>
+             
+        </fieldset>
+        <div id="imendaHTMLAutor">
     
         </div>
                 
@@ -94,36 +101,62 @@ function exclui(id){
 }
 
 function adicionaAutor(){
-	let tipoCampo = "autor";
+	let tipoCampo = "Autor";
 	adicionaCampo(tipoCampo);
 }
 
 function adicionaCampo(tipo){
+    if(idContador > 2){
+        return
+    }
     idContador++
-    let idCampo = `${tipo}_${ idContador }`
+    let idNome = `${tipo}_${ idContador }`
+    let idRa = `ra_${tipo}_${ idContador }`
     let idDiv = `${ tipo }_div_${ idContador }`
 
-    let titulo = document.createElement('label')
-    titulo.innerHTML = `Autor extra ${ idContador }:`
+    let tituloNome = document.createElement('label')
+    tituloNome.innerHTML = `Autor extra ${ idContador }:`
 
-    let input = document.createElement('input')
-    input.type = 'text'
-    input.id = idCampo
-    input.required = true
-    input.name = idCampo
+    let tituloRa = document.createElement('label')
+    tituloRa.innerHTML = `Ra extra ${ idContador }:`
 
     let div = document.createElement('div')
     div.id = idDiv
     
+    let fieldset = document.createElement('fieldset')
+    let legend = document.createElement('legend')
+    legend.innerHTML = `${ tipo } ${ idContador + 1 }`
+    fieldset.append(legend)
+    
+    let inputNome = document.createElement('input')
+    inputNome.type = 'text'
+    inputNome.id = idNome
+    inputNome.required = true
+    inputNome.name = idNome
+
+    let inputRa = document.createElement('input')
+    inputRa.type = 'text'
+    inputRa.id = idRa
+    inputRa.required = true
+    inputRa.name = idRa
+    inputRa.maxLength = 13
+
     let btnRemove = document.createElement('input')
     btnRemove.id = 'btnRemove'
     btnRemove.type = 'button'
     btnRemove.value = 'Remover'
-    btnRemove.click(remove())
+    btnRemove.onclick = function(){
+        document.getElementById(`${ tipo }_div_${ idContador }`).remove()
+        idContador--
+    }
 
     let container = document.getElementById('imendaHTML'+ tipo)
-
-    div.append(titulo, input, btnRemove)
+    fieldset.append(tituloNome, inputNome)
+    fieldset.innerHTML += '<br>'
+    fieldset.append(tituloRa, inputRa)
+    fieldset.innerHTML += '<br>'
+    fieldset.append(btnRemove)
+    div.append(fieldset)
     container.append(div)
 }
 

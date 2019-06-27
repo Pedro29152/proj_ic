@@ -1,5 +1,12 @@
 from biblioteca import bd_conn
 from biblioteca.cls.autor import autor_bd
+from biblioteca.cls.curso.curso_bd import get_codCurso, get_abbr_curso
+from biblioteca.cls.gerenciador.gerenciador_bd import get_codGer_usr
+from random import randint
+import datetime, os
+from werkzeug.utils import secure_filename
+from biblioteca import app
+from werkzeug.exceptions import BadRequestKeyError
 
 def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     '''
@@ -109,23 +116,23 @@ def upload_projeto(req, nomeGer):
         
         autor = []
         autor.append({
-            'nome': req.form['autor'], 
+            'nome': req.form['Autor'], 
             'ra':   req.form['ra_autor']
         })
 
 
         i = 1
         try:
-            while req.form['autor_' + str(i)] != None:
-                nome = req.form['autor_' + str(i)]
-                ra = req.form['ra_autor_' + str(i)]
+            while req.form['Autor_' + str(i)] != None:
+                nome = req.form['Autor_' + str(i)]
+                ra = req.form['ra_Autor_' + str(i)]
                 if(autor != '' and ra != ''):
                     autor.append({
                         'nome': nome,
                         'ra':   ra
                     })
                     i += 1
-        except:
+        except BadRequestKeyError:
             None
     except:
         return False

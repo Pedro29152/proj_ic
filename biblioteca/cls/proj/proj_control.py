@@ -1,12 +1,7 @@
 from biblioteca import app
-from biblioteca.cls.curso.curso_bd import get_codCurso, get_abbr_curso
-from biblioteca.cls.gerenciador.gerenciador_bd import get_codGer_usr
 from biblioteca.cls.proj.proj_bd import (busca_projeto_curso, busca_projeto_descricao, \
     busca_projeto_orientador, busca_projeto_titulo, grava_projeto, upload_projeto)
 from flask import redirect, url_for, send_from_directory, send_file, flash, session
-from random import randint
-import datetime, os
-from werkzeug.utils import secure_filename
 
 ALLOWED_EXTENSIONS = set(['pdf'])
 
