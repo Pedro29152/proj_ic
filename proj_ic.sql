@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.16, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.12, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: proj_ic
 -- ------------------------------------------------------
--- Server version	8.0.16
+-- Server version	8.0.12
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -107,7 +107,7 @@ CREATE TABLE `palavras_chave` (
   `codProjeto` int(11) NOT NULL,
   PRIMARY KEY (`codPalavra`),
   KEY `FK_PROJETO_idx` (`codProjeto`),
-  CONSTRAINT `FK_PALAVRA_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codProjeto`)
+  CONSTRAINT `FK_PALAVRA_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -132,8 +132,8 @@ CREATE TABLE `projeto_autor` (
   `codAutor` int(11) NOT NULL,
   PRIMARY KEY (`codProjeto`,`codAutor`),
   KEY `FK_AUTOR_idx` (`codAutor`),
-  CONSTRAINT `FK_AUTOR` FOREIGN KEY (`codAutor`) REFERENCES `autores` (`codAutor`),
-  CONSTRAINT `FK_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codProjeto`)
+  CONSTRAINT `FK_AUTOR` FOREIGN KEY (`codAutor`) REFERENCES `autores` (`codautor`),
+  CONSTRAINT `FK_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -172,9 +172,9 @@ CREATE TABLE `projetos` (
   PRIMARY KEY (`codProjeto`),
   KEY `FK_GERENCIAOR_idx` (`codGerenciador`),
   KEY `FK_CURSO_idx` (`codCurso`),
-  CONSTRAINT `FK_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codCurso`),
-  CONSTRAINT `FK_GERENCIAOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codGerenciador`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `FK_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codcurso`),
+  CONSTRAINT `FK_GERENCIAOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codgerenciador`)
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -183,7 +183,7 @@ CREATE TABLE `projetos` (
 
 LOCK TABLES `projetos` WRITE;
 /*!40000 ALTER TABLE `projetos` DISABLE KEYS */;
-INSERT INTO `projetos` VALUES (9,'nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lore','asdas','wqeaeee','ADS-NLLNLLNLLNLLNLLNLL-2019-05-22-0X993AB3.jpeg',0,0,0,0,7.00,'2019-05-08','2019-05-22 23:25:13',2,2,1),(10,'bom dia man','ooosmkd','asmdoamsodmaoskdmasokdm','ADS-BOM-DIA-MAN-2019-05-23-0X78A11A.pdf',0,0,0,0,4.50,'2000-03-01','2019-05-23 18:43:34',2,2,1),(11,'toptop','2','qs','JD-TOPTOP-2019-06-10-0X56141C.pdf',0,0,0,0,3.00,'2019-06-20','2019-06-10 21:06:25',2,1,1),(12,'sla man kkkkkkkkkkkkkkk','asdas','ssasdasd','JD-SLA-MAN-KKKKKKKKKKKKKKK-2019-06-10-0XA95CEF.pdf',0,0,0,0,3.00,'2019-06-28','2019-06-10 21:07:22',2,1,1),(13,'titullo','salve','asoiajsoaknsd','JD-TITULLO-2019-06-10-0X3DDE70.pdf',0,0,0,0,9.90,'2019-06-07','2019-06-10 21:54:14',2,1,1);
+INSERT INTO `projetos` VALUES (9,'nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lore','asdas','wqeaeee','ADS-NLLNLLNLLNLLNLLNLL-2019-05-22-0X993AB3.jpeg',0,0,0,0,7.00,'2019-05-08','2019-05-22 23:25:13',2,2,1),(11,'toptop','2','qs','JD-TOPTOP-2019-06-10-0X56141C.pdf',0,0,0,0,3.00,'2019-06-20','2019-06-10 21:06:25',2,1,1),(13,'titullo','salve','asoiajsoaknsd','JD-TITULLO-2019-06-10-0X3DDE70.pdf',0,0,0,0,9.90,'2019-06-07','2019-06-10 21:54:14',2,1,1),(14,'qwe','qwe','qweqwe','ADS-QWE-2019-06-23-0X34E590.pdf',0,0,0,0,2.00,'2019-06-06','2019-06-23 20:52:22',2,2,1),(20,'Biblioteca de Trabalhos Cientificos','Rosana','projeto de biblioteca mto bom','ADS-BIBLIOTECA-DE-TRABALHOS-CIENTIFICOS-2019-06-26-0X6E412E.pdf',0,0,0,0,10.00,'2019-06-25','2019-06-26 17:56:03',2,2,1);
 /*!40000 ALTER TABLE `projetos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -203,8 +203,8 @@ CREATE TABLE `usuarios` (
   `codGerenciador` int(11) NOT NULL,
   PRIMARY KEY (`codUsuario`),
   KEY `FK_GERENCIADOR_idx` (`codGerenciador`),
-  CONSTRAINT `FK_GERENCIADOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codGerenciador`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `FK_GERENCIADOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codgerenciador`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -213,7 +213,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:50000$ugKk3qk8$a68e58926f85dff54dd23416597dff7465f9855ff94f877d9dbdc4243e1d80d9',3,1,2),(4,'disney','pbkdf2:sha256:50000$zUdr3r5C$7f2bed966da6205d972f22d79c06be28f21e9b1e004992513f966f6c06c260a3',1,1,1),(5,'pedro-vitorio@hotmail.com','pbkdf2:sha256:50000$VKwcWIhd$62c3d81302c5f29b092c89865022cbd1c1e35e704a505ddba17a497f1cf9d74e',1,1,2);
+INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:50000$ugKk3qk8$a68e58926f85dff54dd23416597dff7465f9855ff94f877d9dbdc4243e1d80d9',3,1,2),(4,'disney','pbkdf2:sha256:50000$zUdr3r5C$7f2bed966da6205d972f22d79c06be28f21e9b1e004992513f966f6c06c260a3',1,1,1),(5,'pedro-vitorio@hotmail.com','pbkdf2:sha256:50000$VKwcWIhd$62c3d81302c5f29b092c89865022cbd1c1e35e704a505ddba17a497f1cf9d74e',1,1,2),(6,'elainecristinacamacho@gmail.com','pbkdf2:sha256:50000$xZdcfgpn$dd92906ba187beb1699576cc07709db3771ab70fde0d388deb3705fd1118d59e',2,1,2);
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -226,4 +226,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-06-10 21:59:26
+-- Dump completed on 2019-06-26 17:59:15

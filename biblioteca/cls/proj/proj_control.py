@@ -1,65 +1,14 @@
 from biblioteca import app
 from biblioteca.cls.curso.curso_bd import get_codCurso, get_abbr_curso
-from biblioteca.cls.gerenciador import gerenciador_bd
+from biblioteca.cls.gerenciador.gerenciador_bd import get_codGer_usr
 from biblioteca.cls.proj.proj_bd import (busca_projeto_curso, busca_projeto_descricao, \
-    busca_projeto_orientador, busca_projeto_titulo, grava_projeto)
-from flask import redirect, url_for
+    busca_projeto_orientador, busca_projeto_titulo, grava_projeto, upload_projeto)
+from flask import redirect, url_for, send_from_directory, send_file, flash, session
 from random import randint
 import datetime, os
 from werkzeug.utils import secure_filename
 
-def upload_projeto(req, nomeGer):
-    titulo = req.form['titulo']
-    nomeOrientador = req.form['nomeOrientador']
-    descricao = req.form['descricao']
-    notaProj = req.form['notaProj']
-    dataAvaliacao = req.form['dataAvaliacao']
-    curso = req.form['curso']
-    file = req.files['file']
-
-    codCurso =  get_codCurso(curso)
-
-    rand = hex(randint(0x100000,0xffffff))
-    data = datetime.datetime.now()
-    data = data.date()
-
-    filename = secure_filename(file.filename)
-    nfilename = filename.rsplit('.',2)[0]
-
-    if len(curso) >= 10:
-        curso = get_abbr_curso(curso)
-
-    tituloarq = titulo
-    if len(titulo) > 41:
-        aux = titulo.split()
-        tituloarq = ""
-        for div in aux:
-            tituloarq += div[0]
-
-
-    filename = filename.replace(
-        nfilename, 
-        curso.upper().replace(' ', '-') + '-' +
-        tituloarq.upper().replace(' ', '-') + '-' + 
-        str(data) + "-" + str(rand).upper()
-    )
-    
-    codGer = gerenciador_bd.get_codGer_usr(nomeGer)
-    
-    grava_projeto(
-        titulo, nomeOrientador, descricao,
-        filename, notaProj, dataAvaliacao, 
-        codGer, codCurso
-    )
-
-    file.save(
-        os.path.join(
-            app.config['UPLOAD_FOLDER'], 
-            filename
-        )
-    )
-    return redirect(url_for('upload_file', filename=filename))
-
+ALLOWED_EXTENSIONS = set(['pdf'])
 
 def busca_curso(req = None):
     try:
@@ -144,4 +93,38 @@ def busca_orientador(req = None):
         cres = True
 
     return busca_projeto_orientador(orientador, ordem, cres)
+ 
+def upload(req):
+    if 'file' not in req.files:
+        flash("Nenhum arquivo enviado")
+        return redirect(req.url)
+
+    if req.files['file'].filename == '':
+        flash('Nenhum arquivo selecionado')
+        return redirect(req.url)
+
+    if req.files['file'] and allowed_file(req.files['file'].filename):
+        if(upload_projeto(req, session['username'])):
+            flash("Arquvio enviado com sucesso")
+            return redirect(url_for('upload_file', filename=req.files['file'].filename))
+        else:
+            flash('Preencha todos os campos corretamente')
+            return redirect(req.url)
+            
+            
+    elif not allowed_file(req.files['file'].filename):
+        flash('Erro: extensão nao suportada')
+        return redirect(req.url)
     
+    else:
+        flash('Um erro inesperado occoreu')
+        return redirect(req.url)
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def download_arquivo(filename):
+    uploads = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
+    file = open(uploads + '/' + filename, 'r')
+    return file

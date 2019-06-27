@@ -29,6 +29,21 @@ def bd_busca(query, busca):
 
     return val
 
+def bd_busca_um(query, busca):
+    try:
+        conn, cursor = conecta()
+        cursor.execute(
+            query,
+            [busca,]
+        )
+
+        val = cursor.fetchone()
+
+    finally:
+        conn.close()
+
+    return val
+
 def bd_gravar(query, *args):
     try:
         conn, cursor = conecta()

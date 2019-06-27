@@ -1,4 +1,4 @@
-from biblioteca                 import (app, arquivos, login, cls)
+from biblioteca                 import (app, login)
 from flask                      import (Flask, render_template, redirect, request,\
     flash, url_for, jsonify,send_from_directory, session, make_response)
 from functools                  import wraps
@@ -38,7 +38,7 @@ def  index():
 @login_reqired
 def upload_file():
     if request.method == "POST":
-        return arquivos.upload(request)
+        return proj_control.upload(request)
             
     cursos = curso_bd.busca_curso("")
     return render_template("upload.html", cursos= cursos )

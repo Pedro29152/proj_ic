@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Gravar arquivo</h1>
 <form method=post enctype=multipart/form-data>
-    <table>
+    <table style="float: left; width: 50%">
         <tr>
             <td> 
                 titulo:
@@ -62,20 +62,73 @@
                 arquivo:
             </td>
             <td>
-                <input type=file name=file 
+                <input type="file" name="file" 
                 onchange="document.getElementById('nome').innerHTML = this.value" id="file" required>
             </td>
         </tr>
     </table>
+    <div style="float: left; width: 49%">
+        Autores
+        
+        <input type="text" name="autor" placeholder="Este campo é fixo!"/>
+                
+        <div id="imendaHTMLautor">
     
-    
-    
-    
-
-    </table>
-
-    <input type=submit value=Upload>
+        </div>
+                
+        <input type="button" id="btnAdicionaAutor" value="adicionar mais um autor" style="padding: 2px"
+        onclick="adicionaAutor()">      
+        <br>
+        <input type=submit value=Upload>
+    </div>
 </form>
 <p>[[ filename ]]</p>
 <p id="nome"></p>
+
+<script type="text/javascript">
+var idContador = 0
+
+function exclui(id){
+	var campo = $("#"+id.id);
+	campo.hide(200);
+}
+
+function adicionaAutor(){
+	let tipoCampo = "autor";
+	adicionaCampo(tipoCampo);
+}
+
+function adicionaCampo(tipo){
+    idContador++
+    let idCampo = `${tipo}_${ idContador }`
+    let idDiv = `${ tipo }_div_${ idContador }`
+
+    let titulo = document.createElement('label')
+    titulo.innerHTML = `Autor extra ${ idContador }:`
+
+    let input = document.createElement('input')
+    input.type = 'text'
+    input.id = idCampo
+    input.required = true
+    input.name = idCampo
+
+    let div = document.createElement('div')
+    div.id = idDiv
+    
+    let btnRemove = document.createElement('input')
+    btnRemove.id = 'btnRemove'
+    btnRemove.type = 'button'
+    btnRemove.value = 'Remover'
+    btnRemove.click(remove())
+
+    let container = document.getElementById('imendaHTML'+ tipo)
+
+    div.append(titulo, input, btnRemove)
+    container.append(div)
+}
+
+function remove(id){
+    document.getElementById(id).remove()
+}
+</script>
 {% endblock %}

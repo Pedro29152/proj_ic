@@ -1,4 +1,5 @@
 from biblioteca import bd_conn
+from biblioteca.cls.autor import autor_bd
 
 def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     '''
@@ -21,7 +22,7 @@ def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     Caso crescente for False ele ordena de ordem decrescente
     Por padrao crescente recebe o valor True
     '''
-    query = 'SELECT * FROM projetos WHERE tituloProjeto LIKE (%s) '
+    query = 'SELECT * FROM projetos WHERE tituloProjeto LIKE (%s) AND ativo = 1 '
 
     titulo = "%" + titulo + "%"
 
@@ -32,7 +33,7 @@ def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     )
 
 def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
-    query = 'SELECT * FROM projetos NATURAL JOIN cursos WHERE descricaoCurso LIKE (%s) '
+    query = 'SELECT * FROM projetos NATURAL JOIN cursos WHERE descricaoCurso LIKE (%s) AND ativo = 1 '
 
     nomeCurso = '%' + nomeCurso + '%'
 
@@ -43,7 +44,7 @@ def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
     )
         
 def busca_projeto_descricao(descricao, ordem = 0, crescente = True):
-    query = 'SELECT * FROM projetos WHERE descricao LIKE (%s) '
+    query = 'SELECT * FROM projetos WHERE descricao LIKE (%s) AND ativo = 1 '
 
     descricao = '%' + descricao + '%'
 
@@ -55,7 +56,7 @@ def busca_projeto_descricao(descricao, ordem = 0, crescente = True):
 
 
 def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
-    query = 'SELECT * FROM projetos WHERE nomeOrientador LIKE (%s) '
+    query = 'SELECT * FROM projetos WHERE nomeOrientador LIKE (%s) AND ativo = 1 '
     
     nomeOrientador = '%' + nomeOrientador + '%'
     
@@ -65,6 +66,12 @@ def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
         nomeOrientador
     )    
 
+def busca_cod_projeto(titulo):
+    query = 'select codProjeto from projetos where tituloProjeto = %s order by codProjeto desc'
+
+    val = bd_conn.bd_busca_um(query, titulo)
+
+    return val
 
 def grava_projeto(
     titulo, 
@@ -74,13 +81,97 @@ def grava_projeto(
     notaProj, 
     dataAvaliacao,
     codGer,
-    codCurso):
+    codCurso,
+    autor):
     bd_conn.bd_gravar(
         'insert into projetos'+
-        '(tituloProjeto,nomeOrientador,descricao,nomeArquivo,notaProjeto,dataAvaliacao,codGerenciador,codCurso,ativo)'+
+        '(tituloProjeto, nomeOrientador, descricao, nomeArquivo, notaProjeto, dataAvaliacao, codGerenciador, codCurso, ativo)'+
         'values(%s,%s,%s,%s,%s,%s,%s,%s,1)',
-        (titulo,nomeOrientador,descricao,nomeArquivo,notaProj,dataAvaliacao,codGer,codCurso)
+        (titulo, nomeOrientador, descricao, nomeArquivo, notaProj, dataAvaliacao, codGer, codCurso)
     )
+
+    codProjeto = busca_cod_projeto(titulo)
+    
+    i = 0
+    for aut in autor:
+        autor_bd.grava_autor(str(aut['nome']), str(aut['ra']), codProjeto['codProjeto'])
+        i += 1
+
+def upload_projeto(req, nomeGer):
+    try:
+        titulo = req.form['titulo']
+        nomeOrientador = req.form['nomeOrientador']
+        descricao = req.form['descricao']
+        notaProj = req.form['notaProj']
+        dataAvaliacao = req.form['dataAvaliacao']
+        curso = req.form['curso']
+        file = req.files['file']
+        
+        autor = []
+        autor.append({
+            'nome': req.form['autor'], 
+            'ra':   req.form['ra_autor']
+        })
+
+
+        i = 1
+        try:
+            while req.form['autor_' + str(i)] != None:
+                nome = req.form['autor_' + str(i)]
+                ra = req.form['ra_autor_' + str(i)]
+                if(autor != '' and ra != ''):
+                    autor.append({
+                        'nome': nome,
+                        'ra':   ra
+                    })
+                    i += 1
+        except:
+            None
+    except:
+        return False
+
+    codCurso = get_codCurso(curso)
+
+    rand = hex(randint(0x100000,0xffffff))
+    data = datetime.datetime.now()
+    data = data.date()
+
+    filename = secure_filename(file.filename)
+    nfilename = filename.rsplit('.',2)[0]
+
+    if len(curso) >= 10:
+        curso = get_abbr_curso(curso)
+
+    tituloarq = titulo
+    if len(titulo) > 41:
+        aux = titulo.split()
+        tituloarq = ""
+        for div in aux:
+            tituloarq += div[0]
+
+    filename = filename.replace(
+        nfilename, 
+        curso.upper().replace(' ', '-') + '-' +
+        tituloarq.upper().replace(' ', '-') + '-' + 
+        str(data) + "-" + str(rand).upper()
+    )
+    
+    codGer = get_codGer_usr(nomeGer)
+    
+    grava_projeto(
+        titulo, nomeOrientador, descricao,
+        filename, notaProj, dataAvaliacao, 
+        codGer, codCurso, autor
+    )
+
+    file.save(
+        os.path.join(
+            app.config['UPLOAD_FOLDER'], 
+            filename
+        )
+    )
+    return True
+
 
 def ordena(ordem, crescente):
     cres = ''
