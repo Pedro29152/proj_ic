@@ -61,7 +61,6 @@ def busca_projeto_descricao(descricao, ordem = 0, crescente = True):
         descricao
     )
 
-
 def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
     query = 'SELECT * FROM projetos WHERE nomeOrientador LIKE (%s) AND ativo = 1 '
     
@@ -105,38 +104,35 @@ def grava_projeto(
         i += 1
 
 def upload_projeto(req, nomeGer):
+
+    titulo = req.form['titulo']
+    nomeOrientador = req.form['nomeOrientador']
+    descricao = req.form['descricao']
+    notaProj = req.form['notaProj']
+    dataAvaliacao = req.form['dataAvaliacao']
+    curso = req.form['curso']
+    file = req.files['file']
+    
+    autor = []
+    autor.append({
+        'nome': req.form['autor'], 
+        'ra':   req.form['ra_autor']
+    })
+
+
+    i = 1
     try:
-        titulo = req.form['titulo']
-        nomeOrientador = req.form['nomeOrientador']
-        descricao = req.form['descricao']
-        notaProj = req.form['notaProj']
-        dataAvaliacao = req.form['dataAvaliacao']
-        curso = req.form['curso']
-        file = req.files['file']
-        
-        autor = []
-        autor.append({
-            'nome': req.form['Autor'], 
-            'ra':   req.form['ra_autor']
-        })
-
-
-        i = 1
-        try:
-            while req.form['Autor_' + str(i)] != None:
-                nome = req.form['Autor_' + str(i)]
-                ra = req.form['ra_Autor_' + str(i)]
-                if(autor != '' and ra != ''):
-                    autor.append({
-                        'nome': nome,
-                        'ra':   ra
-                    })
-                    i += 1
-        except BadRequestKeyError:
-            None
-    except:
-        return False
-
+        while req.form['autor_' + str(i)] != None:
+            nome = req.form['autor_' + str(i)]
+            ra = req.form['ra_autor_' + str(i)]
+            if(autor != '' and ra != ''):
+                autor.append({
+                    'nome': nome,
+                    'ra':   ra
+                })
+                i += 1
+    except BadRequestKeyError:
+        None
     codCurso = get_codCurso(curso)
 
     rand = hex(randint(0x100000,0xffffff))

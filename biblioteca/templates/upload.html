@@ -72,14 +72,14 @@
             <legend>
                 Autor 1
             </legend>
-        <label for="Autor">Nome:</label>
-        <input type="text" name="Autor" placeholder="Digite o nome do autor"/>
+        <label for="autor">Nome:</label>
+        <input type="text" name="autor" placeholder="Digite o nome do autor"/>
         <br>
         <label for="ra">Ra:</label>
         <input type="text" name="ra_autor" placeholder="Digite o RA" maxlength="13"/>
              
         </fieldset>
-        <div id="imendaHTMLAutor">
+        <div id="imendaHTMLautor">
     
         </div>
                 
@@ -101,7 +101,7 @@ function exclui(id){
 }
 
 function adicionaAutor(){
-	let tipoCampo = "Autor";
+	let tipoCampo = "autor";
 	adicionaCampo(tipoCampo);
 }
 
@@ -125,7 +125,7 @@ function adicionaCampo(tipo){
     
     let fieldset = document.createElement('fieldset')
     let legend = document.createElement('legend')
-    legend.innerHTML = `${ tipo } ${ idContador + 1 }`
+    legend.innerHTML = `Autor ${ idContador + 1 }`
     fieldset.append(legend)
     
     let inputNome = document.createElement('input')
