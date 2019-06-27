@@ -24,12 +24,15 @@ DROP TABLE IF EXISTS `autores`;
  SET character_set_client = utf8mb4 ;
 CREATE TABLE `autores` (
   `codAutor` int(11) NOT NULL AUTO_INCREMENT,
-  `raAutor` varchar(12) NOT NULL,
+  `raAutor` varchar(13) NOT NULL,
   `nomeAutor` varchar(200) NOT NULL,
+  `codProjeto` int(11) NOT NULL,
   PRIMARY KEY (`codAutor`),
   UNIQUE KEY `raAutor_UNIQUE` (`raAutor`),
-  UNIQUE KEY `codAutor_UNIQUE` (`codAutor`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `codAutor_UNIQUE` (`codAutor`),
+  KEY `FK_PROJETO_idx` (`codProjeto`),
+  CONSTRAINT `FK_AUTOR_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -174,7 +177,7 @@ CREATE TABLE `projetos` (
   KEY `FK_CURSO_idx` (`codCurso`),
   CONSTRAINT `FK_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codcurso`),
   CONSTRAINT `FK_GERENCIAOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codgerenciador`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -183,7 +186,7 @@ CREATE TABLE `projetos` (
 
 LOCK TABLES `projetos` WRITE;
 /*!40000 ALTER TABLE `projetos` DISABLE KEYS */;
-INSERT INTO `projetos` VALUES (9,'nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lore','asdas','wqeaeee','ADS-NLLNLLNLLNLLNLLNLL-2019-05-22-0X993AB3.jpeg',0,0,0,0,7.00,'2019-05-08','2019-05-22 23:25:13',2,2,1),(11,'toptop','2','qs','JD-TOPTOP-2019-06-10-0X56141C.pdf',0,0,0,0,3.00,'2019-06-20','2019-06-10 21:06:25',2,1,1),(13,'titullo','salve','asoiajsoaknsd','JD-TITULLO-2019-06-10-0X3DDE70.pdf',0,0,0,0,9.90,'2019-06-07','2019-06-10 21:54:14',2,1,1),(14,'qwe','qwe','qweqwe','ADS-QWE-2019-06-23-0X34E590.pdf',0,0,0,0,2.00,'2019-06-06','2019-06-23 20:52:22',2,2,1),(20,'Biblioteca de Trabalhos Cientificos','Rosana','projeto de biblioteca mto bom','ADS-BIBLIOTECA-DE-TRABALHOS-CIENTIFICOS-2019-06-26-0X6E412E.pdf',0,0,0,0,10.00,'2019-06-25','2019-06-26 17:56:03',2,2,1);
+INSERT INTO `projetos` VALUES (9,'nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lorem nome lorem lore','asdas','wqeaeee','ADS-NLLNLLNLLNLLNLLNLL-2019-05-22-0X993AB3.jpeg',0,0,0,0,7.00,'2019-05-08','2019-05-22 23:25:13',2,2,1),(11,'toptop','2','qs','JD-TOPTOP-2019-06-10-0X56141C.pdf',0,0,0,0,3.00,'2019-06-20','2019-06-10 21:06:25',2,1,1),(13,'titullo','salve','asoiajsoaknsd','JD-TITULLO-2019-06-10-0X3DDE70.pdf',0,0,0,0,9.90,'2019-06-07','2019-06-10 21:54:14',2,1,1),(14,'qwe','qwe','qweqwe','ADS-QWE-2019-06-23-0X34E590.pdf',0,0,0,0,2.00,'2019-06-06','2019-06-23 20:52:22',2,2,1),(20,'Biblioteca de Trabalhos Cientificos','Rosana','projeto de biblioteca mto bom','ADS-BIBLIOTECA-DE-TRABALHOS-CIENTIFICOS-2019-06-26-0X6E412E.pdf',0,0,0,0,10.00,'2019-06-25','2019-06-26 17:56:03',2,2,1),(21,'ascii','asa','aasdasd','ADS-ASCII-2019-06-26-0XF05376.pdf',0,0,0,0,2.00,'2019-06-05','2019-06-26 18:34:44',2,2,1),(30,'tituloDinay','ari','nasncoian woimoiam cas ','ADS-TITULODINAY-2019-06-26-0X404807._ANDRE_LUIZ_CAMACHO.pdf',0,0,0,0,5.00,'2019-06-21','2019-06-26 22:23:15',2,2,1),(31,'tituloDinay','ari','nasncoian woimoiam cas ','ADS-TITULODINAY-2019-06-26-0X2F6AC6._ANDRE_LUIZ_CAMACHO.pdf',0,0,0,0,5.00,'2019-06-21','2019-06-26 22:23:46',2,2,1),(32,'tituloDinay','ari','nasncoian woimoiam cas ','ADS-TITULODINAY-2019-06-26-0X21EA8D._ANDRE_LUIZ_CAMACHO.pdf',0,0,0,0,5.00,'2019-06-21','2019-06-26 22:24:09',2,2,1),(33,'asd','asd','asd','ADS-ASD-2019-06-26-0XFB5576.pdf',0,0,0,0,5.00,'2019-06-07','2019-06-26 22:25:17',2,2,1),(34,'eae','qwe','123','ADS-EAE-2019-06-26-0XDD5CCA._ANDRE_LUIZ_CAMACHO.pdf',0,0,0,0,3.00,'2019-06-20','2019-06-26 22:32:23',2,2,1),(35,'arr','asd','asdadasdasd','ADS-ARR-2019-06-26-0X418E87.pdf',0,0,0,0,6.00,'2019-06-15','2019-06-26 22:33:35',2,2,1),(36,'arr','asd','asdadasdasd','ADS-ARR-2019-06-26-0XBEB22F.pdf',0,0,0,0,6.00,'2019-06-15','2019-06-26 22:34:09',2,2,1),(37,'arr','asd','asdadasdasd','ADS-ARR-2019-06-26-0XF8CD6B.pdf',0,0,0,0,6.00,'2019-06-15','2019-06-26 22:34:50',2,2,1);
 /*!40000 ALTER TABLE `projetos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -204,7 +207,7 @@ CREATE TABLE `usuarios` (
   PRIMARY KEY (`codUsuario`),
   KEY `FK_GERENCIADOR_idx` (`codGerenciador`),
   CONSTRAINT `FK_GERENCIADOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codgerenciador`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -213,7 +216,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:50000$ugKk3qk8$a68e58926f85dff54dd23416597dff7465f9855ff94f877d9dbdc4243e1d80d9',3,1,2),(4,'disney','pbkdf2:sha256:50000$zUdr3r5C$7f2bed966da6205d972f22d79c06be28f21e9b1e004992513f966f6c06c260a3',1,1,1),(5,'pedro-vitorio@hotmail.com','pbkdf2:sha256:50000$VKwcWIhd$62c3d81302c5f29b092c89865022cbd1c1e35e704a505ddba17a497f1cf9d74e',1,1,2),(6,'elainecristinacamacho@gmail.com','pbkdf2:sha256:50000$xZdcfgpn$dd92906ba187beb1699576cc07709db3771ab70fde0d388deb3705fd1118d59e',2,1,2);
+INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:50000$ugKk3qk8$a68e58926f85dff54dd23416597dff7465f9855ff94f877d9dbdc4243e1d80d9',3,1,2),(4,'disney','pbkdf2:sha256:50000$zUdr3r5C$7f2bed966da6205d972f22d79c06be28f21e9b1e004992513f966f6c06c260a3',1,1,1),(5,'pedro-vitorio@hotmail.com','pbkdf2:sha256:50000$VKwcWIhd$62c3d81302c5f29b092c89865022cbd1c1e35e704a505ddba17a497f1cf9d74e',1,1,2),(6,'elainecristinacamacho@gmail.com','pbkdf2:sha256:50000$xZdcfgpn$dd92906ba187beb1699576cc07709db3771ab70fde0d388deb3705fd1118d59e',2,1,2),(7,'joon','pbkdf2:sha256:50000$uLgZ8N53$3653a8aca4278e7653a263a89ddd0e8920ee5b5291efaa670c268a1c672d9a93',3,1,1);
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -226,4 +229,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-06-26 17:59:15
+-- Dump completed on 2019-06-26 22:43:06
