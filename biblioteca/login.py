@@ -8,6 +8,7 @@ def login_url(request):
     if usuario_bd.verifica_usr(user, senha):
         session['username'] = user
         session['logged_in'] = True
+        session['nivel_acesso'] = usuario_bd.busca_nivel_acesso(user)
     else:
         flash("Ususario ou senha incorretos, tente novamente")
         return redirect(url_for('login_url'))

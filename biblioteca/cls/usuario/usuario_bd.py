@@ -51,3 +51,11 @@ def add_usr(usuario, senha,tipoUsuario,codGerenciador):
     )
     
     return 0
+
+def busca_nivel_acesso(username):
+    val = bd_conn.bd_busca_um(
+        'SELECT tipoUsuario FROM usuarios WHERE nomeUsuario = %s',
+        (username,)
+    )
+
+    return val['tipoUsuario']

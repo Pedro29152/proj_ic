@@ -19,6 +19,17 @@ def login_reqired(f):
 
     return wrap
     
+def admin_reqired(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if session['nivel_acesso'] > 1:
+            return f(*args, **kwargs)
+        else:
+            flash('Seu nivel de acesso nao permite acesso a esta pagina')
+            return redirect(url_for('index'))
+
+    return wrap
+
 def not_logged_in(f):
     @wraps(f)
     def wrap(*args, **kwargs):
@@ -124,6 +135,7 @@ def logout():
 
 @app.route("/cadastrar/", methods=["GET", "POST"])
 @login_reqired
+@admin_reqired
 def cadastro():
     if request.method == "POST":
         return login.cadastro_usr(request)
