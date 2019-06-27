@@ -148,11 +148,11 @@ def upload_projeto(req, nomeGer):
         None
 
     palavrasChave = []
-    palavrasChave.append(req.form['palavraChave'])
+    palavrasChave.append(req.form['palavra_chave'])
     j = 1
     try:
-        while (req.form['palavraChave_' + str(j)] != None):
-            palavra = req.form['palavraChave_' + str(j)]
+        while (req.form['palavra_chave_' + str(j)] != None):
+            palavra = req.form['palavra_chave_' + str(j)]
             if(palavra != ''):
                 palavrasChave.append(palavra)
                 j += 1
