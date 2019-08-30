@@ -111,6 +111,15 @@ def busca_autor():
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
+@app.route('/consulta_proj/palavrasChave', methods=['POST'])
+def busca_palavras_chave():
+    projs = proj_control.busca_palavras_chave(request)
+
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+
 #rota para download de arquivos
 @app.route("/download_file/<path:filename>", methods=["POST","GET"])
 def download(filename): 

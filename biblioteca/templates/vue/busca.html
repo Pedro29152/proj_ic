@@ -111,6 +111,7 @@
                     <thead class="container">
                         <tr>
                             <th scope="col">Nome do Projeto</th>
+                            <th scope="col">Palavras-Chave</th>
                             <th scope="col">Orientador</th>
                             <th scope="col">Autores</th>
                             <th scope="col">Curso</th>
@@ -122,6 +123,10 @@
                         <tr 
                         v-for="item in info"> 
                                 <td>{{item.tituloProjeto}}</td>
+                                <td v-if="!item.palavrasChave">Erro ao encontrar palavras-chave</td>
+                                <td v-else>
+                                    <p v-for="palavraChave in item.palavrasChave">{{palavraChave.palavraChave}}</p>
+                                </td>
                                 <td>{{item.nomeOrientador}}</td>
                                 <td v-if="!item.autores">Erro ao encontrar autor</td>
                                 <td v-else>
@@ -132,7 +137,7 @@
                                     <p>{{item.curso.abreviacao}}</p>
                                 </td>
                                 <td>{{item.dataAvaliacao}}</td>
-                                <td><a v-bind:href="'http://192.168.0.107:5000/download_file/' + item.nomeArquivo">Download</a></td>
+                                <td><a v-bind:href="'/download_file/' + item.nomeArquivo">Download</a></td>
                         </tr>
                     </tbody>
                 </table>
@@ -195,7 +200,10 @@
                     else if(this.tipoPesquisa == 'autor'){
                         url = '/consulta_proj/autor'
                     }
-
+                    else if(this.tipoPesquisa == 'palavrasChave'){
+                        url = '/consulta_proj/palavrasChave'
+                    }
+                    
                     axios
                         .post(url,data)
                         .then(response => {

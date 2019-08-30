@@ -45,6 +45,7 @@ def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
         proj['dataAvaliacao'] = date.strftime(proj['dataAvaliacao'], '%d/%m/%y')
         proj['dataEnvio'] = date.strftime(proj['dataEnvio'], '%d/%m/%y')
         proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
+        proj['palavrasChave'] = busca_palavras_chave(proj['codProjeto'])
         proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
 
     return ret
@@ -64,6 +65,7 @@ def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
         proj['dataAvaliacao'] = date.strftime(proj['dataAvaliacao'], '%d/%m/%y')
         proj['dataEnvio'] = date.strftime(proj['dataEnvio'], '%d/%m/%y')
         proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
+        proj['palavrasChave'] = busca_palavras_chave(proj['codProjeto'])
         proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
 
     return ret
@@ -84,6 +86,7 @@ def busca_projeto_descricao(descricao, ordem = 0, crescente = True):
         proj['dataAvaliacao'] = date.strftime(proj['dataAvaliacao'], '%d/%m/%y')
         proj['dataEnvio'] = date.strftime(proj['dataEnvio'], '%d/%m/%y')
         proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
+        proj['palavrasChave'] = busca_palavras_chave(proj['codProjeto'])
         proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
 
     return ret
@@ -103,6 +106,7 @@ def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
         proj['dataAvaliacao'] = date.strftime(proj['dataAvaliacao'], '%d/%m/%y')
         proj['dataEnvio'] = date.strftime(proj['dataEnvio'], '%d/%m/%y')
         proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
+        proj['palavrasChave'] = busca_palavras_chave(proj['codProjeto'])
         proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
 
     return ret
@@ -127,6 +131,32 @@ def busca_projeto_autor(nomeAutor, ordem = 0, crescente = True):
         proj['dataAvaliacao'] = date.strftime(proj['dataAvaliacao'], '%d/%m/%y')
         proj['dataEnvio'] = date.strftime(proj['dataEnvio'], '%d/%m/%y')
         proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
+        proj['palavrasChave'] = busca_palavras_chave(proj['codProjeto'])
+        proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
+
+    return ret
+
+def busca_projeto_palavras_chave(palavra_chave, ordem = 0, crescente = True):
+    query = '''
+    select distinct 
+    codProjeto, tituloProjeto, nomeOrientador, descricao, nomeArquivo, likes, deslikes, 
+    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codGerenciador, codCurso, ativo
+    from palavras_chave natural join projetos pj where palavraChave like (%s)
+    '''
+    
+    palavra_chave = '%' + palavra_chave + '%'
+    
+    ret = bd_conn.bd_busca(
+        query +
+        ordena(ordem, crescente), 
+        (palavra_chave,)
+    )
+
+    for proj in ret:
+        proj['dataAvaliacao'] = date.strftime(proj['dataAvaliacao'], '%d/%m/%y')
+        proj['dataEnvio'] = date.strftime(proj['dataEnvio'], '%d/%m/%y')
+        proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
+        proj['palavrasChave'] = busca_palavras_chave(proj['codProjeto'])
         proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
 
     return ret
@@ -168,26 +198,21 @@ def grava_projeto(
         grava_palavra_chave(palavra, codProjeto)
 
 def grava_palavra_chave(palavra, codProjeto):
-    val = bd_conn.bd_busca_um(
-        'SELECT codPalavra FROM palavras_chave WHERE palavraChave = %s AND codProjeto = %s',
-        (palavra, codProjeto)
-    )
-    if(val == None):
+    try:
         bd_conn.bd_gravar(
             'INSERT INTO palavras_chave(palavraChave, codProjeto) values(%s, %s)',
             (palavra, codProjeto)
         )
+    except:
+        None
 
-def grava_palavra_chave(palavra, codProjeto):
-    val = bd_conn.bd_busca_um(
-        'SELECT codPalavra FROM palavras_chave WHERE palavraChave = %s AND codProjeto = %s',
-        (palavra, codProjeto)
+def busca_palavras_chave(codProj):
+    palavras = bd_conn.bd_busca(
+        'select palavraChave from palavras_chave natural join projetos pj where codProjeto = %s',
+        (codProj,)
     )
-    if(val == None):
-        bd_conn.bd_gravar(
-            'INSERT INTO palavras_chave(palavraChave, codProjeto) values(%s, %s)',
-            (palavra, codProjeto)
-        )
+    return palavras
+
 
 def upload_projeto(req, nomeGer):
     titulo = req.form['titulo']
@@ -300,4 +325,3 @@ def ordena(ordem, crescente):
         return 'ORDER BY dataEnvio  ' + cres
     else:
         return ''
-    
