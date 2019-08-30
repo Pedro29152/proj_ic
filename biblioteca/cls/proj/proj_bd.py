@@ -5,7 +5,8 @@ from biblioteca.cls.gerenciador.gerenciador_bd import get_codGer_usr
 from biblioteca.cls.curso import curso_bd
 from random import randint
 from flask import flash
-import datetime, os
+from datetime import datetime, date
+import os
 from werkzeug.utils import secure_filename
 from biblioteca import app
 from werkzeug.exceptions import BadRequestKeyError
@@ -41,6 +42,8 @@ def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     )
 
     for proj in ret:
+        proj['dataAvaliacao'] = date.strftime(proj['dataAvaliacao'], '%d/%m/%y')
+        proj['dataEnvio'] = date.strftime(proj['dataEnvio'], '%d/%m/%y')
         proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
         proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
 
@@ -58,6 +61,8 @@ def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
     )
     
     for proj in ret:
+        proj['dataAvaliacao'] = date.strftime(proj['dataAvaliacao'], '%d/%m/%y')
+        proj['dataEnvio'] = date.strftime(proj['dataEnvio'], '%d/%m/%y')
         proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
         proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
 
@@ -76,6 +81,8 @@ def busca_projeto_descricao(descricao, ordem = 0, crescente = True):
     )
 
     for proj in ret:
+        proj['dataAvaliacao'] = date.strftime(proj['dataAvaliacao'], '%d/%m/%y')
+        proj['dataEnvio'] = date.strftime(proj['dataEnvio'], '%d/%m/%y')
         proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
         proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
 
@@ -93,6 +100,32 @@ def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
     )
 
     for proj in ret:
+        proj['dataAvaliacao'] = date.strftime(proj['dataAvaliacao'], '%d/%m/%y')
+        proj['dataEnvio'] = date.strftime(proj['dataEnvio'], '%d/%m/%y')
+        proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
+        proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
+
+    return ret
+
+def busca_projeto_autor(nomeAutor, ordem = 0, crescente = True):
+    query = '''
+    select distinct 
+    codProjeto, tituloProjeto, nomeOrientador, descricao, nomeArquivo, likes, deslikes, 
+    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codGerenciador, codCurso, ativo
+    from autores natural join projeto_autor natural join projetos pj where nomeAutor like (%s)
+    '''
+    
+    nomeAutor = '%' + nomeAutor + '%'
+    
+    ret = bd_conn.bd_busca(
+        query +
+        ordena(ordem, crescente), 
+        (nomeAutor,)
+    )
+
+    for proj in ret:
+        proj['dataAvaliacao'] = date.strftime(proj['dataAvaliacao'], '%d/%m/%y')
+        proj['dataEnvio'] = date.strftime(proj['dataEnvio'], '%d/%m/%y')
         proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
         proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
 
@@ -200,7 +233,7 @@ def upload_projeto(req, nomeGer):
     codCurso = get_codCurso(curso)
 
     rand = hex(randint(0x100000,0xffffff))
-    data = datetime.datetime.now()
+    data = datetime.now()
     data = data.date()
 
     filename = secure_filename(file.filename)

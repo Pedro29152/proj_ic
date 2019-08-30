@@ -123,7 +123,7 @@
                         v-for="item in info"> 
                                 <td>{{item.tituloProjeto}}</td>
                                 <td>{{item.nomeOrientador}}</td>
-                                <td v-if="!item.autores">ninguem</td>
+                                <td v-if="!item.autores">Erro ao encontrar autor</td>
                                 <td v-else>
                                     <p v-for="autor in item.autores">{{autor.nomeAutor}}</p>
                                 </td>
@@ -192,12 +192,15 @@
                     else if(this.tipoPesquisa == 'curso'){
                         url = '/consulta_proj/curso'
                     }
+                    else if(this.tipoPesquisa == 'autor'){
+                        url = '/consulta_proj/autor'
+                    }
 
                     axios
                         .post(url,data)
                         .then(response => {
                             this.info = response.data
-                            console.log(response.data, this.info)
+                            console.log(response.data, response.data[0].dataAvaliacao, typeof(response.data[0].dataAvaliacao))
                         })
                         .catch(error => {
                             alert('Erro 1' + error)

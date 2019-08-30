@@ -18,7 +18,11 @@ def grava_autor(nome, ra, codProj):
 def busca_autor(codProj):
     try:
         return bd_conn.bd_busca(
-            'SELECT autores.nomeAutor, autores.codAutor FROM autores NATURAL JOIN projeto_autor WHERE projeto_autor.codProjeto = %s',
+            '''
+            SELECT autores.nomeAutor, autores.raAutor FROM autores 
+            NATURAL JOIN projeto_autor pa 
+            WHERE pa.codProjeto = %s
+            ''',
             (codProj,)
         )
     except:

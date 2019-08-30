@@ -1,6 +1,7 @@
 from biblioteca import app
 from biblioteca.cls.proj.proj_bd import (busca_projeto_curso, busca_projeto_descricao, \
-    busca_projeto_orientador, busca_projeto_titulo, grava_projeto, upload_projeto)
+    busca_projeto_orientador, busca_projeto_titulo, grava_projeto, upload_projeto, \
+    busca_projeto_autor)
 from flask import redirect, url_for, send_from_directory, send_file, flash, session
 
 ALLOWED_EXTENSIONS = set(['pdf'])
@@ -89,6 +90,27 @@ def busca_orientador(req = None):
 
     return busca_projeto_orientador(orientador, ordem, cres)
  
+def busca_autor(req = None):
+
+    try:
+        autor = req.form['query']
+    except:
+        autor = ''
+
+    try:
+        ordem = int(req.form['ordem'])
+    except:
+        ordem = 0
+
+    cres = True
+    try:
+        if(req.form['crescente'] == '0'):
+            cres = False
+    except:
+        cres = True
+
+    return busca_projeto_autor(autor, ordem, cres)
+
 def upload(req):
     if 'file' not in req.files:
         flash("Nenhum arquivo enviado")

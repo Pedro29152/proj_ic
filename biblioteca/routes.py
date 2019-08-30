@@ -103,6 +103,14 @@ def busca_orientador():
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
+@app.route('/consulta_proj/autor', methods=['POST'])
+def busca_autor():
+    projs = proj_control.busca_autor(request)
+
+    res = make_response(jsonify(projs))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
 #rota para download de arquivos
 @app.route("/download_file/<path:filename>", methods=["POST","GET"])
 def download(filename): 
