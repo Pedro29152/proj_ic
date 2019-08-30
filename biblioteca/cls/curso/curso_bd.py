@@ -9,10 +9,19 @@ def busca_curso(nomeCurso):
 
     return val
 
-def grava_curso(desc):
+def busca_curso_cod(codCurso):
+    
+    val = bd_conn.bd_busca_um(
+        'select descricaoCurso, abreviacao from cursos where codCurso = (%s)',
+        (codCurso,)
+    )
+
+    return val
+
+def grava_curso(desc, abbr):
     bd_conn.bd_gravar(
-        'insert into cursos(descricaoCurso,ativo) values(%s,1)',
-        (desc,)
+        'insert into cursos(descricaoCurso, abreviacao, ativo) values(%s,%s,1)',
+        (desc, abbr)
     )
 
 def get_codCurso(curso):

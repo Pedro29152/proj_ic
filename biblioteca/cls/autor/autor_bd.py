@@ -11,6 +11,15 @@ def grava_autor(nome, ra, codProj):
         None
 
     bd_conn.bd_gravar(
-        'INSERT INTO projeto_autor(codProjeto, raAutor) VALUES(%s,%s)', 
+        'INSERT INTO projeto_autor VALUES(%s,%s)', 
         (codProj, ra)
     )
+
+def busca_autor(codProj):
+    try:
+        return bd_conn.bd_busca(
+            'SELECT autores.nomeAutor, autores.codAutor FROM autores NATURAL JOIN projeto_autor WHERE projeto_autor.codProjeto = %s',
+            (codProj,)
+        )
+    except:
+        return None

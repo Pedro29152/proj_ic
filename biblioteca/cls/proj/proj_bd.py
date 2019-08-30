@@ -2,7 +2,9 @@ from biblioteca import bd_conn
 from biblioteca.cls.autor import autor_bd
 from biblioteca.cls.curso.curso_bd import get_codCurso, get_abbr_curso
 from biblioteca.cls.gerenciador.gerenciador_bd import get_codGer_usr
+from biblioteca.cls.curso import curso_bd
 from random import randint
+from flask import flash
 import datetime, os
 from werkzeug.utils import secure_filename
 from biblioteca import app
@@ -32,44 +34,69 @@ def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
 
     titulo = "%" + titulo + "%"
 
-    return bd_conn.bd_busca(
+    ret = bd_conn.bd_busca(
         query +
         ordena(ordem, crescente),
         (titulo,)
     )
+
+    for proj in ret:
+        proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
+        proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
+
+    return ret
 
 def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
     query = 'SELECT * FROM projetos NATURAL JOIN cursos WHERE descricaoCurso LIKE (%s) AND ativo = 1 '
 
     nomeCurso = '%' + nomeCurso + '%'
 
-    return bd_conn.bd_busca(
+    ret = bd_conn.bd_busca(
         query +
         ordena(ordem, crescente), 
         (nomeCurso,)
     )
+    
+    for proj in ret:
+        proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
+        proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
+
+    return ret
+    
         
 def busca_projeto_descricao(descricao, ordem = 0, crescente = True):
     query = 'SELECT * FROM projetos WHERE descricao LIKE (%s) AND ativo = 1 '
 
     descricao = '%' + descricao + '%'
 
-    return bd_conn.bd_busca(
+    ret = bd_conn.bd_busca(
         query +
         ordena(ordem, crescente), 
         (descricao,)
     )
+
+    for proj in ret:
+        proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
+        proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
+
+    return ret
 
 def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
     query = 'SELECT * FROM projetos WHERE nomeOrientador LIKE (%s) AND ativo = 1 '
     
     nomeOrientador = '%' + nomeOrientador + '%'
     
-    return bd_conn.bd_busca(
+    ret = bd_conn.bd_busca(
         query +
         ordena(ordem, crescente), 
         (nomeOrientador,)
-    )    
+    )
+
+    for proj in ret:
+        proj['autores'] = autor_bd.busca_autor(proj['codProjeto'])
+        proj['curso'] = curso_bd.busca_curso_cod(proj['codCurso'])
+
+    return ret
 
 def busca_cod_projeto(titulo):
     query = 'SELECT codProjeto FROM projetos WHERE tituloProjeto = (%s) ORDER BY codProjeto DESC'
@@ -118,6 +145,17 @@ def grava_palavra_chave(palavra, codProjeto):
             (palavra, codProjeto)
         )
 
+def grava_palavra_chave(palavra, codProjeto):
+    val = bd_conn.bd_busca_um(
+        'SELECT codPalavra FROM palavras_chave WHERE palavraChave = %s AND codProjeto = %s',
+        (palavra, codProjeto)
+    )
+    if(val == None):
+        bd_conn.bd_gravar(
+            'INSERT INTO palavras_chave(palavraChave, codProjeto) values(%s, %s)',
+            (palavra, codProjeto)
+        )
+
 def upload_projeto(req, nomeGer):
     titulo = req.form['titulo']
     nomeOrientador = req.form['nomeOrientador']
@@ -128,7 +166,7 @@ def upload_projeto(req, nomeGer):
     
     autor = []
     autor.append({
-        'nome': req.form['autor'], 
+        'nome': req.form['autor'],
         'ra':   req.form['ra_autor']
     })
 

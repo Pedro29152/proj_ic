@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- FONT ROBOTO -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    <!-- BOOTSTRAP-->
+    <!--
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    -->
+    <link rel="stylesheet" href="style/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="style/style.css">
+    <title>Biblioteca de Trabalhos Acadêmicos - Upload</title>
+</head>
+<body>
+  <header>
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="container">
+              <a class="navbar-brand" href="#">Biblioteca de Trabalhos Acadêmicos</a>
+              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Alterna navegação">
+                  <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarNav">
+                  <ul class="navbar-nav">
+                      <li class="nav-item">
+                          <a class="nav-link" href="index_login.html">Home</a>
+                      </li>
+                      <li class="nav-item active">
+                          <a class="nav-link" href="upload.html">Upload<span class="sr-only">(Página atual)</span></a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link" href="projetos.html">Projetos</a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link" href="cadastro_curso.html">Curso</a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link" href="cadastro_usuario.html">Usuário</a>
+                      </li>
+                  </ul>
+              </div>
+          </div>
+      </nav>
+  </header>
+    <main>
+        <section class="padrao" id="upload">
+            <h4 style="padding: 10px 0px 25px 0px">Upload</h4>
+            <form action="http://192.168.0.107:5000/upload/" method="POST" enctype="multipart/form-data">
+                <div class="form-group row">
+                  <label for="nomeProjeto" class="col-sm-2 col-form-label">Nome do Projeto</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="um" placeholder="Nome do Projeto" name="titulo" v-model="nomeProjeto">
+                  </div>
+                </div>
+
+                <div class="form-group row">
+                  <label for="autor" class="col-sm-2 col-form-label">Nome do Autor</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="dois" placeholder="Nome do Autor" name="autor" v-model="nomeAutor">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label for="autor" class="col-sm-2 col-form-label">RA do autor</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="dois" placeholder="RA do Autor" name="ra_autor" v-model="raAutor">
+                  </div>
+                  <div class="col-sm-10" id="imendaHTMLautor">
+                  </div>
+                  <input type="button" value="Adicionar mais um Autor" onclick="adicionaAutor()">
+
+                </div>
+                
+                <div class="form-group row">
+                    <label for="autor" class="col-sm-2 col-form-label">Curso</label>
+                    <div class="col-sm-10">
+                        <select id="inputState" name="curso" class="form-control" v-model="curso">
+                        <option disabled selected>Escolha um Curso</option>
+                        <option>Analise e Desenvolvimento de Sistemas</option>
+                        <option>Jogos Digitais</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                  <label for="autor" class="col-sm-2 col-form-label">Orientador(a)</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="dois" placeholder="Orientador(a)" name="nomeOrientador" v-model="orientador">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label for="autor" class="col-sm-2 col-form-label">Descrição</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="dois" placeholder="Orientador(a)" name="descricao" v-model="descricao">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label for="autor" class="col-sm-2 col-form-label">Palavras-Chave</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="dois" placeholder="Palavras-Chave" name="palavra_chave" v-model="palavrasChave">
+                  </div>
+                  <div class="col-sm-10" id="imendaHTMLpalavra">
+                  </div>
+                  <input type="button" value="Adicionar mais uma Palavras-Chave" onclick="adicionaPalavaChave()">
+                </div>
+                <div class="form-group row">
+                  <label for="autor" class="col-sm-2 col-form-label">Data Aprovação</label>
+                  <div class="col-sm-10">
+                    <input type="date" class="form-control" id="dois" placeholder="Data da Aprovação" name="dataAvaliacao" v-model="dataAprovacao">
+                  </div>
+                </div>
+                <div class="form-group row">
+                        <label for="autor" class="col-sm-2 col-form-label">Arquivo</label>
+                        <div class="col-sm-10">
+                          <input type="file" name="file" id="dois" v-model="arquivo">
+                        </div>
+                      </div>
+                <div class="form-group row">
+                  <div class="col-sm-10">
+                    <input type="submit" value="Enviar">
+                  </div>
+                </div>
+              </form>
+        </section>
+    </main>
+    
+    <footer class="padrao">
+      <section>
+          <p>Quem fez o site e afins</p>
+      </section>
+    </footer>
+
+    <!--
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    -->
+    <script src="js/upload.js"></script>
+
+    <script src="js/axios.min.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/jquery-3.2.1.slim.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+
+    <script>
+          
+        var app = new Vue({
+            el: '#upload',
+            data:{
+              nomeProjeto: '',
+              nomeAutor: '',
+              raAutor: '',
+              curso: '',
+              orientador: '',
+              palavrasChave: '',
+              dataAprovacao: ''
+            },
+            methods: {
+                greete: function (event) {
+                  // `this` dentro de métodos aponta para a instância Vue
+                  alert(this.nomeProjeto + ' - ' + this.nomeAutor + ' - ' + this.raAutor + ' - ' + this.curso + ' - ' +  this.orientador + ' - ' +  this.palavrasChave + ' - ' +  this.dataAprovacao)
+                }
+            }
+        });
+        
+    </script>
+</body>
+</html>

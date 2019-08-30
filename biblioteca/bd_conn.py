@@ -15,8 +15,8 @@ def conecta():
     return conn, cursor
 
 def bd_busca(query, *args):
+    conn, cursor = conecta()
     try:
-        conn, cursor = conecta()
         cursor.execute(query, *args)
 
         val = cursor.fetchall()

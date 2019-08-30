@@ -3,7 +3,7 @@ from flask                      import (Flask, render_template, redirect, reques
     flash, url_for, jsonify,send_from_directory, session, make_response)
 from functools                  import wraps
 from biblioteca.cls.proj        import proj_control
-from biblioteca.cls.curso       import curso_bd
+from biblioteca.cls.curso       import curso_bd, curso_control
 from biblioteca.cls.gerenciador import gerenciador_bd
 from biblioteca.cls.usuario     import usuario_bd
 import simplejson, json
@@ -52,7 +52,7 @@ def not_allowed(path):
 @app.route("/index/")
 def  index():
     #retorna a pagina
-    return render_template("index.html")
+    return render_template("vue/index.html")
 
 #define rota para upload de arquivos 
 @app.route("/upload/", methods=["GET", "POST"])
@@ -70,11 +70,11 @@ def upload_file():
 def busca_titulo():
     if request.method == "GET":
         dados = proj_control.busca_titulo()
-        return render_template("consulta.html",tgs = dados)
+        
+        return render_template("vue/busca.html",tgs = dados)
 
     if request.method == "POST":
         projs = proj_control.busca_titulo(request)
-        
         res = make_response(jsonify(projs))
         res.headers['Access-Control-Allow-Origin'] = '*'
         return res
@@ -142,6 +142,16 @@ def cadastro():
     tipo = ['Usuario','Diretor','Admin']
     gerenciadores = gerenciador_bd.busca_gerenciador("")
     return render_template("cadastro.html",gerenciadores=gerenciadores,tipos=tipo)
+
+@app.route("/cadastrar/cursos", methods=['GET','POST'])
+@login_reqired
+@admin_reqired
+def cadastra_curso():
+    if(request.method == 'POST'):
+        res = make_response(jsonify(curso_control.grava_curso(request)))
+        res.headers['Access-Control-Allow-Origin'] = '*'
+        return res
+    return render_template('grava_curso.html')
 
 @app.route('/testes/', methods=['POST', 'GET'])
 def teste():

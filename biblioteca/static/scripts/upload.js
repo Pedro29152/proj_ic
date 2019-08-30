@@ -64,9 +64,6 @@ function adicionaAutor(){
     div.id = idDiv
     
     let fieldset = document.createElement('fieldset')
-    let legend = document.createElement('legend')
-    legend.innerHTML = `<h3>Autor ${ idContadorAutor + 1 }</h3>`
-    fieldset.append(legend)
     
     let inputNome = document.createElement('input')
     inputNome.type = 'text'
@@ -94,9 +91,7 @@ function adicionaAutor(){
 
     let container = document.getElementById('imendaHTMLautor')
     fieldset.append(tituloNome, inputNome)
-    fieldset.innerHTML += '<br>'
     fieldset.append(tituloRa, inputRa)
-    fieldset.innerHTML += '<br>'
     fieldset.append(btnRemove)
     div.append(fieldset)
     container.append(div)
