@@ -1,10 +1,10 @@
 from mysql import connector
 from flask import flash
 
-def conecta():
+def __conecta():
     conn = connector.connect(
         user='root', 
-        password='LabRobotica123#@',
+        password='Eco5c4rd@2017',
         host='127.0.0.1',
         port='3306',
         database='proj_ic'
@@ -15,7 +15,7 @@ def conecta():
     return conn, cursor
 
 def bd_busca(query, *args):
-    conn, cursor = conecta()
+    conn, cursor = __conecta()
     try:
         cursor.execute(query, *args)
 
@@ -28,7 +28,7 @@ def bd_busca(query, *args):
 
 def bd_busca_um(query, *args):
     try:
-        conn, cursor = conecta()
+        conn, cursor = __conecta()
         cursor.execute(query, *args)
 
         val = cursor.fetchone()
@@ -40,7 +40,7 @@ def bd_busca_um(query, *args):
 
 def bd_gravar(query, *args):
     try:
-        conn, cursor = conecta()
+        conn, cursor = __conecta()
         cursor.execute(query, *args)
         conn.commit()
     finally:

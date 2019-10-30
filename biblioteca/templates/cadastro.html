@@ -10,22 +10,29 @@
         </tr>
         <tr>
             <td><label>Tipo de usuairo: </label></td>
-            <td><input type="text" name="tipoUsuario" list="tipo" required><br></td>
-            <datalist id="tipo">
-                {% for tipo in tipos %}
-                    <option value="[[ tipo ]]">
-                {% endfor %}
-            </datalist>
+            <td>
+                <select name="tipoUsuario">
+                    {% for tipo in tipos %}
+                        <option value="[[ tipo ]]">[[ tipo ]]</option>
+                    {% endfor %}
+                </select>
+            </td>
         </tr>
         <tr>
             <td><label>Gerenciador: </label></td>
             <td>
+                <select name="gerenciador">
+                    {% for gerenciador in gerenciadores %}
+                        <option value="[[ gerenciador['nomeGerenciador'] ]]">[[ gerenciador['nomeGerenciador'] ]]</option>
+                    {% endfor %}
+                </select>
+                <!--
                 <input type="text" name="gerenciador" list="gerenciador" required>
                 <datalist id="gerenciador">
                     {% for gerenciador in gerenciadores %}
                         <option value="[[ gerenciador['nomeGerenciador'] ]]">
                     {% endfor %}
-                </datalist>
+                </datalist>-->
             </td>
         </tr>
         <tr>

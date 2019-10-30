@@ -48,12 +48,22 @@
                     <h3>Curso:</h3>
                 </td>
                 <td>
+                    <select name="curso">
+                        {% for curso in cursos %}
+                            <option value="[[ curso['descricaoCurso'] ]]">
+                                [[ curso['descricaoCurso'] ]]
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <!--
                     <input list="cursos" name="curso" required>
                     <datalist id="cursos">
                         {% for curso in cursos %}
                             <option value="[[ curso['descricaoCurso'] ]]">
+                                [[ curso['descricaoCurso'] ]]
+                            </option>
                         {% endfor %}
-                    </datalist>
+                    </datalist>-->
                 </td>
             </tr>
             <tr>

@@ -188,17 +188,18 @@
                     data.append('query', this.pesquisa)
                     data.append('ordem', this.classificarPor)
                     data.append('crescente', 1)
+                    //titulo curso autor orientador palavrasChave instituicao
                     if(this.tipoPesquisa == 'titulo'){
                         url = '/consulta_proj/titulo'
-                    }
-                    else if(this.tipoPesquisa == 'orientador'){
-                        url = '/consulta_proj/orientador'
                     }
                     else if(this.tipoPesquisa == 'curso'){
                         url = '/consulta_proj/curso'
                     }
                     else if(this.tipoPesquisa == 'autor'){
                         url = '/consulta_proj/autor'
+                    }
+                    else if(this.tipoPesquisa == 'orientador'){
+                        url = '/consulta_proj/orientador'
                     }
                     else if(this.tipoPesquisa == 'palavrasChave'){
                         url = '/consulta_proj/palavrasChave'
