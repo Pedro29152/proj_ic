@@ -20,6 +20,15 @@ def busca_gerenciadores():
 
     return val
 
+def busca_gerenciadores_nome(nomeGerenciador):
+    nomeGerenciador = '%{}%'.format(nomeGerenciador)
+    val = bd_conn.bd_busca(
+        'select * from gerenciadores where nomeGerenciador like (%s)',
+        (nomeGerenciador,)
+    )
+
+    return val
+
 def get_codGer_nomeUsuario(nome): 
     val = ""
 

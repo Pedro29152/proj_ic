@@ -1,9 +1,10 @@
-from biblioteca import app
 from biblioteca.controllers import curso_control
-from biblioteca.routes import login_reqired, admin_reqired
-from flask import make_response, jsonify, request
+from biblioteca.acesso.acessos import not_logged_in, login_reqired, admin_reqired
+from flask import make_response, jsonify, request, Blueprint
 
-@app.route("/cursos/buscar", methods=['GET'])
+CURSOS_ROUTER = Blueprint('cursos_router', __name__)
+
+@CURSOS_ROUTER.route("/cursos/buscar", methods=['GET'])
 def buscar_curso():
     status = curso_control.buscar_curso()
 
@@ -11,7 +12,7 @@ def buscar_curso():
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
-@app.route("/cursos/cadastrar", methods=['POST'])
+@CURSOS_ROUTER.route("/cursos/cadastrar", methods=['POST'])
 @login_reqired
 @admin_reqired
 def cadastra_curso():

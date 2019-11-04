@@ -1,10 +1,11 @@
-from biblioteca import app
-from biblioteca.routes import login_reqired
+from biblioteca.acesso.acessos import not_logged_in, login_reqired, admin_reqired
 from biblioteca.controllers import proj_control
-from flask import request, jsonify, make_response, send_from_directory
+from flask import request, jsonify, make_response, send_from_directory, Blueprint, current_app as app
+
+PROJETOS_ROUTER = Blueprint('projetos_router', __name__)
 
 #define rota para upload de arquivos 
-@app.route("/projetos/upload", methods=['POST'])
+@PROJETOS_ROUTER.route("/projetos/upload", methods=['POST'])
 @login_reqired
 def upload_file():
     status = proj_control.upload(request)
@@ -13,7 +14,7 @@ def upload_file():
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
-@app.route("/projetos/buscar/<path:tipo>", methods=["GET"])
+@PROJETOS_ROUTER.route("/projetos/buscar/<path:tipo>", methods=["GET"])
 def busca_titulo(tipo):
     projs = None
     if tipo == 'titulo':
@@ -38,7 +39,7 @@ def busca_titulo(tipo):
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
-@app.route("/projetos/buscar/ranking", methods=["GET"])
+@PROJETOS_ROUTER.route("/projetos/buscar/ranking", methods=["GET"])
 def busca_ranking():
     projs = proj_control.busca_ranking(request)
 
@@ -47,7 +48,7 @@ def busca_ranking():
     return res
 
 #rota para download de arquivos
-@app.route("/projetos/download_file/<path:filename>", methods=["POST","GET"])
+@PROJETOS_ROUTER.route("/projetos/download_file/<path:filename>", methods=["POST","GET"])
 def download(filename): 
     ret = make_response(
         send_from_directory(

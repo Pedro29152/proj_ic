@@ -1,6 +1,5 @@
-from biblioteca import app
 from biblioteca.models.dao import projetos_dao
-from flask import redirect, url_for, send_from_directory, send_file, flash, session
+from flask import redirect, url_for, send_from_directory, send_file, flash, session, current_app as app
 import os
 
 ALLOWED_EXTENSIONS = set(['pdf'])

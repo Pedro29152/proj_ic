@@ -1,10 +1,11 @@
-from biblioteca import app
 from biblioteca.controllers import usuario_control
-from biblioteca.routes import not_logged_in, login_reqired, admin_reqired
-from flask import request, make_response, jsonify
+from biblioteca.acesso.acessos import not_logged_in, login_reqired, admin_reqired
+from flask import request, make_response, jsonify, Blueprint
 from werkzeug.exceptions import BadRequestKeyError
 
-@app.route("/usuarios/login", methods=['POST'])
+USUARIOS_ROUTER = Blueprint('usuarios_router', __name__)
+
+@USUARIOS_ROUTER.route("/usuarios/login", methods=['POST'])
 @not_logged_in
 def login_url():
     next_page = ''
@@ -20,7 +21,7 @@ def login_url():
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
         
-@app.route("/usuarios/logout", methods=['GET', 'POST'])
+@USUARIOS_ROUTER.route("/usuarios/logout", methods=['GET', 'POST'])
 @login_reqired
 def logout():
     ret = usuario_control.logout_url()
@@ -29,7 +30,7 @@ def logout():
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
-@app.route("/usuarios/cadastrar", methods=["POST"])
+@USUARIOS_ROUTER.route("/usuarios/cadastrar", methods=["POST"])
 @login_reqired
 @admin_reqired
 def cadastro():

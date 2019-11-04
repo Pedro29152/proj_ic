@@ -26,9 +26,8 @@ from werkzeug.exceptions import BadRequestKeyError
 from random import randint
 from werkzeug.utils import secure_filename
 import os
-from biblioteca import app
 
-from flask import flash
+from flask import flash, current_app as app
 
 QUERY_CURSO = 'SELECT * FROM projetos NATURAL JOIN cursos WHERE descricaoCurso LIKE (%s) OR abreviacao LIKE (%s) AND ativo = 1 '
 QUERY_TITULO = 'SELECT * FROM projetos WHERE tituloProjeto LIKE (%s) AND ativo = 1 '
