@@ -162,6 +162,14 @@ def cadastro():
     res.headers['Access-Control-Allow-Origin'] = '*'
     return res
 
+@app.route("/cursos/buscar", methods=['GET'])
+def buscar_curso():
+    status = curso_control.buscar_curso()
+
+    res = make_response(jsonify(status))    
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
 @app.route("/cursos/cadastrar", methods=['POST'])
 @login_reqired
 @admin_reqired

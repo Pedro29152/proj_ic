@@ -53,3 +53,11 @@ def get_curso_desc(descricaoCurso):
     curso = Cursos(res['descricaoCurso'], res['abreviacao'], res['codCurso'])
 
     return curso
+
+def get_curso_codCurso(codCurso):
+    res = bd_conn.bd_busca_um("select * from cursos where codCurso = (%s) and ativo = 1",
+    (codCurso,))
+
+    curso = Cursos(res['descricaoCurso'], res['abreviacao'], res['codCurso'])
+
+    return curso

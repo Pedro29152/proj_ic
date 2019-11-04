@@ -10,3 +10,10 @@ def grava_curso(req):
 
     return curso.grava_curso()
 
+def buscar_curso():
+    cursos = cursos_dao.busca_cursos()
+    
+    return {
+        'status':'OK',
+        'data': cursos
+        }

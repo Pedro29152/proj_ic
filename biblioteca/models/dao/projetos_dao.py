@@ -221,20 +221,43 @@ def upload_projeto(req, nomeUsr):
 
     codGer = gerenciadores_dao.get_codGer_nomeUsuario(nomeUsr)
 
+    try:
+        titulo = req.form['titulo']
+        orientador = req.form['nomeOrientador']
+        descricao = req.form['descricao']
+        dataAvaliacao = req.form['dataAvaliacao']
+        codCurso = req.form['curso']
+    except BadRequestKeyError:
+        return {
+            'status': 'erro',
+            'message': 'A requisicao deve conter os campos "titulo", "nomeOrientador", "descricao", "dataAvaliacao" e "curso"'
+        }
+
+    
+
     projeto = Projetos(
-        tituloProjeto = req.form['titulo'],
-        nomeOrientador = req.form['nomeOrientador'],
-        descricao = req.form['descricao'],
-        dataAvaliacao = req.form['dataAvaliacao'],
+        tituloProjeto = titulo,
+        nomeOrientador = orientador,
+        descricao = descricao,
+        dataAvaliacao = dataAvaliacao,
         autores=[], 
         palavrasChave=[],
-        curso = cursos_dao.get_curso_desc(req.form['curso']),
+        curso = cursos_dao.get_curso_codCurso(codCurso),
         gerenciador = gerenciadores_dao.get_gerenciador_cod_ger(codGer)
     )
 
+    try:
+        ra_autor = req.form['ra_autor']
+        autor = req.form['autor']
+    except BadRequestKeyError:
+        return {
+            'status' : 'erro',
+            'message': 'A requisicao deve conter ao menos um campo "ra_autor" e um "autor"'
+        }
+
     projeto.autores.append(Autores(
-        req.form['ra_autor'],
-        req.form['autor']
+        ra_autor,
+        autor
     ))
 
     i = 1
@@ -248,10 +271,18 @@ def upload_projeto(req, nomeUsr):
                 )
                 i += 1
     except BadRequestKeyError:
-       None
+       pass
+    
+    try:
+        palavra = req.form['palavra_chave']
+    except BadRequestKeyError:
+        return {
+            'status' : 'erro',
+            'message': 'A requisicao deve conter ao menos um campo "palavra_chave". Os demais campos devem estar no formato: palavra_chave_(numero da palavra)'
+        }
 
     projeto.palavrasChave.append(
-        PalavrasChave(req.form['palavra_chave'])
+        PalavrasChave(palavra)
     )
     j = 1
     try:
@@ -304,7 +335,10 @@ def upload_projeto(req, nomeUsr):
             filename
         )
     )
-    return True
+    return {
+        'status':'OK',
+        'message': 'Projeto cadastrado com sucesso'
+    }
 
 def grava_projeto(
     projeto

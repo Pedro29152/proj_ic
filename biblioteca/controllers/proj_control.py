@@ -117,17 +117,7 @@ def upload(req):
         }
 
     if req.files['file'] and allowed_file(req.files['file'].filename):
-        if(projetos_dao.upload_projeto(req, session['username'])):
-            return {
-                'status': 'OK',
-                'message': 'Projeto cadastrado com sucaeso'
-            }
-        else:
-            return {
-                'status': 'falha',
-                'message': 'Preencha todos os campos corretamente'
-            }
-            
+        return projetos_dao.upload_projeto(req, session['username'])
             
     elif not allowed_file(req.files['file'].filename):
         return {
