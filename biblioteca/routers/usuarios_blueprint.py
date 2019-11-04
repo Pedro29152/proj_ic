@@ -7,7 +7,7 @@ USUARIOS_ROUTER = Blueprint('usuarios_router', __name__)
 
 @USUARIOS_ROUTER.route("/usuarios/login", methods=['POST'])
 @not_logged_in
-def login_url():
+def login_usuario():
     next_page = ''
     try:
         if request.form['next_page']:
@@ -23,7 +23,7 @@ def login_url():
         
 @USUARIOS_ROUTER.route("/usuarios/logout", methods=['GET', 'POST'])
 @login_reqired
-def logout():
+def logout_usuario():
     ret = usuario_control.logout_url()
 
     res = make_response(jsonify(ret))
@@ -31,10 +31,18 @@ def logout():
     return res
 
 @USUARIOS_ROUTER.route("/usuarios/cadastrar", methods=["POST"])
-@login_reqired
 @admin_reqired
-def cadastro():
+def cadastrar_usuario():
     ret = usuario_control.cadastro_usr(request)
+    
+    res = make_response(jsonify(ret))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+@USUARIOS_ROUTER.route("/usuarios/buscar", methods=["GET"])
+@admin_reqired
+def buscar_usuario():
+    ret = usuario_control.buscar_usuario(request)
     
     res = make_response(jsonify(ret))
     res.headers['Access-Control-Allow-Origin'] = '*'

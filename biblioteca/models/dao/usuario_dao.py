@@ -20,13 +20,34 @@ def busca_nivel_acesso(username):
 
     return val['tipoUsuario']
 
+def busca_usuarios():
+    val = bd_conn.bd_busca(
+        'select codUsuario, nomeUsuario, tipoUsuario, codGerenciador from usuarios where ativo = 1',
+        None
+    )
+    if(not val):
+        val = []
+
+    return val
+
 def busca_usuarios_nome(nomeUsuario):
     val = bd_conn.bd_busca(
-        'select * from usuarios where nomeUsuario = %s',
+        'select codUsuario, nomeUsuario, tipoUsuario, codGerenciador from usuarios where nomeUsuario = (%s) and ativo = 1',
+        None
+    )
+    if(not val):
+        val = []
+
+    return val
+
+def busca_usuarios_nome_like(nomeUsuario):
+    nomeUsuario = '%{}%'.format(nomeUsuario)
+    val = bd_conn.bd_busca(
+        'select codUsuario, nomeUsuario, tipoUsuario, codGerenciador from usuarios where nomeUsuario like (%s) and ativo = 1',
         (nomeUsuario,)
     )
     if(not val):
-        val = ''
+        val = []
 
     return val
 

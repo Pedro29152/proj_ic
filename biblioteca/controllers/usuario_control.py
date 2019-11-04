@@ -1,4 +1,4 @@
-from flask import session, flash, redirect,url_for
+from flask import session, redirect,url_for
 from biblioteca.models.dao import usuario_dao, gerenciadores_dao, usuario_dao
 from werkzeug.exceptions import BadRequestKeyError
 
@@ -37,32 +37,52 @@ def logout_url():
     }
 
 def cadastro_usr(request):
+    try:
         user = request.form['username']
-        senha = request.form['password']
         tipoUsuario = request.form['tipoUsuario']
-        gerenciador = request.form['gerenciador']
+        codGer = request.form['gerenciador']
+        
+        senha = request.form['password']
         rsenha = request.form['r_password']
-
-        codGer = gerenciadores_dao.get_codGer_nomeGer(gerenciador)
-
-        if(tipoUsuario == "Usuario"):
-            tipoUsuario = 1
-        if(tipoUsuario == "Diretor"):
-            tipoUsuario = 2
-        if(tipoUsuario == "Admin"):
-            tipoUsuario = 3
-            
-        if senha == rsenha:
-            usuario_dao.add_usr(user, senha,tipoUsuario,codGer)
-            return {
-                'status': 'OK',
-                'message': 'Usuario cadastrado com sucesso'
-            }
-
+    except BadRequestKeyError:
         return {
-            'status': 'falha',
-            'message': 'Senhas não coincidem'
+            'status': 'erro',
+            'message': 'A requisicao deve possuir os campos "username", "tipoUsuario", "gerenciador", "password" e "r_password" em seu corpo'
         }
+
+    #codGer = gerenciadores_dao.get_codGer_nomeGer(gerenciador)
+
+    if(tipoUsuario == "Usuario"):
+        tipoUsuario = 1
+    if(tipoUsuario == "Diretor"):
+        tipoUsuario = 2
+    if(tipoUsuario == "Admin"):
+        tipoUsuario = 3
+        
+    if senha == rsenha:
+        usuario_dao.add_usr(user, senha,tipoUsuario,codGer)
+        return {
+            'status': 'OK',
+            'message': 'Usuario cadastrado com sucesso'
+        }
+
+    return {
+        'status': 'falha',
+        'message': 'Senhas não coincidem'
+    }
+
+def buscar_usuario(req):
+    nome = req.args.get('nomeUsuario')
+
+    if nome:
+        ret = usuario_dao.busca_usuarios_nome_like(nome)
+    else:
+        ret = usuario_dao.busca_usuarios()
+
+    return {
+        'status':'OK',
+        'data': ret
+    }
 
 def logado(s):
     if 'logged_in' in s:
