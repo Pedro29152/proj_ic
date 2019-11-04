@@ -77,7 +77,6 @@ class Projetos:
     def __init__(self, 
     codProjeto=0, 
     tituloProjeto='', 
-    nomeOrientador='', 
     descricao='', 
     nomeArquivo='', 
     notaProjeto=0, 
@@ -87,11 +86,11 @@ class Projetos:
     gerenciador=None, 
     curso=None, 
     autores=None,
+    orientador=None, 
     palavrasChave=None):
 
         self.codProjeto = codProjeto
         self.tituloProjeto = tituloProjeto
-        self.nomeOrientador = nomeOrientador
         self.descricao = descricao
         self.nomeArquivo = nomeArquivo
         self.notaProjeto = notaProjeto
@@ -102,7 +101,10 @@ class Projetos:
         self.gerenciador = gerenciador
         self.curso = curso
         self.autores = autores
+        self.orientador = orientador
         self.palavrasChave = palavrasChave
+
+
 
 
 class Avalicoes:
@@ -121,3 +123,19 @@ class Usuarios:
         self.tipoUsuario = tipoUsuario
 
         self.gerenciador = gerenciador
+
+class Orientadores:
+    def __init__(self, codOrientador=0, nomeOrientador='', raOrientador=''):
+        self.codOrientador = codOrientador
+        self.nomeOrientador = nomeOrientador
+        self.raOrientador = raOrientador
+    
+    def grava_orientador(self):
+        bd_conn.bd_gravar(
+            'insert into orientadores(nomeOrientador, raOrientador) values(%s, %s)',
+            (self.nomeOrientador, self.raOrientador)
+        )
+        self.codOrientador = bd_conn.bd_busca_um(
+            'select codOrientador from orientadores where raOrientador = (%s)', 
+            (self.raOrientador,)
+        )['codOrientador']

@@ -5,7 +5,7 @@ from flask import request, jsonify, make_response, send_from_directory, Blueprin
 PROJETOS_ROUTER = Blueprint('projetos_router', __name__)
 
 #define rota para upload de arquivos 
-@PROJETOS_ROUTER.route("/projetos/upload", methods=['POST'])
+@PROJETOS_ROUTER.route("/projetos/cadastrar", methods=['POST'])
 @login_reqired
 def upload_file():
     status = proj_control.upload(request)

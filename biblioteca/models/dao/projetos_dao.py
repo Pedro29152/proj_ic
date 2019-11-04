@@ -19,8 +19,8 @@ Por padrao crescente recebe o valor True
 '''
 
 from biblioteca import bd_conn
-from biblioteca.models.dao import autores_dao, gerenciadores_dao, cursos_dao, projeto_autor_dao, palavras_chave_dao
-from biblioteca.models.classes import Projetos, Avalicoes, Autores, Cursos, PalavrasChave, Gerenciadores
+from biblioteca.models.dao import autores_dao, gerenciadores_dao, cursos_dao, projeto_autor_dao, palavras_chave_dao, orientadores_dao
+from biblioteca.models.classes import Projetos, Avalicoes, Autores, Cursos, PalavrasChave, Gerenciadores, Orientadores
 from datetime import date, datetime
 from werkzeug.exceptions import BadRequestKeyError
 from random import randint
@@ -222,25 +222,26 @@ def upload_projeto(req, nomeUsr):
 
     try:
         titulo = req.form['titulo']
-        orientador = req.form['nomeOrientador']
+        nomeOrientador = req.form['nomeOrientador']
+        raOrientador = req.form['raOrientador']
         descricao = req.form['descricao']
         dataAvaliacao = req.form['dataAvaliacao']
         codCurso = req.form['curso']
     except BadRequestKeyError:
         return {
             'status': 'erro',
-            'message': 'A requisicao deve conter os campos "titulo", "nomeOrientador", "descricao", "dataAvaliacao" e "curso"'
+            'message': 'A requisicao deve conter os campos "titulo", "nomeOrientador", "raOrientador", "descricao", "dataAvaliacao" e "curso"'
         }
 
     
 
     projeto = Projetos(
         tituloProjeto = titulo,
-        nomeOrientador = orientador,
         descricao = descricao,
         dataAvaliacao = dataAvaliacao,
         autores=[], 
         palavrasChave=[],
+        orientador= orientadores_dao.get_add_orientador(raOrientador, nomeOrientador),
         curso = cursos_dao.get_curso_codCurso(codCurso),
         gerenciador = gerenciadores_dao.get_gerenciador_cod_ger(codGer)
     )
@@ -344,10 +345,9 @@ def grava_projeto(
 ):
     bd_conn.bd_gravar(
         'insert into projetos'+
-        '(tituloProjeto, nomeOrientador, descricao, nomeArquivo, notaProjeto, dataAvaliacao, codGerenciador, codCurso, ativo)'+
-        'values(%s,%s,%s,%s,%s,%s,%s,%s,1)',
+        '(tituloProjeto, descricao, nomeArquivo, notaProjeto, dataAvaliacao, codGerenciador, codCurso, ativo)'+
+        'values(%s,%s,%s,%s,%s,%s,%s,1)',
         (projeto.tituloProjeto, 
-        projeto.nomeOrientador, 
         projeto.descricao, 
         projeto.nomeArquivo, 
         projeto.notaProjeto, 
@@ -356,14 +356,18 @@ def grava_projeto(
         projeto.curso.codCurso)
     )
 
-    codProjeto = get_cod_projeto_titulo(projeto.tituloProjeto)
+    projeto.codProjeto = get_cod_projeto_titulo(projeto.tituloProjeto)
     
     for aut in projeto.autores:
-        codAutor = aut.grava_autor(codProjeto)
-        projeto_autor_dao.grava_autor_proj(codProjeto, codAutor)
+        codAutor = aut.grava_autor(projeto.codProjeto)
+        projeto_autor_dao.grava_autor_proj(projeto.codProjeto, codAutor)
 
     for palavra in projeto.palavrasChave:
-        palavra.grava_palavra_chave(codProjeto)
+        palavra.grava_palavra_chave(projeto.codProjeto)
+
+    __grava_proj_ori(projeto.codProjeto, projeto.orientador.codOrientador)
+
+    
 
 def __busca_projeto_autor_palavra(query, *args):
     ret = bd_conn.bd_busca(query, *args)
@@ -377,3 +381,9 @@ def __prenche_projeto(ret):
         item['autores'] = autores_dao.busca_autores_proj(item['codProjeto'])
         item['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(item['codProjeto'])
         item['curso'] = cursos_dao.busca_curso_cod(item['codCurso'])
+        item['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(item['codProjeto'])
+
+def __grava_proj_ori(codProjeto, codOrientador):
+    query = 'insert into projeto_orientador values(%s, %s)'
+
+    bd_conn.bd_gravar(query, (codOrientador, codProjeto))
