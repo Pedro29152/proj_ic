@@ -8,59 +8,138 @@ ALLOWED_EXTENSIONS = set(['pdf'])
 def busca_curso(req = None):
     curso, ordem, cres = get_filtro(req)
 
-    return projetos_dao.busca_projeto_curso(curso, ordem, cres)
+    ret = projetos_dao.busca_projeto_curso(curso, ordem, cres)
+
+    return {
+        'status':'OK',
+        'data': ret
+    }
 
 def busca_descricao(req = None):
     desc, ordem, cres = get_filtro(req)
     
-    return projetos_dao.busca_projeto_descricao(desc, ordem, cres)
+    ret = projetos_dao.busca_projeto_descricao(desc, ordem, cres)
+
+    return {
+        'status':'OK',
+        'data': ret
+    }
     
 
 def busca_titulo(req = None):
     titulo, ordem, cres = get_filtro(req)
 
-    return projetos_dao.busca_projeto_titulo(titulo, ordem, cres)
+    ret = projetos_dao.busca_projeto_titulo(titulo, ordem, cres)
+
+    return {
+        'status':'OK',
+        'data': ret
+    }
     
 def busca_orientador(req = None):
     orientador, ordem, cres = get_filtro(req)
 
-    return projetos_dao.busca_projeto_orientador(orientador, ordem, cres)
+    ret = projetos_dao.busca_projeto_orientador(orientador, ordem, cres)
+
+    return {
+        'status':'OK',
+        'data': ret
+    }
  
 def busca_autor(req = None):
     autor, ordem, cres = get_filtro(req)
 
-    return projetos_dao.busca_projeto_autor(autor, ordem, cres)
+    ret = projetos_dao.busca_projeto_autor(autor, ordem, cres)
+
+    return {
+        'status':'OK',
+        'data': ret
+    }
 
 def busca_palavras_chave(req = None):
     autor, ordem, cres = get_filtro(req)
 
-    return projetos_dao.busca_projeto_palavras_chave(autor, ordem, cres)
+    ret = projetos_dao.busca_projeto_palavras_chave(autor, ordem, cres)
+
+    return {
+        'status':'OK',
+        'data': ret
+    }
+
+def busca_ranking(req):
+    try:
+        query = req.form['query']#args.get('query')
+    except:
+        query = ''
+        
+    try:
+        tipo = req.form['tipo']
+    except:
+        tipo = 'like'
+
+    try:
+        ordem = req.form['ordem']
+        if(not (ordem == '' or ordem == 'desc')):
+            ordem = ''
+    except:
+        ordem = ''
+    flash(query)
+    flash(tipo)
+    flash(ordem)
+        
+    ret = projetos_dao.busca_projeto_ranking(query, tipo, ordem)
+
+
+    if ret == None:
+        return{
+            'status':'vazio',
+            'message': 'nenhum projeto listado',
+            'data': ret
+        }
+
+    return {
+        'status': 'OK',
+        'message': 'ranking listado com sucesso',
+        'data': ret
+        }
 
 def upload(req):
     if 'file' not in req.files:
-        flash("Nenhum arquivo enviado")
-        return redirect(req.url)
+        return {
+            'status': 'falha',
+            'message': 'Nenhum arquivo foi enviado'
+        }
 
     if req.files['file'].filename == '':
-        flash('Nenhum arquivo selecionado')
-        return redirect(req.url)
+        return {
+            'status': 'falha',
+            'message': 'Nenhum arquivo selecionado'
+        }
 
     if req.files['file'] and allowed_file(req.files['file'].filename):
         if(projetos_dao.upload_projeto(req, session['username'])):
-            flash("Arquvio enviado com sucesso")
-            return redirect(url_for('upload_file', filename=req.files['file'].filename))
+            return {
+                'status': 'OK',
+                'message': 'Projeto cadastrado com sucaeso'
+            }
         else:
-            flash('Preencha todos os campos corretamente')
-            return redirect(req.url)
+            return {
+                'status': 'falha',
+                'message': 'Preencha todos os campos corretamente'
+            }
             
             
     elif not allowed_file(req.files['file'].filename):
-        flash('Erro: extensão nao suportada')
-        return redirect(req.url)
+        return {
+                'status': 'falha',
+                'message': 'Erro: extensão nao suportada'
+            }
     
     else:
-        flash('Um erro inesperado occoreu')
-        return redirect(req.url)
+        return {
+                'status': 'erro',
+                'message': 'Um erro inesperado occoreu'
+            }
 
 def allowed_file(filename):
     return '.' in filename and \

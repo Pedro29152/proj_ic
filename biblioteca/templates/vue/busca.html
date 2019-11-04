@@ -25,13 +25,13 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link" href="index">Home</a>
+                            <a class="nav-link" href="/index">Home</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#">Sobre</a>
                         </li>
                         <li class="nav-item active">
-                            <a class="nav-link" href="consulta_proj">Busca <span class="sr-only">(Página atual)</span></a>
+                            <a class="nav-link" href="/projetos/buscar">Busca <span class="sr-only">(Página atual)</span></a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#">Ranking</a>
@@ -190,26 +190,26 @@
                     data.append('crescente', 1)
                     //titulo curso autor orientador palavrasChave instituicao
                     if(this.tipoPesquisa == 'titulo'){
-                        url = '/consulta_proj/titulo'
+                        url = '/projetos/buscar/titulo'
                     }
                     else if(this.tipoPesquisa == 'curso'){
-                        url = '/consulta_proj/curso'
+                        url = '/projetos/buscar/curso'
                     }
                     else if(this.tipoPesquisa == 'autor'){
-                        url = '/consulta_proj/autor'
+                        url = '/projetos/buscar/autor'
                     }
                     else if(this.tipoPesquisa == 'orientador'){
-                        url = '/consulta_proj/orientador'
+                        url = '/projetos/buscar/orientador'
                     }
                     else if(this.tipoPesquisa == 'palavrasChave'){
-                        url = '/consulta_proj/palavrasChave'
+                        url = '/projetos/buscar/palavrasChave'
                     }
                     
                     axios
-                        .post(url,data)
+                        .get(url,data)
                         .then(response => {
-                            this.info = response.data
-                            console.log(response.data, response.data[0].dataAvaliacao, typeof(response.data[0].dataAvaliacao))
+                            this.info = response.data.data
+                            console.log(response.data.data, response.data[0].dataAvaliacao, typeof(response.data[0].dataAvaliacao))
                         })
                         .catch(error => {
                             alert('Erro 1' + error)

@@ -19,16 +19,16 @@
         <div class="dive">
             <ul class="topnav">
                 <li class="nav"><a href="/index">Home</a></li>
-                <li class="nav"><a href="/consulta_proj">Consulta</a></li>
-                <li class="nav"><a href="/upload">Upload</a></li>
+                <li class="nav"><a href="/projetos/buscar/titulo">Consulta</a></li>
+                <li class="nav"><a href="/projetos/upload">Upload</a></li>
                 {% if session['username'] %}
                     {% if session['nivel_acesso'] > 1 %}
                         <li class="nav rig"><a href="/cadastrar">Cadastrar novo usuario</a></li>
                     {% endif %}
-                <li class="nav rig"><a href="/logout">Logout</a></li>
+                <li class="nav rig"><a href="/usuarios/logout">Logout</a></li>
                 <li class="nav rig">[[ session['username'] ]]</li>
                 {% else %}
-                <li class="nav rig"><a href="/login">Login</a></li>
+                <li class="nav rig"><a href="/usuarios/login">Login</a></li>
                 {% endif %}
             </ul>
         </div>

@@ -91,7 +91,7 @@
         data.append('crescente', cres)
         
         axios
-        .post('http://localhost:5000/consulta_proj/titulo', data)
+        .post('/projetos/buscar/titulo', data)
         .then(response => {
           this.info = response.data
           console.log(response.data)

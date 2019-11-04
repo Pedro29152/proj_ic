@@ -55,6 +55,10 @@ class Gerenciadores:
         self.instituicao = instituicao
         self.nomeGerenciador = nomeGerenciador
 
+    def grava_gerenciador(self):
+        bd_conn.bd_gravar('insert into gerenciadores(cpfGerenciador, instituicao, nomeGerenciador) values(%s,%s,%s)',
+        (self.cpfGerenciador, self.instituicao, self.nomeGerenciador))
+        return bd_conn.bd_busca_um("select codGerenciador from gerenciadores where cpfGerenciador = %s",(self.cpfGerenciador,))['codGerenciador']
 
 class PalavrasChave:
     def __init__(self, palavraChave='', codPalavra = 0, projeto = None):

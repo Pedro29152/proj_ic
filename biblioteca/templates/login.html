@@ -4,6 +4,7 @@
 <h1>Login</h1>
 <form method=post enctype=multipart/form-data>
     <table>
+    <input type="hidden" name="next_page" value="[[ next_page ]]">
     <tr> 
         <td><label>Usuario: </label></td>
         <td><input type=text name=username required><br></td>
@@ -11,7 +12,7 @@
     <tr> 
         <td><label>Senha: </label></td>
         <td><input type="password" name="password" required><br></td>
-    </tr>
+    </tr>    
     <tr> 
         <td><input type=submit value=Logar></td>
     </tr>

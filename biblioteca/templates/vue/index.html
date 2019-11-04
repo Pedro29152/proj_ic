@@ -25,13 +25,13 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item active">
-                            <a class="nav-link" href="index">Home <span class="sr-only">(Página atual)</span></a>
+                            <a class="nav-link" href="/index">Home <span class="sr-only">(Página atual)</span></a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="">Sobre</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/consulta_proj">Busca</a>
+                            <a class="nav-link" href="/projetos/buscar">Busca</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#">Ranking</a>
@@ -44,8 +44,7 @@
             </div>
         </nav>
     </header>
-    <main>
-
+        <main>
         <!--Carousel Wrapper-->
         <div id="carousel-example-2" class="carousel slide carousel-fade" data-ride="carousel">
             <!--Indicators-->
@@ -107,6 +106,13 @@
         </div>
       <!--/.Carousel Wrapper-->
 
+      <div>
+            {% with messages = get_flashed_messages() %}
+                {% for message in messages %}
+                    <li>[[ message ]]</li>
+                {% endfor %}
+            {% endwith %}
+        </div>
         <section id="sobre" class="padrao">
             <h4>Sobre</h4>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam euismod vulputate dapibus. Curabitur pulvinar volutpat metus, vitae mattis ligula efficitur ut. Suspendisse eget consequat velit, non semper lorem. Suspendisse potenti. Nullam libero enim, pharetra at consectetur a, commodo vitae nunc. Duis cursus magna nec sodales pulvinar.</p>
@@ -184,15 +190,16 @@
 
                     let data = new FormData()
                     data.append('query', '')
-                    data.append('ordem', 1)
-                    data.append('crescente', 0)
+                    data.append('tipo', 'likes')
+                    data.append('ordem', '')
                     
-                    url = '/consulta_proj/titulo'
+                    url = '/projetos/buscar/ranking'
 
                     axios
-                        .post(url,data)
+                        .get(url,data)
                         .then(response => {
-                            this.info = response.data
+                            this.info = response.data.data
+                            console.log(this.info)
                         })
                         .catch(error => {
                             alert('Erro 1' + error)

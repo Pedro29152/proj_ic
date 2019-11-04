@@ -28,6 +28,8 @@ from werkzeug.utils import secure_filename
 import os
 from biblioteca import app
 
+from flask import flash
+
 QUERY_CURSO = 'SELECT * FROM projetos NATURAL JOIN cursos WHERE descricaoCurso LIKE (%s) OR abreviacao LIKE (%s) AND ativo = 1 '
 QUERY_TITULO = 'SELECT * FROM projetos WHERE tituloProjeto LIKE (%s) AND ativo = 1 '
 QUERY_DESCRICAO = 'SELECT * FROM projetos WHERE descricao LIKE (%s) AND ativo = 1 '
@@ -135,6 +137,25 @@ def busca_projeto():
 
 
     return ret
+
+def busca_projeto_ranking(titulo, tipo, ordem):
+    titulo = '%{}%'.format(titulo)
+    
+    query = 'select * from projetos where tituloProjeto like (%s) order by likes' + ordem
+    
+    if tipo == 'deslikes':
+        query = 'select * from projetos where tituloProjeto like (%s) order by deslikes' + ordem
+
+    if tipo == 'numVisitas':
+        query = 'select * from projetos where tituloProjeto like (%s) order by numVisitas' + ordem
+
+    if tipo == 'numDownloads':
+        query = 'select * from projetos where tituloProjeto like (%s) order by numDownloads' + ordem
+
+    if tipo == 'notaProjeto':
+        query = 'select * from projetos where tituloProjeto like (%s) order by notaProjeto' + ordem
+    
+    return __busca_projeto_autor_palavra(query, (titulo,))
 
 def get_cod_projeto_titulo(titulo):
     query = 'SELECT codProjeto FROM projetos WHERE tituloProjeto = (%s) ORDER BY codProjeto DESC'
@@ -314,10 +335,12 @@ def grava_projeto(
 def __busca_projeto_autor_palavra(query, *args):
     ret = bd_conn.bd_busca(query, *args)
 
+    __prenche_projeto(ret)
+    
+    return ret
+
+def __prenche_projeto(ret):
     for item in ret:
         item['autores'] = autores_dao.busca_autores_proj(item['codProjeto'])
         item['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(item['codProjeto'])
         item['curso'] = cursos_dao.busca_curso_cod(item['codCurso'])
-
-    return ret
-        
