@@ -56,7 +56,7 @@
 	palavra_chave, [palavra_chave_'1-2']
 </p>
 
-<h2>/projetos/buscar/<tipo> [GET]</h2>
+<h2>/projetos/buscar/(tipo) [GET]</h2>
 <h3>listagem de projetos por tipo</h3>
 <p>->tipo: tipo de pesquisa, passado pela url
 	(podendo ser: titulo, curso, descricao, orientador, autor e palavrasChave)
