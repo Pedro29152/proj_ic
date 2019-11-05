@@ -1,6 +1,7 @@
-from flask import session, redirect,url_for
+from flask import session
 from biblioteca.models.dao import usuario_dao, gerenciadores_dao, usuario_dao
 from werkzeug.exceptions import BadRequestKeyError
+from biblioteca.util import json_res
 
 def tentar_login(request, next_page=''):
     user  = ''
@@ -9,32 +10,26 @@ def tentar_login(request, next_page=''):
         user = request.form['username']
         senha = request.form['password']
     except BadRequestKeyError:
-        return {
-            'status':'erro',
-            'message':'A requisicao deve conter os campos "username" e "password" em seu corpo para poder ser reconhecida'
-        }
+        return json_res.get_erro(
+            'A requisicao deve conter os campos "username" e "password" em seu corpo para poder ser reconhecida'
+        )
         
     if usuario_dao.verifica_usr(user, senha):
             session['username'] = user
             session['logged_in'] = True
             session['nivel_acesso'] = usuario_dao.busca_nivel_acesso(user)
-            return {
-                'status': 'OK',
-                'message': 'Ususario logado com sucesso',
-                'next_page' : next_page
-            }
+
+            ret = json_res.get_ok('Ususario logado com sucesso')
+            ret['next_page'] = next_page
+            return ret
     else:
-        return {
-            'status':'erro',
-            'message': 'Ususario ou senha incorretos, tente novamente'
-        }
+        return json_res.get_erro('Ususario ou senha incorretos, tente novamente')
 
 def logout_url():
     session.clear()
-    return {
-        'status': 'OK',
-        'message': 'Usuario deslogado com sucesso'
-    }
+    return json_res.get_ok(
+        'Usuario deslogado com sucesso'
+    )
 
 def cadastro_usr(request):
     try:
@@ -45,10 +40,9 @@ def cadastro_usr(request):
         senha = request.form['password']
         rsenha = request.form['r_password']
     except BadRequestKeyError:
-        return {
-            'status': 'erro',
-            'message': 'A requisicao deve possuir os campos "username", "tipoUsuario", "gerenciador", "password" e "r_password" em seu corpo'
-        }
+        return json_res.get_erro(
+            'A requisicao deve possuir os campos "username", "tipoUsuario", "gerenciador", "password" e "r_password" em seu corpo'
+        )
 
     #codGer = gerenciadores_dao.get_codGer_nomeGer(gerenciador)
 
@@ -61,15 +55,13 @@ def cadastro_usr(request):
         
     if senha == rsenha:
         usuario_dao.add_usr(user, senha,tipoUsuario,codGer)
-        return {
-            'status': 'OK',
-            'message': 'Usuario cadastrado com sucesso'
-        }
+        return json_res.get_ok(
+            'Usuario cadastrado com sucesso'
+        )
 
-    return {
-        'status': 'falha',
-        'message': 'Senhas não coincidem'
-    }
+    return json_res.get_falha(
+        'Senhas não coincidem'
+    )
 
 def buscar_usuario(req):
     nome = req.args.get('nomeUsuario')
@@ -79,13 +71,14 @@ def buscar_usuario(req):
     else:
         ret = usuario_dao.busca_usuarios()
 
-    return {
-        'status':'OK',
-        'data': ret
-    }
+    return json_res.get_data(ret)
 
 def logado(s):
     if 'logged_in' in s:
         return True
     else:
         return False
+
+def get_count(): 
+    count = usuario_dao.get_count()
+    return  json_res.get_count(count)

@@ -49,11 +49,12 @@ class Cursos:
 
 
 class Gerenciadores:
-    def __init__(self, codGerenciador=0, cpfGerenciador='', instituicao='', nomeGerenciador=''):
+    def __init__(self, codGerenciador=0, cpfGerenciador='', instituicao='', nomeGerenciador='', emailGerenciador=''):
         self.codGerenciador = codGerenciador
         self.cpfGerenciador = cpfGerenciador
         self.instituicao = instituicao
         self.nomeGerenciador = nomeGerenciador
+        self.emailGerenciador = emailGerenciador
 
     def grava_gerenciador(self):
         bd_conn.bd_gravar('insert into gerenciadores(cpfGerenciador, instituicao, nomeGerenciador) values(%s,%s,%s)',

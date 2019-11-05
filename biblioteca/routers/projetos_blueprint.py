@@ -1,4 +1,4 @@
-from biblioteca.acesso.acessos import not_logged_in, login_reqired, admin_reqired
+from biblioteca.util.acessos import not_logged_in, login_reqired, admin_reqired
 from biblioteca.controllers import proj_control
 from flask import request, jsonify, make_response, send_from_directory, Blueprint, current_app as app
 
@@ -60,3 +60,11 @@ def download(filename):
 
     ret.headers['Access-Control-Allow-Origin'] = '*'
     return ret
+
+@PROJETOS_ROUTER.route('/projetos/count', methods=['GET'])
+def projetos_count():
+    ret = proj_control.get_count()
+    
+    res = make_response(jsonify(ret))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res

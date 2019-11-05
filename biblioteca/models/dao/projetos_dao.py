@@ -187,6 +187,11 @@ def get_proj_obj(ret):
         autores_dao.busca_autores_proj(ret['codProjeto'])
     )  
 
+def get_count():
+    query = 'select count(codProjeto) as projetos from projetos'
+    ret = bd_conn.bd_busca_um(query, None)
+    return ret['projetos']
+
 def __ordena(ordem, crescente):
     cres = ''
     if(not crescente):

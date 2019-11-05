@@ -1,24 +1,20 @@
 from biblioteca.models.classes import Gerenciadores
 from biblioteca.models.dao import gerenciadores_dao
+from biblioteca.util import json_res
 
 def grava_gerenciador(req):
     gerenciador = Gerenciadores(
         cpfGerenciador=req['cpfGerenciador'],
         instituicao=req['instituicao'],
-        nomeGerenciador=req['nomeGerenciador']
+        nomeGerenciador=req['nomeGerenciador'],
+        emailGerenciador=req['emailGerenciador']
     )
 
     if gerenciador.grava_gerenciador():
-        return {
-            'status': 'OK',
-            'message': 'Gerenciador gravado com sucesso'
-        }
+        return json_res.get_ok('Gerenciador gravado com sucesso')
 
     else:
-        return {
-            'status': 'falha',
-            'message': 'Falha ao gravar o gerenciador'
-        }
+        return json_res.get_falha('Falha ao gravar o gerenciador')
 
 def busca_gerenciador(req):
     query = req.args.get('nomeGerenciador')
@@ -28,7 +24,8 @@ def busca_gerenciador(req):
     else:
         ret = gerenciadores_dao.busca_gerenciadores()
         
-    return {
-        'status': 'OK',
-        'data': ret
-    }
+    return json_res.get_data(ret)
+
+def get_count():
+    count = gerenciadores_dao.get_count()
+    return json_res.get_ok(count)

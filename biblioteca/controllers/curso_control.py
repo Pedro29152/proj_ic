@@ -1,6 +1,6 @@
 from biblioteca.models import classes
 from biblioteca.models.dao import cursos_dao
-from flask import redirect, url_for
+from biblioteca.util import json_res
 
 def grava_curso(req):
     curso = classes.Cursos(
@@ -13,7 +13,8 @@ def grava_curso(req):
 def buscar_curso():
     cursos = cursos_dao.busca_cursos()
     
-    return {
-        'status':'OK',
-        'data': cursos
-        }
+    return json_res.get_data(cursos)
+
+def get_count():
+    count = cursos_dao.get_count()
+    return json_res.get_count(count)

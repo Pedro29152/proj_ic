@@ -1,5 +1,5 @@
 from biblioteca.controllers import usuario_control
-from biblioteca.acesso.acessos import not_logged_in, login_reqired, admin_reqired
+from biblioteca.util.acessos import not_logged_in, login_reqired, admin_reqired
 from flask import request, make_response, jsonify, Blueprint
 from werkzeug.exceptions import BadRequestKeyError
 
@@ -43,6 +43,14 @@ def cadastrar_usuario():
 @admin_reqired
 def buscar_usuario():
     ret = usuario_control.buscar_usuario(request)
+    
+    res = make_response(jsonify(ret))
+    res.headers['Access-Control-Allow-Origin'] = '*'
+    return res
+
+@USUARIOS_ROUTER.route('/usuarios/count', methods=['GET'])
+def usuarios_count():
+    ret = usuario_control.get_count()
     
     res = make_response(jsonify(ret))
     res.headers['Access-Control-Allow-Origin'] = '*'

@@ -23,3 +23,8 @@ def busca_orientadores_codProjeto(codProjeto):
     )
 
     return val
+
+def get_count():
+    query = 'select count(codOrientador) as orientadores from orientadores'
+    ret = bd_conn.bd_busca_um(query, None)
+    return ret['orientadores']
