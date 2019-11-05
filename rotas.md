@@ -1,10 +1,10 @@
-<h1>--------------------------------TELAS------------------------------------------</h1>
+<h1>TELAS</h1>
 <hr>
 <h2>/index</h2> - <h3>tela inicial</h3>
 
 <h2>/projetos/buscar</h2> - <h3>tela de busca</h3>
 
---------------------------------CURSOS-----------------------------------------
+<h1>CURSOS</h1>
 <hr>
 
 <h2>/cursos/count [GET]</h2> - <h3>quantidade de cursos cadastrados </h3>
@@ -15,7 +15,7 @@
  ->parametros(passados pelo corpo do formulario):
    -->nomeCurso, abreviacao
 
---------------------------------USUARIOS---------------------------------------
+<h1>USUARIOS</h1>
 <hr>
 
 <h2>/usuarios/count [GET]</h2> - <h3>quantidade de usuarios cadastrados</h3>
@@ -34,7 +34,7 @@
  ->parametros(passados por parametro de requisicao):
    --[nomeUsuario]
 
---------------------------------PROJETOS---------------------------------------
+<h1>PROJETOS</h1>
 <hr>
 
 <h2>/projetos/count [GET]</h2> - <h3>quantidade de projetos cadastrados</h3>
@@ -67,7 +67,7 @@
 <h2>/projetos/download_file/<filename></h2> [GET] - <h3>download do arquivo do projeto</h3>
  - filename: nome do arquivo a ser baixado, passado pela url
 
---------------------------------GERENCIADORES----------------------------------
+<h1>GERENCIADORES</h1>
 <hr>
 
 <h2>/gerenciadores/count [GET]</h2> - <h3>quantidade de gerenciadores cadastrados</h3>
