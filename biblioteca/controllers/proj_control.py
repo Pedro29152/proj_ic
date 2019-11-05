@@ -49,21 +49,20 @@ def busca_palavras_chave(req = None):
     return json_res.get_data(ret)
 
 def busca_ranking(req):
-    try:
-        query = req.form['query']#args.get('query')
-    except:
+    
+    query = req.args.get('query')
+    if not query :
         query = ''
-        
-    try:
-        tipo = req.form['tipo']
-    except:
+    
+    tipo = req.args.get('tipo')
+    if not tipo:
         tipo = 'like'
 
-    try:
-        ordem = req.form['ordem']
+    ordem = req.args.get('ordem')
+    if ordem:
         if(not (ordem == '' or ordem == 'desc')):
             ordem = ''
-    except:
+    else:
         ordem = ''
         
     ret = projetos_dao.busca_projeto_ranking(query, tipo, ordem)
@@ -100,21 +99,22 @@ def download_arquivo(filename):
     return file
 
 def get_filtro(req = None):
-    try:
-        desc = req.form['query']
-    except:
+    
+    desc = req.args.get('query')
+    if not desc:
         desc = ''
-
-    try:
-        ordem = int(req.form['ordem'])
-    except:
+    
+    ordem = int(req.args.get('ordem'))
+    if(not ordem): 
         ordem = 0
-
-    cres = True
-    try:
-        if(req.form['crescente'] == '0'):
+    
+    cres = req.args.get('crescente')
+    if cres:
+        if(cres == '0'):
             cres = False
-    except:
+        else:
+            cres = True
+    else: 
         cres = True
 
     return desc, ordem, cres

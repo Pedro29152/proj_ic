@@ -57,8 +57,8 @@ class Gerenciadores:
         self.emailGerenciador = emailGerenciador
 
     def grava_gerenciador(self):
-        bd_conn.bd_gravar('insert into gerenciadores(cpfGerenciador, instituicao, nomeGerenciador) values(%s,%s,%s)',
-        (self.cpfGerenciador, self.instituicao, self.nomeGerenciador))
+        bd_conn.bd_gravar('insert into gerenciadores(cpfGerenciador, instituicao, nomeGerenciador, emailGerenciador) values(%s,%s,%s,%s)',
+        (self.cpfGerenciador, self.instituicao, self.nomeGerenciador, self.emailGerenciador))
         return bd_conn.bd_busca_um("select codGerenciador from gerenciadores where cpfGerenciador = %s",(self.cpfGerenciador,))['codGerenciador']
 
 class PalavrasChave:

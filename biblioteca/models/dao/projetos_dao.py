@@ -267,7 +267,7 @@ def upload_projeto(req, nomeUsr):
 
     i = 1
     try:
-        while req.form['autor_' + str(i)] != None:
+        while req.form['autor_' + str(i)] != None or i < 4:
             nome = req.form['autor_' + str(i)]
             ra = req.form['ra_autor_' + str(i)]
             if(nome != '' and ra != ''):
@@ -291,7 +291,7 @@ def upload_projeto(req, nomeUsr):
     )
     j = 1
     try:
-        while (req.form['palavra_chave_' + str(j)] != None):
+        while (req.form['palavra_chave_' + str(j)] != None or j < 3):
             palavra = req.form['palavra_chave_' + str(j)]
             if(palavra != ''):
                 projeto.palavrasChave.append(

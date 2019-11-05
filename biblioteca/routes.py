@@ -7,7 +7,7 @@ from biblioteca.controllers     import usuario_control
 
 #define a rota principal
 @app.route("/")
-@app.route("/index/")
+@app.route("/index")
 def  index():
     #retorna a pagina
     return render_template("vue/index.html")

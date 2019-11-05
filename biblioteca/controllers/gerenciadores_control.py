@@ -4,10 +4,10 @@ from biblioteca.util import json_res
 
 def grava_gerenciador(req):
     gerenciador = Gerenciadores(
-        cpfGerenciador=req['cpfGerenciador'],
-        instituicao=req['instituicao'],
-        nomeGerenciador=req['nomeGerenciador'],
-        emailGerenciador=req['emailGerenciador']
+        cpfGerenciador=req.form['cpfGerenciador'],
+        instituicao=req.form['instituicao'],
+        nomeGerenciador=req.form['nomeGerenciador'],
+        emailGerenciador=req.form['emailGerenciador']
     )
 
     if gerenciador.grava_gerenciador():
