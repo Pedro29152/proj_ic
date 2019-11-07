@@ -263,6 +263,7 @@ CREATE TABLE `usuarios` (
   `ativo` int(11) NOT NULL,
   `codGerenciador` int(11) NOT NULL,
   PRIMARY KEY (`codUsuario`),
+  UNIQUE KEY `nomeUsuario_UNIQUE` (`nomeUsuario`),
   KEY `FK_GERENCIADOR_idx` (`codGerenciador`),
   CONSTRAINT `FK_GERENCIADOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codGerenciador`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
