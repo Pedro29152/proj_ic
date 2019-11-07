@@ -16,6 +16,13 @@ def get_falha(message='falha'):
         'message': message
     }
 
+def get_negado(message='negado'):
+    return {
+        'status':'negado',
+        'message': message
+    }
+
+
 def get_data(data):
     return {
         'status': 'OK',
