@@ -1,7 +1,7 @@
 from flask                      import jsonify, session
 from functools                  import wraps
 from biblioteca.controllers     import usuario_control
-import util, json_res
+from biblioteca.util            import util, json_res
 
 def login_reqired(f):
     @wraps(f)

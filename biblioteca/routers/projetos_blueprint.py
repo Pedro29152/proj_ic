@@ -1,7 +1,7 @@
 from biblioteca.util.acessos import not_logged_in, login_reqired, admin_reqired
 from biblioteca.util import util
 from biblioteca.controllers import proj_control
-from flask import request, jsonify, make_response, send_from_directory, Blueprint, current_app as app
+from flask import request, jsonify, make_response, send_from_directory, abort, Blueprint, current_app as app
 
 PROJETOS_ROUTER = Blueprint('projetos_router', __name__)
 
@@ -46,9 +46,9 @@ def download(filename):
                 as_attachment=True
             )
 
-        return util.response_ext(jsonify(f))
+        return util.response_ext(f)
     
-    return None
+    abort(404)
 
 @PROJETOS_ROUTER.route('/projetos/count', methods=['GET'])
 def projetos_count():

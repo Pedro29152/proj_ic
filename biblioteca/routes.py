@@ -13,9 +13,9 @@ def catch_all(path):
 #rota padrao de caminhos nao definidos
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template("err404.html")
+    return render_template("err404.html"), 404
 
 #rota padrao para caminhos nao autorizados
 @app.errorhandler(405)
 def page_not_allowed(e):
-    return render_template("err405.html")
+    return render_template("err405.html"), 405
