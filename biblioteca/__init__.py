@@ -10,11 +10,7 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static/files')
 
 app = Flask(__name__)
-'''
-Para integracao com vue cli 
 
-app.static_folder = "./dist/static"
-'''
 app.template_folder = "./dist"
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'

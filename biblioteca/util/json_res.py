@@ -6,7 +6,7 @@ def get_ok(message='OK'):
 
 def get_erro(message='erro'):
     return {
-        'status':'OK',
+        'status':'erro',
         'message': message
     }
     

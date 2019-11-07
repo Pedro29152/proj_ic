@@ -3,11 +3,11 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 def verifica_usr(usuario, senha):
     
-    query = busca_usuarios_nome(usuario)
+    query = busca_senha_nome(usuario)
     
     if(query):
-        if(query[0] != None):
-            if(check_password_hash(query[0]['senha'], senha)):
+        if(query != None):
+            if(check_password_hash(query['senha'], senha)):
                 return True
 
     return False
@@ -31,12 +31,20 @@ def busca_usuarios():
     return val
 
 def busca_usuarios_nome(nomeUsuario):
-    val = bd_conn.bd_busca(
+    val = bd_conn.bd_busca_um(
         'select codUsuario, nomeUsuario, tipoUsuario, codGerenciador from usuarios where nomeUsuario = (%s) and ativo = 1',
-        None
+        (nomeUsuario,)
     )
     if(not val):
         val = []
+
+    return val
+
+def busca_senha_nome(nomeUsuario):
+    val = bd_conn.bd_busca_um(
+        'select senha from usuarios where nomeUsuario = (%s) and ativo = 1',
+        (nomeUsuario,)
+    )
 
     return val
 
