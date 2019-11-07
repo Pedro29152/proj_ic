@@ -1,6 +1,6 @@
 from biblioteca import bd_conn
+from biblioteca.util import json_res
 from mysql.connector.errors import IntegrityError
-
 
 class Autores:
     def __init__(self, raAutor="", nomeAutor="", projeto=None):        
@@ -31,21 +31,13 @@ class Cursos:
                     (self.descricaoCurso, self.abreviacao)
                 )
 
-                return {
-                    'status': 'sucesso',
-                    'message': 'Curso gravado com sucesso'
-                }
+                return json_res.get_ok('Curso gravado com sucesso')
 
             else:
-                return {
-                    'status': 'falha',
-                    'message': 'Erro ao gravar curso'
-                }
+                return json_res.get_falha('Erro ao gravar curso')
+
         except IntegrityError:
-            return {
-                'status': 'erroIntegridade',
-                'message': 'Curso ou abreviacao ja cadastrados'
-            }
+            return json_res.get_erro('Curso ou abreviacao ja cadastrados')
 
 
 class Gerenciadores:
@@ -77,7 +69,8 @@ class PalavrasChave:
 class Projetos:
     def __init__(self, 
     codProjeto=0, 
-    tituloProjeto='', 
+    tituloProjeto='',
+    subTitulo='', 
     descricao='', 
     nomeArquivo='', 
     notaProjeto=0, 
@@ -92,6 +85,7 @@ class Projetos:
 
         self.codProjeto = codProjeto
         self.tituloProjeto = tituloProjeto
+        self.subTitulo = subTitulo
         self.descricao = descricao
         self.nomeArquivo = nomeArquivo
         self.notaProjeto = notaProjeto

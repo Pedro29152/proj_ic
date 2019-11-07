@@ -10,10 +10,20 @@ def busca_curso_nome(descricaoCurso):
     )
 
     return val
-    
+
+def desativa_curso(codCurso):
+    query = 'update cursos set ativo = 0 where codCurso = (%s)'
+
+    bd_conn.bd_gravar(query, (codCurso,))
+
+def ativa_curso(codCurso):
+    query = 'update cursos set ativo = 1 where codCurso = (%s)'
+
+    bd_conn.bd_gravar(query, (codCurso,))
+
 def busca_cursos():
     val = bd_conn.bd_busca(
-        'select * from cursos where ativo = 1',
+        'select * from cursos',
         None
     )
 

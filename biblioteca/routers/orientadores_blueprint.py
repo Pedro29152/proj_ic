@@ -14,12 +14,14 @@ def cadastra_orientador():
     return util.response_ext(jsonify(status))
 
 @ORIENTADORES_ROUTER.route('/orientadores/buscar', methods=['GET'])
+@login_reqired
 def busca_orientador():
     status = orientadores_control.busca_orientador(request)
     
     return util.response_ext(jsonify(status))
 
 @ORIENTADORES_ROUTER.route('/orientadores/count', methods=['GET'])
+@login_reqired
 def orientadores_count():
     ret = orientadores_control.get_count()
     

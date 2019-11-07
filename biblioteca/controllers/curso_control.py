@@ -10,6 +10,17 @@ def grava_curso(req):
 
     return curso.grava_curso()
 
+def desativa_curso(codCurso):
+    cursos_dao.desativa_curso(codCurso)
+
+    return json_res.get_ok('Curso desativado com sucesso')
+
+def ativa_curso(codCurso):
+    cursos_dao.ativa_curso(codCurso)
+
+    return json_res.get_ok('Curso ativado com sucesso')
+
+
 def buscar_curso():
     cursos = cursos_dao.busca_cursos()
     

@@ -41,7 +41,7 @@ def admin_reqired(f):
 def not_logged_in(f):
     @wraps(f)
     def wrap(*args, **kwargs):
-        if 'logged_in' not in session:
+        if not usuario_control.logado(session):
             return f(*args, **kwargs)
         else:
             return util.response_ext(

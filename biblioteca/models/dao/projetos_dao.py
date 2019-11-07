@@ -21,6 +21,7 @@ Por padrao crescente recebe o valor True
 from biblioteca import bd_conn
 from biblioteca.models.dao import autores_dao, gerenciadores_dao, cursos_dao, projeto_autor_dao, palavras_chave_dao, orientadores_dao
 from biblioteca.models.classes import Projetos, Avalicoes, Autores, Cursos, PalavrasChave, Gerenciadores, Orientadores
+from biblioteca.util import json_res
 from datetime import date, datetime
 from werkzeug.exceptions import BadRequestKeyError
 from random import randint
@@ -324,14 +325,16 @@ def upload_projeto(req, nomeUsr):
         descricao = req.form['descricao']
         dataAvaliacao = req.form['dataAvaliacao']
         codCurso = req.form['curso']
+        subTitulo = req.form['subTitulo']
     except BadRequestKeyError:
-        return {
-            'status': 'erro',
-            'message': 'A requisicao deve conter os campos "titulo", "nomeOrientador", "raOrientador", "descricao", "dataAvaliacao" e "curso"'
-        }
+        return json_res.get_erro('A requisicao deve conter os campos "titulo", "nomeOrientador", "raOrientador", "descricao", "dataAvaliacao", "subTitulo" e "curso"')
+
+    if not(titulo and nomeOrientador and raOrientador and descricao and dataAvaliacao and codCurso and subTitulo):
+        return json_res.get_erro('Os valores de "titulo", "nomeOrientador", "raOrientador", "descricao", "dataAvaliacao", "subTitulo" e "curso" nao podem ser nulos')
 
     projeto = Projetos(
         tituloProjeto = titulo,
+        subTitulo = subTitulo,
         descricao = descricao,
         dataAvaliacao = dataAvaliacao,
         autores=[], 
@@ -345,10 +348,10 @@ def upload_projeto(req, nomeUsr):
         ra_autor = req.form['ra_autor']
         autor = req.form['autor']
     except BadRequestKeyError:
-        return {
-            'status' : 'erro',
-            'message': 'A requisicao deve conter ao menos um campo "ra_autor" e um "autor"'
-        }
+        return json_res.get_erro('A requisicao deve conter ao menos um campo "ra_autor" e um "autor"')
+
+    if not (ra_autor and autor):
+        return json_res.get_erro('Os valores de "ra_autor" e "autor" nao podem ser nulos')
 
     projeto.autores.append(Autores(
         ra_autor,
@@ -371,10 +374,10 @@ def upload_projeto(req, nomeUsr):
     try:
         palavra = req.form['palavra_chave']
     except BadRequestKeyError:
-        return {
-            'status' : 'erro',
-            'message': 'A requisicao deve conter ao menos um campo "palavra_chave". Os demais campos devem estar no formato: palavra_chave_(numero da palavra)'
-        }
+        return json_res.get_erro('A requisicao deve conter ao menos um campo "palavra_chave". Os demais campos devem estar no formato: palavra_chave_(numero da palavra)')
+
+    if not palavra:
+        return json_res.get_erro('O valor de "palavra_chave" nao pode ser nulo')
 
     projeto.palavrasChave.append(
         PalavrasChave(palavra)
@@ -430,19 +433,17 @@ def upload_projeto(req, nomeUsr):
             filename
         )
     )
-    return {
-        'status':'OK',
-        'message': 'Projeto cadastrado com sucesso'
-    }
+    return json_res.get_ok('Projeto cadastrado com sucesso')
 
 def grava_projeto(
     projeto
 ):
     bd_conn.bd_gravar(
         'insert into projetos'+
-        '(tituloProjeto, descricao, nomeArquivo, notaProjeto, dataAvaliacao, codGerenciador, codCurso, ativo)'+
-        'values(%s,%s,%s,%s,%s,%s,%s,1)',
-        (projeto.tituloProjeto, 
+        '(tituloProjeto, subTitulo, descricao, nomeArquivo, notaProjeto, dataAvaliacao, codGerenciador, codCurso, ativo)'+
+        'values(%s,%s,%s,%s,%s,%s,%s,%s,1)',
+        (projeto.tituloProjeto,
+        projeto.subTitulo,
         projeto.descricao, 
         projeto.nomeArquivo, 
         projeto.notaProjeto, 

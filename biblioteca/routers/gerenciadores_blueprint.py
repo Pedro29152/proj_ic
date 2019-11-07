@@ -13,12 +13,14 @@ def cadastro_gerenciadores():
     return util.response_ext(jsonify(status))
 
 @GERENCIADORES_ROUTER.route('/gerenciadores/buscar', methods=['GET'])
+@login_reqired
 def buscar_gerenciadores():
     status = gerenciadores_control.busca_gerenciador(request)
     
     return util.response_ext(jsonify(status))
 
 @GERENCIADORES_ROUTER.route('/gerenciadores/count', methods=['GET'])
+@login_reqired
 def gerenciadores_count():
     ret = gerenciadores_control.get_count()
     

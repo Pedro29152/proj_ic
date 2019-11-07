@@ -229,6 +229,7 @@ CREATE TABLE `projetos` (
   `codGerenciador` int(11) NOT NULL,
   `codCurso` int(11) NOT NULL,
   `ativo` int(11) NOT NULL,
+  `subTitulo` longtext NOT NULL,
   PRIMARY KEY (`codProjeto`),
   UNIQUE KEY `nomeArquivo_UNIQUE` (`nomeArquivo`),
   KEY `FK_GERENCIAOR_idx` (`codGerenciador`),
@@ -244,7 +245,7 @@ CREATE TABLE `projetos` (
 
 LOCK TABLES `projetos` WRITE;
 /*!40000 ALTER TABLE `projetos` DISABLE KEYS */;
-INSERT INTO `projetos` VALUES (42,'Projeto','descricao','ADS-PROJETO-2019-10-30-0XA63950.pdf',0,0,0,0,0.00,'2019-10-30','2019-10-30 18:08:54',2,2,1),(43,'tit','des','ADS-TIT-2019-11-01-0X710B8F.pdf',0,0,0,0,0.00,'1232-09-17','2019-11-01 16:42:11',2,2,1),(44,'teste ori','qoejhoqdqiow fdde desc','JD-TESTE-ORI-2019-11-04-0X4A63A5.pdf',0,0,0,0,0.00,'2019-10-14','2019-11-04 17:52:08',2,1,1),(45,'teste ori 2','qoejhoqdqiow fdde desc 2','JD-TESTE-ORI-2-2019-11-04-0XA15714.pdf',0,0,0,0,0.00,'2019-07-19','2019-11-04 17:59:18',2,1,1);
+INSERT INTO `projetos` VALUES (42,'Projeto','descricao','ADS-PROJETO-2019-10-30-0XA63950.pdf',0,0,0,0,0.00,'2019-10-30','2019-10-30 18:08:54',2,2,1,''),(43,'tit','des','ADS-TIT-2019-11-01-0X710B8F.pdf',0,0,0,0,0.00,'1232-09-17','2019-11-01 16:42:11',2,2,1,''),(44,'teste ori','qoejhoqdqiow fdde desc','JD-TESTE-ORI-2019-11-04-0X4A63A5.pdf',0,0,0,0,0.00,'2019-10-14','2019-11-04 17:52:08',2,1,1,''),(45,'teste ori 2','qoejhoqdqiow fdde desc 2','JD-TESTE-ORI-2-2019-11-04-0XA15714.pdf',0,0,0,0,0.00,'2019-07-19','2019-11-04 17:59:18',2,1,1,'');
 /*!40000 ALTER TABLE `projetos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -288,4 +289,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-11-04 18:01:24
+-- Dump completed on 2019-11-07 14:24:17

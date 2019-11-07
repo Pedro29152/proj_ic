@@ -42,6 +42,7 @@ def buscar_usuario():
     return util.response_ext(jsonify(ret))
 
 @USUARIOS_ROUTER.route('/usuarios/count', methods=['GET'])
+@login_reqired
 def usuarios_count():
     ret = usuario_control.get_count()
     
