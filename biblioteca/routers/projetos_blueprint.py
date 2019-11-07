@@ -13,6 +13,7 @@ def upload_file():
 
     return util.response_ext(jsonify(status))
 
+@PROJETOS_ROUTER.route("/projetos/buscar", methods=["GET"], defaults={'tipo':''})
 @PROJETOS_ROUTER.route("/projetos/buscar/<path:tipo>", methods=["GET"])
 def busca_titulo(tipo):
     projs = None
@@ -37,14 +38,17 @@ def busca_ranking():
 
 #rota para download de arquivos
 @PROJETOS_ROUTER.route("/projetos/download_file/<path:filename>", methods=["POST","GET"])
-def download(filename): 
-    f = send_from_directory(
-            app.config['UPLOAD_FOLDER'],
-            filename, 
-            as_attachment=True
-        )
+def download(filename):
+    if proj_control.download_arquivo(filename):
+        f = send_from_directory(    
+                app.config['UPLOAD_FOLDER'],
+                filename, 
+                as_attachment=True
+            )
 
-    return util.response_ext(jsonify(f))
+        return util.response_ext(jsonify(f))
+    
+    return None
 
 @PROJETOS_ROUTER.route('/projetos/count', methods=['GET'])
 def projetos_count():

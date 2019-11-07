@@ -202,7 +202,7 @@ def busca_projeto():
         query,None
     )
 
-
+    __prenche_projeto(ret)
 
     return ret
 
@@ -329,8 +329,6 @@ def upload_projeto(req, nomeUsr):
             'status': 'erro',
             'message': 'A requisicao deve conter os campos "titulo", "nomeOrientador", "raOrientador", "descricao", "dataAvaliacao" e "curso"'
         }
-
-    
 
     projeto = Projetos(
         tituloProjeto = titulo,
@@ -464,7 +462,19 @@ def grava_projeto(
 
     __grava_proj_ori(projeto.codProjeto, projeto.orientador.codOrientador)
 
-    
+def is_ativo_filename(filename):
+    query = 'select codProjeto from projetos where nomeArquivo = (%s) and ativo = 1'
+
+    ret = bd_conn.bd_busca_um(query, (filename,))
+
+    if ret:
+        return ret['codProjeto']
+    return None
+
+def download_file(codProjeto):
+    query = 'UPDATE projetos SET numDownloads = numDownloads + 1 WHERE codProjeto = (%s)'
+
+    bd_conn.bd_gravar(query, (codProjeto,))
 
 def __busca_projeto_full(query, *args):
     ret = bd_conn.bd_busca(query, *args)

@@ -8,28 +8,26 @@ ALLOWED_EXTENSIONS = set(['pdf'])
 def busca(req = None, tipo = ''):
     dados, ordem, cres = __get_filtro(req)
     ret = None
+
     if tipo == 'titulo':
         ret = projetos_dao.busca_projeto_titulo(dados, ordem, cres)
-
-    if tipo == 'curso':
+    elif tipo == 'curso':
         ret = projetos_dao.busca_projeto_curso(dados, ordem, cres)
-
-    if tipo == 'descricao':
+    elif tipo == 'descricao':
         ret = projetos_dao.busca_projeto_descricao(dados, ordem, cres)
-
-    if tipo == 'orientador':
+    elif tipo == 'orientador':
         ret = projetos_dao.busca_projeto_orientador(dados, ordem, cres)
-
-    if tipo == 'autor':
+    elif tipo == 'autor':
         ret = projetos_dao.busca_projeto_autor(dados, ordem, cres)
-
-    if tipo == 'palavrasChave':
+    elif tipo == 'palavrasChave':
         ret = projetos_dao.busca_projeto_palavras_chave(dados, ordem, cres)
+    else:
+        ret = projetos_dao.busca_projeto()
     
     if ret:
         return json_res.get_data(ret)
     else:
-        return json_res.get_falha('Tipo de pesquisa nao reconhecido')
+        return json_res.get_falha('Nenhum projeto listado')
 
 def busca_pag(req = None, tipo='', pag = 1):
     dados, ordem, cres = __get_filtro(req)
@@ -39,23 +37,21 @@ def busca_pag(req = None, tipo='', pag = 1):
         return json_res.get_erro('O valor do parametro "page" deve ser do tipo inteiro')
 
     ret = None
+
     if tipo == 'titulo':
         ret = projetos_dao.busca_projeto_titulo_pag(dados, ordem, cres, pag)
-
-    if tipo == 'curso':
+    elif tipo == 'curso':
         ret = projetos_dao.busca_projeto_curso_pag(dados, ordem, cres, pag)
-
-    if tipo == 'descricao':
+    elif tipo == 'descricao':
         ret = projetos_dao.busca_projeto_descricao_pag(dados, ordem, cres, pag)
-
-    if tipo == 'orientador':
+    elif tipo == 'orientador':
         ret = projetos_dao.busca_projeto_orientador_pag(dados, ordem, cres, pag)
-
-    if tipo == 'autor':
+    elif tipo == 'autor':
         ret = projetos_dao.busca_projeto_autor_pag(dados, ordem, cres, pag)
-
-    if tipo == 'palavrasChave':
+    elif tipo == 'palavrasChave':
         ret = projetos_dao.busca_projeto_palavras_chave_pag(dados, ordem, cres, pag)
+    else:
+        ret = projetos_dao.busca_projeto_titulo_pag(pag= pag)
     
     if ret:
         return json_res.get_data(ret)
@@ -113,9 +109,12 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def download_arquivo(filename):
-    uploads = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
-    file = open(uploads + '/' + filename, 'r')
-    return file
+    codProj = projetos_dao.is_ativo_filename(filename)
+    if codProj:
+        projetos_dao.download_file(codProj)
+        return True
+    else:
+        return False
 
 def __get_filtro(req = None):
     

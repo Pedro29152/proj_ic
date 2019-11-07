@@ -5,19 +5,10 @@ from biblioteca.models.dao      import projetos_dao
 from biblioteca.controllers     import usuario_control
 #import simplejson
 
-#define a rota principal
-@app.route("/")
-@app.route("/index")
-def  index():
-    #retorna a pagina
-    return render_template("vue/index.html")
-
-#define rota para consulta de projetos cadastrados
-@app.route("/projetos/buscar", methods=["GET"])
-def buscar():
-    dados = projetos_dao.busca_projeto()
-    
-    return render_template("vue/busca.html",tgs = dados)
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    return render_template("index.html")
 
 #rota padrao de caminhos nao definidos
 @app.errorhandler(404)
