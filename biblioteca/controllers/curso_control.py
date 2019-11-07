@@ -1,9 +1,9 @@
-from biblioteca.models import classes
+from biblioteca.models.classes import Cursos
 from biblioteca.models.dao import cursos_dao
 from biblioteca.util import json_res
 
 def grava_curso(req):
-    curso = classes.Cursos(
+    curso = Cursos(
         req.form['nomeCurso'], 
         req.form['abreviacao']
     )

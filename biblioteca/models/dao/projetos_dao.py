@@ -209,39 +209,41 @@ def busca_projeto():
 def busca_projeto_ranking(titulo, tipo, ordem):
     titulo = '%{}%'.format(titulo)
     
-    query = 'select * from projetos where tituloProjeto like (%s) order by likes' + ordem
+    query = 'select * from projetos where tituloProjeto like (%s) and ativo = 1'
     
+    if tipo == 'likes':
+        query += ' order by likes' + ordem
     if tipo == 'deslikes':
-        query = 'select * from projetos where tituloProjeto like (%s) order by deslikes' + ordem
+        query += ' order by deslikes' + ordem
+    elif tipo == 'numVisitas':
+        query += 'order by numVisitas' + ordem
+    elif tipo == 'numDownloads':
+        query += 'order by numDownloads' + ordem
+    elif tipo == 'notaProjeto':
+        query += 'order by notaProjeto' + ordem
+    else:
+        query += ' order by likes' + ordem
 
-    if tipo == 'numVisitas':
-        query = 'select * from projetos where tituloProjeto like (%s) order by numVisitas' + ordem
-
-    if tipo == 'numDownloads':
-        query = 'select * from projetos where tituloProjeto like (%s) order by numDownloads' + ordem
-
-    if tipo == 'notaProjeto':
-        query = 'select * from projetos where tituloProjeto like (%s) order by notaProjeto' + ordem
-    
     return __busca_projeto_full(query, (titulo,))
 
 def busca_projeto_ranking_pag(titulo, tipo, ordem, pag):
     titulo = '%{}%'.format(titulo)
+
+    query = 'select * from projetos where tituloProjeto like (%s) and ativo = 1'
     
-    query = 'select * from projetos where tituloProjeto like (%s) order by likes' + ordem
-    
+    if tipo == 'likes':
+        query += ' order by likes' + ordem
     if tipo == 'deslikes':
-        query = 'select * from projetos where tituloProjeto like (%s) order by deslikes' + ordem
+        query += ' order by deslikes' + ordem
+    elif tipo == 'numVisitas':
+        query += 'order by numVisitas' + ordem
+    elif tipo == 'numDownloads':
+        query += 'order by numDownloads' + ordem
+    elif tipo == 'notaProjeto':
+        query += 'order by notaProjeto' + ordem
+    else:
+        query += ' order by likes' + ordem
 
-    if tipo == 'numVisitas':
-        query = 'select * from projetos where tituloProjeto like (%s) order by numVisitas' + ordem
-
-    if tipo == 'numDownloads':
-        query = 'select * from projetos where tituloProjeto like (%s) order by numDownloads' + ordem
-
-    if tipo == 'notaProjeto':
-        query = 'select * from projetos where tituloProjeto like (%s) order by notaProjeto' + ordem
-    
     query += __get_limit(pag, 5)
 
     return __busca_projeto_full(query, (titulo,))

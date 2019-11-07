@@ -24,6 +24,24 @@ def busca_orientadores_codProjeto(codProjeto):
 
     return val
 
+def busca_orientadores():    
+    val = bd_conn.bd_busca(
+        'select * from orientadores',
+        None
+    )
+
+    return val
+
+def busca_orientadores_nome(nome):
+    nome = '%{}%'.format(nome)
+    
+    val = bd_conn.bd_busca(
+        'select * from orientadores where nomeOrientador like (%s)',
+        (nome,)
+    )
+
+    return val
+
 def get_count():
     query = 'select count(*) as orientadores from orientadores'
     ret = bd_conn.bd_busca_um(query, None)

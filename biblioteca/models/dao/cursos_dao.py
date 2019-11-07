@@ -63,6 +63,6 @@ def get_curso_codCurso(codCurso):
     return curso
 
 def get_count():
-    query = 'select count(*) as cursos from cursos'
+    query = 'select count(*) as cursos from cursos where ativo = 1'
     ret = bd_conn.bd_busca_um(query, None)
     return ret['cursos']
