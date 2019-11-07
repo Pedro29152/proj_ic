@@ -67,6 +67,6 @@ def get_codGer_nomeGer(nomeGerenciador):
     return ret['codGerenciador']
     
 def get_count():
-    query = 'select count(codGerenciador) as gerenciadores from gerenciadores'
+    query = 'select count(*) as gerenciadores from gerenciadores'
     ret = bd_conn.bd_busca_um(query, None)
     return ret['gerenciadores']

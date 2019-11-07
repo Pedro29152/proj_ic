@@ -5,73 +5,92 @@ import os
 
 ALLOWED_EXTENSIONS = set(['pdf'])
 
-def busca_curso(req = None):
-    curso, ordem, cres = get_filtro(req)
+def busca(req = None, tipo = ''):
+    dados, ordem, cres = __get_filtro(req)
+    ret = None
+    if tipo == 'titulo':
+        ret = projetos_dao.busca_projeto_titulo(dados, ordem, cres)
 
-    ret = projetos_dao.busca_projeto_curso(curso, ordem, cres)
+    if tipo == 'curso':
+        ret = projetos_dao.busca_projeto_curso(dados, ordem, cres)
 
-    return json_res.get_data(ret)
+    if tipo == 'descricao':
+        ret = projetos_dao.busca_projeto_descricao(dados, ordem, cres)
 
-def busca_descricao(req = None):
-    desc, ordem, cres = get_filtro(req)
+    if tipo == 'orientador':
+        ret = projetos_dao.busca_projeto_orientador(dados, ordem, cres)
+
+    if tipo == 'autor':
+        ret = projetos_dao.busca_projeto_autor(dados, ordem, cres)
+
+    if tipo == 'palavrasChave':
+        ret = projetos_dao.busca_projeto_palavras_chave(dados, ordem, cres)
     
-    ret = projetos_dao.busca_projeto_descricao(desc, ordem, cres)
-
-    return json_res.get_data(ret)
-    
-
-def busca_titulo(req = None):
-    titulo, ordem, cres = get_filtro(req)
-
-    ret = projetos_dao.busca_projeto_titulo(titulo, ordem, cres)
-
-    return json_res.get_data(ret)
-    
-def busca_orientador(req = None):
-    orientador, ordem, cres = get_filtro(req)
-
-    ret = projetos_dao.busca_projeto_orientador(orientador, ordem, cres)
-
-    return json_res.get_data(ret)
- 
-def busca_autor(req = None):
-    autor, ordem, cres = get_filtro(req)
-
-    ret = projetos_dao.busca_projeto_autor(autor, ordem, cres)
-
-    return json_res.get_data(ret)
-
-def busca_palavras_chave(req = None):
-    autor, ordem, cres = get_filtro(req)
-
-    ret = projetos_dao.busca_projeto_palavras_chave(autor, ordem, cres)
-
-    return json_res.get_data(ret)
-
-def busca_ranking(req):
-    
-    query = req.args.get('query')
-    if not query :
-        query = ''
-    
-    tipo = req.args.get('tipo')
-    if not tipo:
-        tipo = 'like'
-
-    ordem = req.args.get('ordem')
-    if ordem:
-        if(not (ordem == '' or ordem == 'desc')):
-            ordem = ''
+    if ret:
+        return json_res.get_data(ret)
     else:
-        ordem = ''
-        
-    ret = projetos_dao.busca_projeto_ranking(query, tipo, ordem)
+        return json_res.get_falha('Tipo de pesquisa nao reconhecido')
 
+def busca_pag(req = None, tipo='', pag = 1):
+    dados, ordem, cres = __get_filtro(req)
+    try:
+        pag = int(pag)
+    except ValueError:
+        return json_res.get_erro('O valor do parametro "page" deve ser do tipo inteiro')
+
+    ret = None
+    if tipo == 'titulo':
+        ret = projetos_dao.busca_projeto_titulo_pag(dados, ordem, cres, pag)
+
+    if tipo == 'curso':
+        ret = projetos_dao.busca_projeto_curso_pag(dados, ordem, cres, pag)
+
+    if tipo == 'descricao':
+        ret = projetos_dao.busca_projeto_descricao_pag(dados, ordem, cres, pag)
+
+    if tipo == 'orientador':
+        ret = projetos_dao.busca_projeto_orientador_pag(dados, ordem, cres, pag)
+
+    if tipo == 'autor':
+        ret = projetos_dao.busca_projeto_autor_pag(dados, ordem, cres, pag)
+
+    if tipo == 'palavrasChave':
+        ret = projetos_dao.busca_projeto_palavras_chave_pag(dados, ordem, cres, pag)
+    
+    if ret:
+        return json_res.get_data(ret)
+    else:
+        return json_res.get_falha('Nenhum projeto listado')
+
+def busca_ranking(req = None, pag = 1):
+    
+    query, tipo, ordem = __get_filtro_rank(req)
+
+    ret = projetos_dao.busca_projeto_ranking(query, tipo, ordem)
 
     if ret == None:
         return json_res.get_falha('Nenhum projeto listado')
 
     return json_res.get_data(ret)
+
+def busca_ranking_pag(req = None, page = 1):
+    query, tipo, ordem = __get_filtro_rank(req)
+    
+    try:
+        page = int(page)
+    except TypeError:
+        return json_res.get_erro('O valor do parametro "page" deve ser do tipo inteiro')
+
+    ret = projetos_dao.busca_projeto_ranking_pag(query, tipo, ordem, page)
+
+    if ret == None:
+        return json_res.get_falha('Nenhum projeto listado')
+
+    return json_res.get_data(ret)
+
+def get_count():
+    count = projetos_dao.get_count()
+    return json_res.get_count(count)
 
 def upload(req):
     if 'file' not in req.files:
@@ -98,14 +117,15 @@ def download_arquivo(filename):
     file = open(uploads + '/' + filename, 'r')
     return file
 
-def get_filtro(req = None):
+def __get_filtro(req = None):
     
     desc = req.args.get('query')
     if not desc:
         desc = ''
-    
-    ordem = int(req.args.get('ordem'))
-    if(not ordem): 
+
+    if req.args.get('ordem'):
+        ordem = int(req.args.get('ordem'))
+    else:
         ordem = 0
     
     cres = req.args.get('crescente')
@@ -119,6 +139,20 @@ def get_filtro(req = None):
 
     return desc, ordem, cres
 
-def get_count():
-    count = projetos_dao.get_count()
-    return json_res.get_count(count)
+def __get_filtro_rank(req = None):
+    query = req.args.get('query')
+    if not query :
+        query = ''
+    
+    tipo = req.args.get('tipo')
+    if not tipo:
+        tipo = 'like'
+
+    ordem = req.args.get('ordem')
+    if ordem:
+        if(not (ordem == '' or ordem == 'desc')):
+            ordem = ''
+    else:
+        ordem = ''
+
+    return query, tipo, ordem

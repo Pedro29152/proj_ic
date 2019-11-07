@@ -50,7 +50,7 @@ QUERY_PALAVRAS_CHAVE = '''
 def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
     nomeCurso = '%' + nomeCurso + '%'
 
-    ret = __busca_projeto_autor_palavra(
+    ret = __busca_projeto_full(
         QUERY_CURSO + 
         __ordena(ordem,crescente),
         (nomeCurso, nomeCurso)
@@ -63,20 +63,18 @@ def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
 def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     titulo = "%" + titulo + "%"
 
-    ret = __busca_projeto_autor_palavra(
+    ret = __busca_projeto_full(
         QUERY_TITULO + 
         __ordena(ordem,crescente),
         (titulo,)
     )
 
-    #proj = get_proj_obj(ret)
-    
     return ret
 
 def busca_projeto_descricao(descricao, ordem = 0, crescente = True):
     descricao = '%' + descricao + '%'
 
-    ret = __busca_projeto_autor_palavra(
+    ret = __busca_projeto_full(
         QUERY_DESCRICAO + 
         __ordena(ordem,crescente),
         (descricao,)
@@ -90,9 +88,8 @@ def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
     
     nomeOrientador = '%' + nomeOrientador + '%'
     
-    ret = __busca_projeto_autor_palavra(
-        QUERY_ORIENTADOR + 
-        __ordena(ordem,crescente),
+    ret = __busca_projeto_full(
+        QUERY_ORIENTADOR + __ordena(ordem,crescente)
         (nomeOrientador,)
     )
 
@@ -104,7 +101,7 @@ def busca_projeto_autor(nomeAutor, ordem = 0, crescente = True):
     
     nomeAutor = '%' + nomeAutor + '%'
     
-    ret = __busca_projeto_autor_palavra(
+    ret = __busca_projeto_full(
         QUERY_AUTOR + __ordena(ordem,crescente),
         (nomeAutor,)
     )
@@ -116,9 +113,81 @@ def busca_projeto_autor(nomeAutor, ordem = 0, crescente = True):
 def busca_projeto_palavras_chave(palavra_chave, ordem = 0, crescente = True):
     palavra_chave = '%' + palavra_chave + '%'
     
-    ret = __busca_projeto_autor_palavra(
+    ret = __busca_projeto_full(
         QUERY_PALAVRAS_CHAVE +
         __ordena(ordem, crescente),
+        (palavra_chave,)
+    )
+
+    #proj = get_proj_obj(ret)
+    
+    return ret
+
+def busca_projeto_curso_pag(nomeCurso = '', ordem = 0, crescente = True, pag = 1):
+    nomeCurso = '%' + nomeCurso + '%'
+    
+    ret = __busca_projeto_full(
+        QUERY_CURSO + __ordena(ordem,crescente) + __get_limit(pag),
+        (nomeCurso, nomeCurso)
+    )
+
+    return ret
+    
+def busca_projeto_titulo_pag(titulo = '', ordem = 0, crescente = True, pag = 1):
+    titulo = "%" + titulo + "%"
+
+
+    ret = __busca_projeto_full(
+        QUERY_TITULO + __ordena(ordem,crescente) + __get_limit(pag),
+        (titulo,)
+    )
+
+    return ret
+
+def busca_projeto_descricao_pag(descricao, ordem = 0, crescente = True, pag = 1):
+    descricao = '%' + descricao + '%'
+
+
+    ret = __busca_projeto_full(
+        QUERY_DESCRICAO + __ordena(ordem,crescente) + __get_limit(pag),
+        (descricao,)
+    )
+
+    #proj = get_proj_obj(ret)
+    
+    return ret
+
+def busca_projeto_orientador_pag(nomeOrientador, ordem = 0, crescente = True, pag = 1):
+    
+    nomeOrientador = '%' + nomeOrientador + '%'
+    
+    ret = __busca_projeto_full(
+        QUERY_ORIENTADOR + __ordena(ordem,crescente) + __get_limit(pag),
+        (nomeOrientador,)
+    )
+
+    #proj = get_proj_obj(ret)
+    
+    return ret
+
+def busca_projeto_autor_pag(nomeAutor, ordem = 0, crescente = True, pag = 1):
+    
+    nomeAutor = '%' + nomeAutor + '%'
+    
+    ret = __busca_projeto_full(
+        QUERY_AUTOR + __ordena(ordem,crescente) + __get_limit(pag),
+        (nomeAutor,)
+    )
+
+    #proj = get_proj_obj(ret)
+    
+    return ret
+
+def busca_projeto_palavras_chave_pag(palavra_chave, ordem = 0, crescente = True, pag = 1):
+    palavra_chave = '%' + palavra_chave + '%'
+    
+    ret = __busca_projeto_full(
+        QUERY_PALAVRAS_CHAVE + __ordena(ordem, crescente) + __get_limit(pag),
         (palavra_chave,)
     )
 
@@ -154,7 +223,28 @@ def busca_projeto_ranking(titulo, tipo, ordem):
     if tipo == 'notaProjeto':
         query = 'select * from projetos where tituloProjeto like (%s) order by notaProjeto' + ordem
     
-    return __busca_projeto_autor_palavra(query, (titulo,))
+    return __busca_projeto_full(query, (titulo,))
+
+def busca_projeto_ranking_pag(titulo, tipo, ordem, pag):
+    titulo = '%{}%'.format(titulo)
+    
+    query = 'select * from projetos where tituloProjeto like (%s) order by likes' + ordem
+    
+    if tipo == 'deslikes':
+        query = 'select * from projetos where tituloProjeto like (%s) order by deslikes' + ordem
+
+    if tipo == 'numVisitas':
+        query = 'select * from projetos where tituloProjeto like (%s) order by numVisitas' + ordem
+
+    if tipo == 'numDownloads':
+        query = 'select * from projetos where tituloProjeto like (%s) order by numDownloads' + ordem
+
+    if tipo == 'notaProjeto':
+        query = 'select * from projetos where tituloProjeto like (%s) order by notaProjeto' + ordem
+    
+    query += __get_limit(pag, 5)
+
+    return __busca_projeto_full(query, (titulo,))
 
 def get_cod_projeto_titulo(titulo):
     query = 'SELECT codProjeto FROM projetos WHERE tituloProjeto = (%s) ORDER BY codProjeto DESC'
@@ -188,7 +278,7 @@ def get_proj_obj(ret):
     )  
 
 def get_count():
-    query = 'select count(codProjeto) as projetos from projetos'
+    query = 'select count(*) as projetos from projetos'
     ret = bd_conn.bd_busca_um(query, None)
     return ret['projetos']
 
@@ -374,7 +464,7 @@ def grava_projeto(
 
     
 
-def __busca_projeto_autor_palavra(query, *args):
+def __busca_projeto_full(query, *args):
     ret = bd_conn.bd_busca(query, *args)
 
     __prenche_projeto(ret)
@@ -392,3 +482,10 @@ def __grava_proj_ori(codProjeto, codOrientador):
     query = 'insert into projeto_orientador values(%s, %s)'
 
     bd_conn.bd_gravar(query, (codOrientador, codProjeto))
+
+def __get_limit(pag, tam = 20):
+    fi = 1 + ((pag - 1) * tam)
+    ff = pag * tam
+
+    return ' LIMIT {}, {}'.format(fi, ff)
+    

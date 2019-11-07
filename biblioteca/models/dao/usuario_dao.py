@@ -61,6 +61,6 @@ def add_usr(usuario, senha,tipoUsuario,codGerenciador):
     return 0
 
 def get_count():
-    query = 'select count(codUsuario) as usuarios from usuarios'
+    query = 'select count(*) as usuarios from usuarios'
     ret = bd_conn.bd_busca_um(query, None)
     return ret['usuarios']

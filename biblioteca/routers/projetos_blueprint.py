@@ -17,23 +17,11 @@ def upload_file():
 @PROJETOS_ROUTER.route("/projetos/buscar/<path:tipo>", methods=["GET"])
 def busca_titulo(tipo):
     projs = None
-    if tipo == 'titulo':
-        projs = proj_control.busca_titulo(request)
-
-    if tipo == 'curso':
-        projs = proj_control.busca_curso(request)
-
-    if tipo == 'descricao':
-        projs = proj_control.busca_descricao(request)
-
-    if tipo == 'orientador':
-        projs = proj_control.busca_orientador(request)
-
-    if tipo == 'autor':
-        projs = proj_control.busca_autor(request)
-
-    if tipo == 'palavrasChave':
-        projs = proj_control.busca_palavras_chave(request)
+    if request.args.get('page'):
+        page = request.args.get('page')
+        projs = proj_control.busca_pag(request, tipo, page)
+    else:
+        projs = proj_control.busca(request, tipo)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'
@@ -41,7 +29,12 @@ def busca_titulo(tipo):
 
 @PROJETOS_ROUTER.route("/projetos/buscar/ranking", methods=["GET"])
 def busca_ranking():
-    projs = proj_control.busca_ranking(request)
+    projs = None
+    if request.args.get('page'):
+        page = request.args.get('page')
+        projs = proj_control.busca_ranking_pag(request, page)
+    else:
+        projs = proj_control.busca_ranking(request)
 
     res = make_response(jsonify(projs))
     res.headers['Access-Control-Allow-Origin'] = '*'

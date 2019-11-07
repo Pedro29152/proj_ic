@@ -28,4 +28,4 @@ def busca_gerenciador(req):
 
 def get_count():
     count = gerenciadores_dao.get_count()
-    return json_res.get_ok(count)
+    return json_res.get_count(count)
