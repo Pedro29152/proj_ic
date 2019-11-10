@@ -36,12 +36,10 @@ def cadastro_usr(request):
         user = request.form['username']
         tipoUsuario = request.form['tipoUsuario']
         codGer = request.form['gerenciador']
-        
         senha = request.form['password']
-        rsenha = request.form['r_password']
     except BadRequestKeyError:
         return json_res.get_erro(
-            'A requisicao deve possuir os campos "username", "tipoUsuario", "gerenciador", "password" e "r_password" em seu corpo'
+            'A requisicao deve possuir os campos "username", "tipoUsuario", "gerenciador" e "password" em seu corpo'
         )
 
     #codGer = gerenciadores_dao.get_codGer_nomeGer(gerenciador)
@@ -52,17 +50,14 @@ def cadastro_usr(request):
         tipoUsuario = 2
     if(tipoUsuario == "Admin"):
         tipoUsuario = 3
-        
-    if senha == rsenha:
-        usuario_dao.add_usr(user, senha,tipoUsuario,codGer)
+    
+    if usuario_dao.add_usr(user, senha,tipoUsuario,codGer):
         return json_res.get_ok(
             'Usuario cadastrado com sucesso'
         )
 
-    return json_res.get_falha(
-        'Senhas não coincidem'
-    )
-
+    return json_res.get_erro('Houve um erro na hora de cadastrar o usuario')
+    
 def buscar_usuario(req):
     nome = req.args.get('nomeUsuario')
 

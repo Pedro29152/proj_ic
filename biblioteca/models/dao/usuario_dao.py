@@ -1,4 +1,5 @@
 from biblioteca import bd_conn
+from mysql.connector.errors import DatabaseError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 def verifica_usr(usuario, senha):
@@ -60,13 +61,15 @@ def busca_usuarios_nome_like(nomeUsuario):
     return val
 
 def add_usr(usuario, senha,tipoUsuario,codGerenciador):
-    bd_conn.bd_gravar(
-        'insert into usuarios(nomeUsuario, senha, tipoUsuario, ativo, codGerenciador) '+ 
-        'values(%s, %s, %s, 1, %s)',
-        (usuario, generate_password_hash(senha),tipoUsuario,codGerenciador)
-    )
-    
-    return 0
+    try:
+        bd_conn.bd_gravar(
+            'insert into usuarios(nomeUsuario, senha, tipoUsuario, ativo, codGerenciador) '+ 
+            'values(%s, %s, %s, 1, %s)',
+            (usuario, generate_password_hash(senha),tipoUsuario,codGerenciador)
+        )
+        return True
+    except DatabaseError:
+        return False
 
 def get_count():
     query = 'select count(*) as usuarios from usuarios'
