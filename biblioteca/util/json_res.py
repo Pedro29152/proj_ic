@@ -26,6 +26,18 @@ def get_negado(message='negado'):
         'message': message
     }
 
+def get_logado(nivel):
+    return {
+        'cod_s': 1,
+        'status':'logado',
+        'nivel_acesso': nivel
+    }
+
+def get_deslogado():
+    return {
+        'cod_s': 0,
+        'status':'deslogado'
+    }
 
 def get_data(data):
     return {

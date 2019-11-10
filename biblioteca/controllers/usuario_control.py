@@ -73,6 +73,11 @@ def buscar_usuario(req):
 
     return json_res.get_data(ret)
 
+def usuario_logado(s):
+    if logado(s):
+        return json_res.get_logado(session['nivel_acesso'])
+    return json_res.get_deslogado()
+
 def logado(s):
     if 'logged_in' in s:
         return True

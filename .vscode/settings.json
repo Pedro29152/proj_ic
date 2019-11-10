@@ -1,5 +1,9 @@
 {
-    "python.pythonPath": "C:\\Users\\IGOR-PC\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe",
+    "python.pythonPath": "C:\\Users\\Elaine Camacho\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe",
     "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "workbench.colorCustomizations": {
+        "window.activeBorder": "#00ff00",
+        "window.inactiveBorder": "#ff0000"
+    }
 }
