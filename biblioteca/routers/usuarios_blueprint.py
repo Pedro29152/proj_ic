@@ -1,7 +1,7 @@
 from biblioteca.controllers import usuario_control
 from biblioteca.util import util
 from biblioteca.util.acessos import not_logged_in, login_reqired, admin_reqired
-from flask import request, make_response, jsonify, Blueprint
+from flask import request, make_response, jsonify, Blueprint, session
 from werkzeug.exceptions import BadRequestKeyError
 
 USUARIOS_ROUTER = Blueprint('usuarios_router', __name__)
@@ -24,6 +24,12 @@ def login_usuario():
 @login_reqired
 def logout_usuario():
     ret = usuario_control.logout_url()
+
+    return util.response_ext(jsonify(ret))
+
+@USUARIOS_ROUTER.route("/usuarios/logged", methods=['GET', 'POST'])
+def usuario_logado():
+    ret = usuario_control.usuario_logado(session)
 
     return util.response_ext(jsonify(ret))
 
