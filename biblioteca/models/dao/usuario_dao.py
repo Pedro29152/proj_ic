@@ -75,3 +75,8 @@ def get_count():
     query = 'select count(*) as usuarios from usuarios'
     ret = bd_conn.bd_busca_um(query, None)
     return ret['usuarios']
+
+def get_usuario(codUsuario):
+    query = 'select * from usuarios where codUsuario = (%s)'
+    ret = bd_conn.bd_busca_um(query,(codUsuario,))
+    return ret

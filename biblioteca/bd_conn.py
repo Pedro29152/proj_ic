@@ -4,7 +4,7 @@ from flask import flash
 def __conecta():
     conn = connector.connect(
         user='root', 
-        password='LabRobotica123#@',
+        password='Eco5c4rd@2017',
         host='127.0.0.1',
         port='3306',
         database='proj_ic'

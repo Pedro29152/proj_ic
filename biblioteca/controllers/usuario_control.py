@@ -82,3 +82,19 @@ def logado(s):
 def get_count(): 
     count = usuario_dao.get_count()
     return  json_res.get_count(count)
+
+def get_usuario(codUsuario):
+    if not __cod_valido(codUsuario):
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+
+    ret = usuario_dao.get_usuario(codUsuario)
+    if ret:
+        return json_res.get_data(ret)
+    return json_res.get_falha('Usuario requisitado nao existe')
+
+def __cod_valido(codUsuario):
+    try:
+        int(codUsuario)
+        return True
+    except ValueError:
+        return False

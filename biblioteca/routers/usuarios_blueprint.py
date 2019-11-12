@@ -53,3 +53,18 @@ def usuarios_count():
     ret = usuario_control.get_count()
     
     return util.response_ext(jsonify(ret))
+
+
+@USUARIOS_ROUTER.route('/usuarios/get/<path:codUsuario>', methods=['GET'])
+@admin_reqired
+def usuario_get(codUsuario):
+    status = usuario_control.get_usuario(codUsuario)
+    
+    return util.response_ext(jsonify(status))
+'''
+@USUARIOS_ROUTER.route('/usuarios/edit/<path:codUsuario>', methods=['POST'])
+@admin_reqired
+def usuario_edit(codUsuario):
+    status = usuario_control.edita_usuario(codUsuario, request)
+    
+    return util.response_ext(jsonify(status))'''
