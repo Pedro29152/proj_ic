@@ -203,7 +203,7 @@ def busca_projeto():
         query,None
     )
 
-    __prenche_projeto(ret)
+    prenche_projetos(ret)
 
     return ret
 
@@ -463,6 +463,28 @@ def grava_projeto(
 
     __grava_proj_ori(projeto.codProjeto, projeto.orientador.codOrientador)
 
+def projeto_existe(codProjeto):
+    query = 'select * from projetos where codProjeto = (%s)'
+    ret = bd_conn.bd_busca_um(query,(codProjeto,))
+    if ret:
+        return ret
+    return None
+
+def desativa_projeto(codProjeto):
+    query = 'update projetos set ativo = 0 where codProjeto = (%s)'
+
+    bd_conn.bd_gravar(query, (codProjeto,))
+
+def ativa_projeto(codProjeto):
+    query = 'update projetos set ativo = 1 where codProjeto = (%s)'
+
+    bd_conn.bd_gravar(query, (codProjeto,))
+
+def edita_projeto(codProjeto, titulo, descricao, subtitulo):
+    query = 'update projetos set tituloProjeto = (%s), descricao = (%s), subTitulo = (%s) where codProjeto = (%s)'
+
+    bd_conn.bd_gravar(query, (titulo, descricao, subtitulo, codProjeto))
+
 def is_ativo_filename(filename):
     query = 'select codProjeto from projetos where nomeArquivo = (%s) and ativo = 1'
 
@@ -480,16 +502,22 @@ def download_file(codProjeto):
 def __busca_projeto_full(query, *args):
     ret = bd_conn.bd_busca(query, *args)
 
-    __prenche_projeto(ret)
+    prenche_projetos(ret)
     
     return ret
 
-def __prenche_projeto(ret):
+def prenche_projetos(ret):
     for item in ret:
         item['autores'] = autores_dao.busca_autores_proj(item['codProjeto'])
         item['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(item['codProjeto'])
         item['curso'] = cursos_dao.busca_curso_cod(item['codCurso'])
         item['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(item['codProjeto'])
+
+def prenche_projeto(ret):
+    ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
+    ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
+    ret['curso'] = cursos_dao.busca_curso_cod(ret['codCurso'])
+    ret['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
 
 def __grava_proj_ori(codProjeto, codOrientador):
     query = 'insert into projeto_orientador values(%s, %s)'

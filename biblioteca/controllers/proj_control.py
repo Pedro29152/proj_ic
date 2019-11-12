@@ -1,5 +1,6 @@
 from biblioteca.models.dao import projetos_dao
 from biblioteca.util import json_res 
+from werkzeug.exceptions import BadRequestKeyError
 from flask import session, current_app as app
 import os
 
@@ -72,9 +73,7 @@ def busca_ranking(req = None, pag = 1):
 def busca_ranking_pag(req = None, page = 1):
     query, tipo, ordem = __get_filtro_rank(req)
     
-    try:
-        page = int(page)
-    except TypeError:
+    if not __cod_valido(page):
         return json_res.get_erro('O valor do parametro "page" deve ser do tipo inteiro')
 
     ret = projetos_dao.busca_projeto_ranking_pag(query, tipo, ordem, page)
@@ -115,6 +114,62 @@ def download_arquivo(filename):
         return True
     else:
         return False
+
+def desativa_projeto(codProjeto):
+    if not __cod_valido(codProjeto):
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+
+    if projetos_dao.projeto_existe(codProjeto):
+        projetos_dao.desativa_projeto(codProjeto)
+
+        return json_res.get_ok('Projeto desativado com sucesso')
+    return json_res.get_falha('Projeto requisitado nao existe')
+
+def ativa_projeto(codProjeto):
+    if not __cod_valido(codProjeto):
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+
+    if projetos_dao.projeto_existe(codProjeto):
+        projetos_dao.ativa_projeto(codProjeto)
+
+        return json_res.get_ok('Projeto ativado com sucesso')
+    return json_res.get_falha('Projeto requisitado nao existe')
+
+def get_projeto(codProjeto):
+    if not __cod_valido(codProjeto):
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+
+    ret = projetos_dao.projeto_existe(codProjeto)
+    if ret:
+        projetos_dao.prenche_projeto(ret)
+        return json_res.get_data(ret)
+    return json_res.get_falha('Projeto requisitado nao existe')
+
+def edita_projeto(codProjeto, req):
+    if not __cod_valido(codProjeto):
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+    
+    if projetos_dao.projeto_existe(codProjeto):
+        try:
+            titulo = req.form['tituloProjeto']
+            descricao = req.form['descricao']
+            subtitulo = req.form['subTitulo']
+        except BadRequestKeyError:
+            return json_res.get_erro('A requsicao deve ter os campos "tituloProjeto","descricao" e "subTitulo" no corpo da requisicao')
+
+        if titulo and descricao and subtitulo:
+            projetos_dao.edita_projeto(codProjeto, titulo, descricao, subtitulo)
+            return json_res.get_ok('Projeto editado com sucesso')
+        return json_res.get_falha('Os campos enviados devem possuir algum valor')
+    return json_res.get_falha('Projeto requisitado nao existe')
+
+def __cod_valido(codProj):
+    try:
+        int(codProj)
+        return True
+    except ValueError:
+        return False
+
 
 def __get_filtro(req = None):
     

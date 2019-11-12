@@ -23,7 +23,7 @@ def ativa_curso(codCurso):
 
 def busca_cursos():
     val = bd_conn.bd_busca(
-        'select * from cursos',
+        'select * from cursos where ativo = 1',
         None
     )
 

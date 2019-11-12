@@ -56,3 +56,31 @@ def projetos_count():
     
     
     return util.response_ext(jsonify(ret))
+
+@PROJETOS_ROUTER.route('/projetos/ativar/<path:codProjeto>', methods=['POST'])
+@login_reqired
+def ativa_projeto(codProjeto):
+    status = proj_control.ativa_projeto(codProjeto)
+    
+    return util.response_ext(jsonify(status))
+
+@PROJETOS_ROUTER.route('/projetos/desativar/<path:codProjeto>', methods=['POST'])
+@login_reqired
+def desativa_projeto(codProjeto):
+    status = proj_control.desativa_projeto(codProjeto)
+    
+    return util.response_ext(jsonify(status))
+
+@PROJETOS_ROUTER.route('/projetos/get/<path:codProjeto>', methods=['GET'])
+@login_reqired
+def projeto_get(codProjeto):
+    status = proj_control.get_projeto(codProjeto)
+    
+    return util.response_ext(jsonify(status))
+
+@PROJETOS_ROUTER.route('/projetos/edit/<path:codProjeto>', methods=['POST'])
+@login_reqired
+def projeto_edit(codProjeto):
+    status = proj_control.edita_projeto(codProjeto, request)
+    
+    return util.response_ext(jsonify(status))
