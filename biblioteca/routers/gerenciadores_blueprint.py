@@ -25,3 +25,25 @@ def gerenciadores_count():
     ret = gerenciadores_control.get_count()
     
     return util.response_ext(jsonify(ret))
+
+
+@GERENCIADORES_ROUTER.route('/gerenciadores/delete/<path:codGerenciador>', methods=['POST'])
+@admin_reqired
+def gerenciador_delete(codGerenciador):
+    status = gerenciadores_control.deleta_gerenciador(codGerenciador)
+    
+    return util.response_ext(jsonify(status))
+
+@GERENCIADORES_ROUTER.route('/gerenciadores/get/<path:codGerenciador>', methods=['GET'])
+@admin_reqired
+def gerenciador_get(codGerenciador):
+    status = gerenciadores_control.get_gerenciador(codGerenciador)
+    
+    return util.response_ext(jsonify(status))
+
+@GERENCIADORES_ROUTER.route('/gerenciadores/edit/<path:codGerenciador>', methods=['POST'])
+@admin_reqired
+def gerenciador_edit(codGerenciador):
+    status = gerenciadores_control.edita_gerenciador(codGerenciador, request)
+    
+    return util.response_ext(jsonify(status))  

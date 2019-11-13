@@ -86,6 +86,7 @@ CREATE TABLE `gerenciadores` (
   `instituicao` varchar(100) NOT NULL,
   `nomeGerenciador` varchar(100) NOT NULL,
   `emailGerenciador` varchar(100) NOT NULL,
+  `ativo` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`codGerenciador`),
   UNIQUE KEY `cpfGerenciador_UNIQUE` (`cpfGerenciador`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -97,7 +98,7 @@ CREATE TABLE `gerenciadores` (
 
 LOCK TABLES `gerenciadores` WRITE;
 /*!40000 ALTER TABLE `gerenciadores` DISABLE KEYS */;
-INSERT INTO `gerenciadores` VALUES (1,'12312312312','Fatec','Pedro','Pedro@mail.com'),(2,'12332112312','Fatec','Teste','teste@mail.com');
+INSERT INTO `gerenciadores` VALUES (1,'12312312312','Fatec','Pedro','Pedro@mail.com',1),(2,'12332112312','Fatec','Teste','teste@mail.com',1);
 /*!40000 ALTER TABLE `gerenciadores` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -269,7 +270,7 @@ CREATE TABLE `usuarios` (
   UNIQUE KEY `nomeUsuario_UNIQUE` (`nomeUsuario`),
   KEY `FK_GERENCIADOR_idx` (`codGerenciador`),
   CONSTRAINT `FK_GERENCIADOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codgerenciador`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -278,7 +279,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:50000$ugKk3qk8$a68e58926f85dff54dd23416597dff7465f9855ff94f877d9dbdc4243e1d80d9',3,1,2),(9,'pedro','pbkdf2:sha256:150000$11LdKkAa$35848c4199690f50c414c1b7498d542cc29cea3e8d3168a9d94fcc574cdcfc71',3,1,1);
+INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:50000$ugKk3qk8$a68e58926f85dff54dd23416597dff7465f9855ff94f877d9dbdc4243e1d80d9',3,1,2),(9,'pedro','pbkdf2:sha256:150000$11LdKkAa$35848c4199690f50c414c1b7498d542cc29cea3e8d3168a9d94fcc574cdcfc71',3,1,1),(14,'testae','pbkdf2:sha256:50000$Q9sCBfRj$a379f8fe699df61c37d1eb8ed5cd178a1046ab7e0c18fee2091a4c6344b4dba4',1,1,1);
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -291,4 +292,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-11-12 21:44:34
+-- Dump completed on 2019-11-12 23:47:02

@@ -72,7 +72,6 @@ def desativa_projeto(codProjeto):
     return util.response_ext(jsonify(status))
 
 @PROJETOS_ROUTER.route('/projetos/get/<path:codProjeto>', methods=['GET'])
-@login_reqired
 def projeto_get(codProjeto):
     status = proj_control.get_projeto(codProjeto)
     
