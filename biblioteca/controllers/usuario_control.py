@@ -42,7 +42,8 @@ def cadastro_usr(request):
             'A requisicao deve possuir os campos "username", "tipoUsuario", "gerenciador" e "password" em seu corpo'
         )
 
-    #codGer = gerenciadores_dao.get_codGer_nomeGer(gerenciador)
+    if not (user and tipoUsuario and codGer and senha):
+        return json_res.get_falha('Os campos enviados nao podem estar vazios')
 
     if(tipoUsuario == "Usuario"):
         tipoUsuario = 1
@@ -56,7 +57,7 @@ def cadastro_usr(request):
             'Usuario cadastrado com sucesso'
         )
 
-    return json_res.get_erro('Houve um erro na hora de cadastrar o usuario')
+    return json_res.get_erro('O nome de usuario "{}" ja esta sendo utilizado'.format(user))
     
 def buscar_usuario(req):
     nome = req.args.get('nomeUsuario')
@@ -68,13 +69,13 @@ def buscar_usuario(req):
 
     return json_res.get_data(ret)
 
-def usuario_logado(s):
-    if logado(s):
-        return json_res.get_logado(session['nivel_acesso'])
+def usuario_logado():
+    if logado():
+        return json_res.get_logado(session['nivel_acesso'], session['username'])
     return json_res.get_deslogado()
 
-def logado(s):
-    if 'logged_in' in s:
+def logado():
+    if 'logged_in' in session:
         return True
     else:
         return False
@@ -91,6 +92,26 @@ def get_usuario(codUsuario):
     if ret:
         return json_res.get_data(ret)
     return json_res.get_falha('Usuario requisitado nao existe')
+
+def edita_usuario(codUsuario, req):
+    if not __cod_valido(codUsuario):
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+    if usuario_dao.get_usuario(codUsuario):
+        try:
+            nomeUsuario = req.form['nomeUsuario']
+            tipoUsuario = req.form['tipoUsuario']
+        except BadRequestKeyError:
+            return json_res.get_erro('A requsicao deve ter os campos "nomeUsuario" e "tipoUsuario" em seu corpo')
+        if nomeUsuario and tipoUsuario:
+            usuario_dao.edita_usuario(codUsuario, nomeUsuario, tipoUsuario)
+            return json_res.get_ok('Projeto editado com sucesso')
+        return json_res.get_falha('Os campos enviados nao devem ser vazios')
+    return json_res.get_falha('O codigo enviado nao esta relacionado a nenhum usuario')
+
+def is_user(codUsuario):
+    if usuario_dao.is_user(codUsuario, session['username']):
+        return True
+    return False
 
 def __cod_valido(codUsuario):
     try:

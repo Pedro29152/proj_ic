@@ -155,7 +155,7 @@ def edita_projeto(codProjeto, req):
             descricao = req.form['descricao']
             subtitulo = req.form['subTitulo']
         except BadRequestKeyError:
-            return json_res.get_erro('A requsicao deve ter os campos "tituloProjeto","descricao" e "subTitulo" no corpo da requisicao')
+            return json_res.get_erro('A requsicao deve ter os campos "tituloProjeto","descricao" e "subTitulo" em seu corpo')
 
         if titulo and descricao and subtitulo:
             projetos_dao.edita_projeto(codProjeto, titulo, descricao, subtitulo)

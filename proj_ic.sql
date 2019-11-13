@@ -1,13 +1,13 @@
--- MySQL dump 10.13  Distrib 8.0.17, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.12, for Win64 (x86_64)
 --
--- Host: 127.0.0.1    Database: proj_ic
+-- Host: localhost    Database: proj_ic
 -- ------------------------------------------------------
--- Server version	8.0.16
+-- Server version	8.0.12
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8 */;
+ SET NAMES utf8 ;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `autores`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `autores` (
   `codAutor` int(11) NOT NULL AUTO_INCREMENT,
   `raAutor` varchar(13) NOT NULL,
@@ -51,7 +51,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `cursos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `cursos` (
   `codCurso` int(11) NOT NULL AUTO_INCREMENT,
   `descricaoCurso` varchar(50) NOT NULL,
@@ -79,12 +79,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `gerenciadores`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `gerenciadores` (
   `codGerenciador` int(11) NOT NULL AUTO_INCREMENT,
   `cpfGerenciador` varchar(11) NOT NULL,
   `instituicao` varchar(100) NOT NULL,
   `nomeGerenciador` varchar(100) NOT NULL,
+  `emailGerenciador` varchar(100) NOT NULL,
   PRIMARY KEY (`codGerenciador`),
   UNIQUE KEY `cpfGerenciador_UNIQUE` (`cpfGerenciador`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -96,7 +97,7 @@ CREATE TABLE `gerenciadores` (
 
 LOCK TABLES `gerenciadores` WRITE;
 /*!40000 ALTER TABLE `gerenciadores` DISABLE KEYS */;
-INSERT INTO `gerenciadores` VALUES (1,'12312312312','Fatec','Pedro'),(2,'12332112312','Fatec','Teste');
+INSERT INTO `gerenciadores` VALUES (1,'12312312312','Fatec','Pedro','Pedro@mail.com'),(2,'12332112312','Fatec','Teste','teste@mail.com');
 /*!40000 ALTER TABLE `gerenciadores` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -106,7 +107,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `orientadores`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `orientadores` (
   `codOrientador` int(11) NOT NULL AUTO_INCREMENT,
   `nomeOrientador` varchar(200) NOT NULL,
@@ -132,7 +133,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `palavras_chave`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `palavras_chave` (
   `codPalavra` int(11) NOT NULL AUTO_INCREMENT,
   `palavraChave` varchar(50) NOT NULL,
@@ -159,13 +160,13 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `projeto_autor`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `projeto_autor` (
   `codProjeto` int(11) NOT NULL,
   `codAutor` int(11) NOT NULL,
   PRIMARY KEY (`codProjeto`,`codAutor`),
   KEY `FK_AUTOR_idx` (`codAutor`),
-  CONSTRAINT `FK_AUTOR` FOREIGN KEY (`codAutor`) REFERENCES `autores` (`codAutor`),
+  CONSTRAINT `FK_AUTOR` FOREIGN KEY (`codAutor`) REFERENCES `autores` (`codautor`),
   CONSTRAINT `FK_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -186,14 +187,14 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `projeto_orientador`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `projeto_orientador` (
   `codOrientador` int(11) NOT NULL,
   `codProjeto` int(11) NOT NULL,
   PRIMARY KEY (`codOrientador`,`codProjeto`),
   KEY `FK_PROJETO_ORI_idx` (`codProjeto`),
-  CONSTRAINT `FK_ORIENTADOR` FOREIGN KEY (`codOrientador`) REFERENCES `orientadores` (`codOrientador`),
-  CONSTRAINT `FK_PROJETO_ORI` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codProjeto`)
+  CONSTRAINT `FK_ORIENTADOR` FOREIGN KEY (`codOrientador`) REFERENCES `orientadores` (`codorientador`),
+  CONSTRAINT `FK_PROJETO_ORI` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -213,12 +214,12 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `projetos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `projetos` (
   `codProjeto` int(11) NOT NULL AUTO_INCREMENT,
   `tituloProjeto` varchar(100) NOT NULL,
   `descricao` longtext NOT NULL,
-  `nomeArquivo` varchar(80) NOT NULL,
+  `nomeArquivo` varchar(90) NOT NULL,
   `likes` int(11) NOT NULL DEFAULT '0',
   `deslikes` int(11) NOT NULL DEFAULT '0',
   `numVisitas` int(11) NOT NULL DEFAULT '0',
@@ -232,10 +233,11 @@ CREATE TABLE `projetos` (
   `subTitulo` longtext NOT NULL,
   PRIMARY KEY (`codProjeto`),
   UNIQUE KEY `nomeArquivo_UNIQUE` (`nomeArquivo`),
+  UNIQUE KEY `codProjeto_UNIQUE` (`codProjeto`),
   KEY `FK_GERENCIAOR_idx` (`codGerenciador`),
   KEY `FK_CURSO_idx` (`codCurso`),
-  CONSTRAINT `FK_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codCurso`),
-  CONSTRAINT `FK_GERENCIAOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codGerenciador`)
+  CONSTRAINT `FK_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codcurso`),
+  CONSTRAINT `FK_GERENCIAOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codgerenciador`)
 ) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -255,7 +257,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `usuarios`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `usuarios` (
   `codUsuario` int(11) NOT NULL AUTO_INCREMENT,
   `nomeUsuario` varchar(50) NOT NULL,
@@ -266,8 +268,8 @@ CREATE TABLE `usuarios` (
   PRIMARY KEY (`codUsuario`),
   UNIQUE KEY `nomeUsuario_UNIQUE` (`nomeUsuario`),
   KEY `FK_GERENCIADOR_idx` (`codGerenciador`),
-  CONSTRAINT `FK_GERENCIADOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codGerenciador`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `FK_GERENCIADOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codgerenciador`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -289,4 +291,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-11-07 14:24:17
+-- Dump completed on 2019-11-12 21:44:34
