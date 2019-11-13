@@ -56,7 +56,7 @@ CREATE TABLE `cursos` (
   `codCurso` int(11) NOT NULL AUTO_INCREMENT,
   `descricaoCurso` varchar(50) NOT NULL,
   `ativo` int(11) NOT NULL,
-  `abreviacao` varchar(10) NOT NULL,
+  `abreviacao` varchar(5) NOT NULL,
   PRIMARY KEY (`codCurso`),
   UNIQUE KEY `abreviacao_UNIQUE` (`abreviacao`),
   UNIQUE KEY `descricaoCurso_UNIQUE` (`descricaoCurso`)

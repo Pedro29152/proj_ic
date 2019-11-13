@@ -21,6 +21,19 @@ def ativa_curso(codCurso):
 
     bd_conn.bd_gravar(query, (codCurso,))
 
+def is_ativo(curso):
+    query = 'select * from cursos where (descricaoCurso = (%s) or abreviacao = (%s)) and ativo = 1'
+    ret = bd_conn.bd_busca_um(query, (curso.descricaoCurso, curso.abreviacao))
+
+    if ret:
+        return True
+    return False
+
+def reativa_curso(curso):
+    query = 'update cursos set descricaoCurso = (%s), abreviacao = (%s), ativo = 1 where abreviacao = (%s) or descricaoCurso = (%s)'
+
+    bd_conn.bd_gravar(query, (curso.descricaoCurso, curso.abreviacao, curso.abreviacao, curso.descricaoCurso))
+
 def busca_cursos():
     val = bd_conn.bd_busca(
         'select * from cursos where ativo = 1',

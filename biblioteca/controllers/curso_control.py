@@ -1,14 +1,32 @@
 from biblioteca.models.classes import Cursos
 from biblioteca.models.dao import cursos_dao
 from biblioteca.util import json_res
+from mysql.connector.errors import IntegrityError
+from werkzeug.exceptions import BadRequestKeyError
 
 def grava_curso(req):
-    curso = Cursos(
-        req.form['nomeCurso'], 
-        req.form['abreviacao']
-    )
+    try:
+        nomeCurso = req.form['nomeCurso'] 
+        abreviacao = req.form['abreviacao']
+    except BadRequestKeyError:
+        return json_res.get_erro('A requisicao deve conter os campos "nomeCurso" e "abreviacao" em seu corpo')
 
-    return curso.grava_curso()
+    if not (nomeCurso and abreviacao):
+        return json_res.get_falha('Os campos enviados devem sem preenchidos')
+
+    curso = Cursos(
+        nomeCurso, 
+        abreviacao
+    )
+    try:
+        curso.grava_curso()
+        return json_res.get_ok('Curso gravado com suscesso')
+    except IntegrityError:
+        if not cursos_dao.is_ativo(curso):
+            cursos_dao.reativa_curso(curso)
+            return json_res.get_ok('O curso ja existia, porem esta inativo. O curso foi reativado com os dados novos')
+        else:
+            return json_res.get_erro('O nome ou a breviacao desse curso ja foi cadastrado')
 
 def desativa_curso(codCurso):
     cursos_dao.desativa_curso(codCurso)

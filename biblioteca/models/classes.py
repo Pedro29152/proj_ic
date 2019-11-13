@@ -24,21 +24,15 @@ class Cursos:
         return str(self.codCurso) + ' ' + self.descricaoCurso + ' ' + self.abreviacao
 
     def grava_curso(self):
-        try:
-            if(self.descricaoCurso and self.abreviacao):
-                bd_conn.bd_gravar(
-                    'insert into cursos(descricaoCurso, abreviacao, ativo) values(%s,%s,1)',
-                    (self.descricaoCurso, self.abreviacao)
-                )
+        if(self.descricaoCurso and self.abreviacao):
+            bd_conn.bd_gravar(
+                'insert into cursos(descricaoCurso, abreviacao, ativo) values(%s,%s,1)',
+                (self.descricaoCurso, self.abreviacao)
+            )
+            return True
 
-                return json_res.get_ok('Curso gravado com sucesso')
-
-            else:
-                return json_res.get_falha('Erro ao gravar curso')
-
-        except IntegrityError:
-            return json_res.get_erro('Curso ou abreviacao ja cadastrados')
-
+        else:
+            return True
 
 class Gerenciadores:
     def __init__(self, codGerenciador=0, cpfGerenciador='', instituicao='', nomeGerenciador='', emailGerenciador=''):
