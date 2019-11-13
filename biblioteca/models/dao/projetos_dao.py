@@ -1,23 +1,3 @@
-'''
-Busca um projeto pelo titulo com base em uma ordenacao 
-
-O parametro ordem serve para indicar qual sera o campo do qual a lista ira ser ordenada
-O parametro crescente serve para indicar qual sera o campo do qual a lista ira ser ordenada
-
-Caso ordem seja igual a 0 ordena pelo padrao do sql
-Caso ordem seja 1 ordena com base nos likes
-Caso ordem seja 2 ordena com base nos deslikes
-Caso ordem seja 3 ordena com base no numero de visitas
-Caso ordem seja 4 ordena com base no numero de downloads
-Caso ordem seja 5 ordena com base na data de avalicao
-Caso ordem seja 6 ordena com base na data de envio
-Por padrao ordem recebe o valor 0
-
-Caso crescente for True ele ordena de ordem crescente
-Caso crescente for False ele ordena de ordem decrescente
-Por padrao crescente recebe o valor True
-'''
-
 from biblioteca import bd_conn
 from biblioteca.models.dao import autores_dao, gerenciadores_dao, cursos_dao, projeto_autor_dao, palavras_chave_dao, orientadores_dao
 from biblioteca.models.classes import Projetos, Avalicoes, Autores, Cursos, PalavrasChave, Gerenciadores, Orientadores
@@ -33,16 +13,19 @@ from flask import flash, current_app as app
 QUERY_CURSO = 'SELECT * FROM projetos NATURAL JOIN cursos WHERE descricaoCurso LIKE (%s) OR abreviacao LIKE (%s) AND ativo = 1 '
 QUERY_TITULO = 'SELECT * FROM projetos WHERE tituloProjeto LIKE (%s) AND ativo = 1 '
 QUERY_DESCRICAO = 'SELECT * FROM projetos WHERE descricao LIKE (%s) AND ativo = 1 '
-QUERY_ORIENTADOR = 'SELECT * FROM projetos WHERE nomeOrientador LIKE (%s) AND ativo = 1 '
+QUERY_ORIENTADOR = '''
+    SELECT codProjeto, tituloProjeto, descricao, nomeArquivo, likes, deslikes, 
+    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codGerenciador, codCurso, ativo FROM proj_ic.projetos natural join projeto_orientador natural join orientadores where nomeOrientador like (%s);
+    '''
 QUERY_AUTOR = '''
     select distinct 
-    codProjeto, tituloProjeto, nomeOrientador, descricao, nomeArquivo, likes, deslikes, 
+    codProjeto, tituloProjeto, descricao, nomeArquivo, likes, deslikes, 
     numVisitas, numDownloads, dataAvaliacao, dataEnvio, codGerenciador, codCurso, ativo
     from autores natural join projeto_autor natural join projetos pj where nomeAutor like (%s)
     '''
 QUERY_PALAVRAS_CHAVE = '''
     select distinct 
-    codProjeto, tituloProjeto, nomeOrientador, descricao, nomeArquivo, likes, deslikes, 
+    codProjeto, tituloProjeto, descricao, nomeArquivo, likes, deslikes, 
     numVisitas, numDownloads, dataAvaliacao, dataEnvio, codGerenciador, codCurso, ativo
     from palavras_chave natural join projetos pj where palavraChave like (%s)
     '''
@@ -67,7 +50,7 @@ def busca_projeto_titulo(titulo = '', ordem = 0, crescente = True):
     ret = __busca_projeto_full(
         QUERY_TITULO + 
         __ordena(ordem,crescente),
-        (titulo,)
+        (titulo,)   
     )
 
     return ret
@@ -90,7 +73,7 @@ def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
     nomeOrientador = '%' + nomeOrientador + '%'
     
     ret = __busca_projeto_full(
-        QUERY_ORIENTADOR + __ordena(ordem,crescente)
+        QUERY_ORIENTADOR + __ordena(ordem,crescente),
         (nomeOrientador,)
     )
 
