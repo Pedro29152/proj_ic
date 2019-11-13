@@ -87,6 +87,7 @@ def get_count():
 def get_usuario(codUsuario):
     if not __cod_valido(codUsuario):
         return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+    codUsuario = int(codUsuario)
 
     ret = usuario_dao.get_usuario(codUsuario)
     if ret:
@@ -96,17 +97,47 @@ def get_usuario(codUsuario):
 def edita_usuario(codUsuario, req):
     if not __cod_valido(codUsuario):
         return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
-    if usuario_dao.get_usuario(codUsuario):
-        try:
-            nomeUsuario = req.form['nomeUsuario']
-            tipoUsuario = req.form['tipoUsuario']
-        except BadRequestKeyError:
-            return json_res.get_erro('A requsicao deve ter os campos "nomeUsuario" e "tipoUsuario" em seu corpo')
-        if nomeUsuario and tipoUsuario:
-            usuario_dao.edita_usuario(codUsuario, nomeUsuario, tipoUsuario)
-            return json_res.get_ok('Projeto editado com sucesso')
-        return json_res.get_falha('Os campos enviados nao devem ser vazios')
+
+    try:
+        nomeUsuario = req.form['nomeUsuario']
+    except BadRequestKeyError:
+        return json_res.get_erro('A requsicao deve conter o campo "nomeUsuario" em seu corpo')
+        
+    codUsuario = int(codUsuario)
+    usr = usuario_dao.get_usuario(codUsuario)
+
+    if usr:
+        if nomeUsuario:
+            usuario_dao.edita_usuario(codUsuario, nomeUsuario)
+            if usr['nomeUsuario'] == session['username']:
+                session['username'] = nomeUsuario
+            return json_res.get_ok('Usuario editado com sucesso')
+        return json_res.get_falha('Os campos enviados nao podem ser vazios')
     return json_res.get_falha('O codigo enviado nao esta relacionado a nenhum usuario')
+
+def edita_senha(codUsuario, req):
+    if not __cod_valido(codUsuario):
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+    codUsuario = int(codUsuario)
+
+    try:
+        senha = req.form['senha']
+    except BadRequestKeyError:
+        return json_res.get_erro('A requisicao deve possuir o campo "senha" em seu corpo')
+
+    usuario_dao.edita_senha(codUsuario, senha)
+    return json_res.get_ok('A senha foi alterada com sucesso')
+
+def deleta_usuario(codUsuario):
+    if not __cod_valido(codUsuario):
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+    codUsuario = int(codUsuario)
+    if usuario_dao.is_usuario_logado(codUsuario, session['username']):
+        return json_res.get_falha('Voce nao pode deletar o proprio usuario')
+
+    usuario_dao.deleta_usuario(codUsuario)
+    return json_res.get_ok('Usuario deletado com sucesso')
+
 
 def is_user(codUsuario):
     if usuario_dao.is_user(codUsuario, session['username']):

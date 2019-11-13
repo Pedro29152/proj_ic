@@ -1,6 +1,7 @@
 from biblioteca import bd_conn
 from mysql.connector.errors import DatabaseError
 from werkzeug.security import check_password_hash, generate_password_hash
+from mysql.connector.errors import IntegrityError
 
 def verifica_usr(usuario, senha):
     
@@ -68,7 +69,7 @@ def add_usr(usuario, senha,tipoUsuario,codGerenciador):
             (usuario, generate_password_hash(senha),tipoUsuario,codGerenciador)
         )
         return True
-    except DatabaseError:
+    except IntegrityError:
         return False
 
 def get_count():
@@ -77,6 +78,32 @@ def get_count():
     return ret['usuarios']
 
 def get_usuario(codUsuario):
-    query = 'select * from usuarios where codUsuario = (%s)'
+    query = 'select codUsuario, nomeUsuario, tipoUsuario, codGerenciador from usuarios where codUsuario = (%s)'
     ret = bd_conn.bd_busca_um(query,(codUsuario,))
     return ret
+
+def edita_usuario(codUsuario, nomeUsuario):
+    query = 'update usuarios set nomeUsuario = (%s) where codUsuario = (%s)'
+    bd_conn.bd_gravar(query,(nomeUsuario, codUsuario))
+
+def deleta_usuario(codUsuario):
+    query = 'delete from usuarios where codUsuario = (%s)'
+    bd_conn.bd_gravar(query,(codUsuario,))
+
+def edita_senha(codUsuario, novaSenha):
+    query = 'update usuarios set senha = (%s) where codUsuario = (%s)'
+    bd_conn.bd_gravar(query, (generate_password_hash(novaSenha), codUsuario))
+
+def is_user(codUsuario, username):
+    query = 'select * from usuarios where codUsuario = (%s) and nomeUsuario = (%s)'
+    if bd_conn.bd_busca_um(query, (codUsuario, username)):
+        return True
+    return False
+
+def is_usuario_logado(codUsuario, nomeUsuarioLogado):
+    query = 'select codUsuario from usuarios where nomeUsuario = (%s)'
+    ret = bd_conn.bd_busca_um(query, (nomeUsuarioLogado,))
+    if ret:
+        if (ret['codUsuario'] == codUsuario):
+            return True
+    return False

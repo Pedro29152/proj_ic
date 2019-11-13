@@ -1,6 +1,6 @@
 from biblioteca.controllers import usuario_control
 from biblioteca.util import util
-from biblioteca.util.acessos import not_logged_in, login_reqired, admin_reqired
+from biblioteca.util.acessos import not_logged_in, login_reqired, admin_reqired, user_admin_required
 from flask import request, make_response, jsonify, Blueprint, session
 from werkzeug.exceptions import BadRequestKeyError
 
@@ -29,7 +29,7 @@ def logout_usuario():
 
 @USUARIOS_ROUTER.route("/usuarios/logged", methods=['GET', 'POST'])
 def usuario_logado():
-    ret = usuario_control.usuario_logado(session)
+    ret = usuario_control.usuario_logado()
 
     return util.response_ext(jsonify(ret))
 
@@ -54,17 +54,30 @@ def usuarios_count():
     
     return util.response_ext(jsonify(ret))
 
+@USUARIOS_ROUTER.route('/usuarios/delete/<path:codUsuario>', methods=['POST'])
+@admin_reqired
+def usuario_delete(codUsuario):
+    status = usuario_control.deleta_usuario(codUsuario)
+    
+    return util.response_ext(jsonify(status))
 
 @USUARIOS_ROUTER.route('/usuarios/get/<path:codUsuario>', methods=['GET'])
-@admin_reqired
+@user_admin_required
 def usuario_get(codUsuario):
     status = usuario_control.get_usuario(codUsuario)
     
     return util.response_ext(jsonify(status))
-'''
+
 @USUARIOS_ROUTER.route('/usuarios/edit/<path:codUsuario>', methods=['POST'])
-@admin_reqired
+@user_admin_required
 def usuario_edit(codUsuario):
     status = usuario_control.edita_usuario(codUsuario, request)
     
-    return util.response_ext(jsonify(status))'''
+    return util.response_ext(jsonify(status))
+    
+@USUARIOS_ROUTER.route('/usuarios/mudar_senha/<path:codUsuario>', methods=['POST'])
+@user_admin_required
+def usuario_edit_senha(codUsuario):
+    status = usuario_control.edita_senha(codUsuario, request)
+    
+    return util.response_ext(jsonify(status))

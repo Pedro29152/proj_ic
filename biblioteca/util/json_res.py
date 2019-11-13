@@ -26,10 +26,11 @@ def get_negado(message='negado'):
         'message': message
     }
 
-def get_logado(nivel):
+def get_logado(nivel, username):
     return {
         'cod_s': 1,
         'status':'logado',
+        'username': username,
         'nivel_acesso': nivel
     }
 
