@@ -5,12 +5,11 @@ from mysql.connector.errors import IntegrityError
 
 def verifica_usr(usuario, senha):
     
-    query = busca_senha_nome(usuario)
+    senhaR = busca_senha_nome(usuario)
     
-    if(query):
-        if(query != None):
-            if(check_password_hash(query['senha'], senha)):
-                return True
+    if(senhaR):
+        if(check_password_hash(senhaR, senha)):
+            return True
 
     return False
     
@@ -48,7 +47,7 @@ def busca_senha_nome(nomeUsuario):
         (nomeUsuario,)
     )
 
-    return val
+    return val['senha']
 
 def busca_usuarios_nome_like(nomeUsuario):
     nomeUsuario = '%{}%'.format(nomeUsuario)

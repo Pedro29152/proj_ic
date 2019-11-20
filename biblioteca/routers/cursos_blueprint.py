@@ -33,6 +33,13 @@ def buscar_curso():
 
     return util.response_ext(jsonify(status))
 
+@CURSOS_ROUTER.route("/cursos/buscar/inativos", methods=['GET'])
+@admin_reqired
+def buscar_curso_inativo():
+    status = curso_control.buscar_curso_inativo()
+
+    return util.response_ext(jsonify(status))
+
 @CURSOS_ROUTER.route('/cursos/count', methods=['GET'])
 @login_reqired
 def cursos_count():

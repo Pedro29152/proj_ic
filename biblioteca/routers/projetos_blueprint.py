@@ -15,7 +15,7 @@ def upload_file():
 
 @PROJETOS_ROUTER.route("/projetos/buscar", methods=["GET"], defaults={'tipo':''})
 @PROJETOS_ROUTER.route("/projetos/buscar/<path:tipo>", methods=["GET"])
-def busca_titulo(tipo):
+def busca_projetos(tipo):
     projs = None
     if request.args.get('page'):
         page = request.args.get('page')
@@ -24,6 +24,12 @@ def busca_titulo(tipo):
         projs = proj_control.busca(request, tipo)
 
     return util.response_ext(jsonify(projs))
+    
+@PROJETOS_ROUTER.route('/projetos/get/<path:codProjeto>', methods=['GET'])
+def projeto_get(codProjeto):
+    status = proj_control.get_projeto(codProjeto)
+    
+    return util.response_ext(jsonify(status))
 
 @PROJETOS_ROUTER.route("/projetos/buscar/ranking", methods=["GET"])
 def busca_ranking():
@@ -68,12 +74,6 @@ def ativa_projeto(codProjeto):
 @login_reqired
 def desativa_projeto(codProjeto):
     status = proj_control.desativa_projeto(codProjeto)
-    
-    return util.response_ext(jsonify(status))
-
-@PROJETOS_ROUTER.route('/projetos/get/<path:codProjeto>', methods=['GET'])
-def projeto_get(codProjeto):
-    status = proj_control.get_projeto(codProjeto)
     
     return util.response_ext(jsonify(status))
 

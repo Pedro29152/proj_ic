@@ -40,13 +40,6 @@ def cadastrar_usuario():
     
     return util.response_ext(jsonify(ret))
 
-@USUARIOS_ROUTER.route("/usuarios/buscar", methods=["GET"])
-@admin_reqired
-def buscar_usuario():
-    ret = usuario_control.buscar_usuario(request)
-    
-    return util.response_ext(jsonify(ret))
-
 @USUARIOS_ROUTER.route('/usuarios/count', methods=['GET'])
 @login_reqired
 def usuarios_count():
@@ -60,6 +53,13 @@ def usuario_delete(codUsuario):
     status = usuario_control.deleta_usuario(codUsuario)
     
     return util.response_ext(jsonify(status))
+
+@USUARIOS_ROUTER.route("/usuarios/buscar", methods=["GET"])
+@admin_reqired
+def buscar_usuario():
+    ret = usuario_control.buscar_usuario(request)
+    
+    return util.response_ext(jsonify(ret))
 
 @USUARIOS_ROUTER.route('/usuarios/get/<path:codUsuario>', methods=['GET'])
 @user_admin_required

@@ -42,6 +42,14 @@ def busca_cursos():
 
     return val
 
+def busca_cursos_inativo():
+    val = bd_conn.bd_busca(
+        'select * from cursos',
+        None
+    )
+
+    return val
+
 def busca_curso_cod(codCurso):
 
     val = bd_conn.bd_busca_um(

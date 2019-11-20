@@ -44,6 +44,11 @@ def buscar_curso():
     
     return json_res.get_data(cursos)
 
+def buscar_curso_inativo():
+    cursos = cursos_dao.busca_cursos_inativo()
+    
+    return json_res.get_data(cursos)
+
 def get_count():
     count = cursos_dao.get_count()
     return json_res.get_count(count)

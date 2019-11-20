@@ -1,5 +1,5 @@
 from biblioteca.models.dao import projetos_dao, gerenciadores_dao, cursos_dao, orientadores_dao
-from biblioteca.models.classes import Projetos, Avalicoes, Autores, Cursos, PalavrasChave, Gerenciadores, Orientadores
+from biblioteca.models.classes import Projetos, Autores, Cursos, PalavrasChave, Gerenciadores, Orientadores
 from random import randint
 from werkzeug.utils import secure_filename
 from datetime import date, datetime
@@ -12,23 +12,12 @@ ALLOWED_EXTENSIONS = set(['pdf'])
 
 def busca(req = None, tipo = ''):
     dados, ordem, cres = __get_filtro(req)
-    ret = None
 
-    if tipo == 'titulo':
-        ret = projetos_dao.busca_projeto_titulo(dados, ordem, cres)
-    elif tipo == 'curso':
-        ret = projetos_dao.busca_projeto_curso(dados, ordem, cres)
-    elif tipo == 'descricao':
-        ret = projetos_dao.busca_projeto_descricao(dados, ordem, cres)
-    elif tipo == 'orientador':
-        ret = projetos_dao.busca_projeto_orientador(dados, ordem, cres)
-    elif tipo == 'autor':
-        ret = projetos_dao.busca_projeto_autor(dados, ordem, cres)
-    elif tipo == 'palavrasChave':
-        ret = projetos_dao.busca_projeto_palavras_chave(dados, ordem, cres)
+    if tipo:
+        ret = projetos_dao.busca_projeto_tipo(tipo,dados,ordem,cres)
     else:
         ret = projetos_dao.busca_projeto()
-    
+
     if ret:
         return json_res.get_data(ret)
     else:
@@ -40,31 +29,18 @@ def busca_pag(req = None, tipo='', pag = 1):
         pag = int(pag)
     except ValueError:
         return json_res.get_erro('O valor do parametro "page" deve ser do tipo inteiro')
-
-    ret = None
-
-    if tipo == 'titulo':
-        ret = projetos_dao.busca_projeto_titulo_pag(dados, ordem, cres, pag)
-    elif tipo == 'curso':
-        ret = projetos_dao.busca_projeto_curso_pag(dados, ordem, cres, pag)
-    elif tipo == 'descricao':
-        ret = projetos_dao.busca_projeto_descricao_pag(dados, ordem, cres, pag)
-    elif tipo == 'orientador':
-        ret = projetos_dao.busca_projeto_orientador_pag(dados, ordem, cres, pag)
-    elif tipo == 'autor':
-        ret = projetos_dao.busca_projeto_autor_pag(dados, ordem, cres, pag)
-    elif tipo == 'palavrasChave':
-        ret = projetos_dao.busca_projeto_palavras_chave_pag(dados, ordem, cres, pag)
-    else:
-        ret = projetos_dao.busca_projeto_titulo_pag(pag= pag)
     
+    if tipo: 
+        ret = projetos_dao.busca_projeto_tipo_pag(tipo,dados,ordem,cres)
+    else:
+        ret = projetos_dao.busca_projeto_pag(pag)
+
     if ret:
         return json_res.get_data(ret)
     else:
         return json_res.get_falha('Nenhum projeto listado')
 
-def busca_ranking(req = None, pag = 1):
-    
+def busca_ranking(req = None, pag = 1):    
     query, tipo, ordem = __get_filtro_rank(req)
 
     ret = projetos_dao.busca_projeto_ranking(query, tipo, ordem)
@@ -104,8 +80,7 @@ def upload(req):
     elif not allowed_file(req.files['file'].filename):
         return json_res.get_falha('Erro: extensão nao suportada')
     
-    else:
-        return json_res.get_erro('Um erro inesperado occoreu')
+    return json_res.get_erro('Um erro inesperado occoreu')
 
 def upload_projeto(req, nomeUsr):
     file = req.files['file']
@@ -155,12 +130,12 @@ def upload_projeto(req, nomeUsr):
         autor
     ))
 
-    i = 1
     try:
-        while req.form['autor_' + str(i)] != None or i < 4:
+        i = 1
+        while req.form['autor_' + str(i)] != None or i < 5:
             nome = req.form['autor_' + str(i)]
             ra = req.form['ra_autor_' + str(i)]
-            if(nome != '' and ra != ''):
+            if(nome and ra):
                 projeto.autores.append(
                     Autores(ra,nome)
                 )
@@ -179,19 +154,19 @@ def upload_projeto(req, nomeUsr):
     projeto.palavrasChave.append(
         PalavrasChave(palavra)
     )
-    j = 1
+
     try:
+        j = 1
         while (req.form['palavra_chave_' + str(j)] != None or j < 3):
             palavra = req.form['palavra_chave_' + str(j)]
-            if(palavra != ''):
+            if(palavra):
                 projeto.palavrasChave.append(
                     PalavrasChave(palavra)
                 )
                 j += 1
     except BadRequestKeyError:
-        None
-
-
+        pass
+    
     rand = hex(randint(0x100000,0xffffff))
     data = datetime.now().date()
 
@@ -269,7 +244,7 @@ def get_projeto(codProjeto):
     if not __cod_valido(codProjeto):
         return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
 
-    ret = projetos_dao.projeto_existe(codProjeto)
+    ret = projetos_dao.get_projeto(codProjeto)
     if ret:
         projetos_dao.prenche_projeto(ret)
         return json_res.get_data(ret)
@@ -279,7 +254,7 @@ def edita_projeto(codProjeto, req):
     if not __cod_valido(codProjeto):
         return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
     
-    if projetos_dao.projeto_existe(codProjeto):
+    if projetos_dao.get_projeto(codProjeto):
         try:
             titulo = req.form['tituloProjeto']
             descricao = req.form['descricao']
