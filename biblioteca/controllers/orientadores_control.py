@@ -2,6 +2,7 @@ from biblioteca.models.dao import orientadores_dao
 from biblioteca.models.classes import Orientadores
 from biblioteca.util import json_res
 from werkzeug.exceptions import BadRequestKeyError
+from mysql.connector.errors import DataError
 
 def grava_orientador(req = None):
     try:
@@ -9,7 +10,11 @@ def grava_orientador(req = None):
             nomeOrientador=req.form['nomeOrientador'],
             raOrientador=req.form['raOrientador']
         )
-        orientadores.grava_orientador()
+        try:
+            orientadores.grava_orientador()
+        except DataError:
+            return json_res.get_erro('O codigo do orientador deve ter no maximo 20 caracteres e seu nome no maximo 200')
+
         return json_res.get_ok('Orientador gravado com sucesso')
     except AttributeError:
         return json_res.get_erro('Valores invalidos para "nomeOrientador" e "raOrientador"')

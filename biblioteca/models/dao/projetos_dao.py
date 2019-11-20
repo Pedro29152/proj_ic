@@ -2,9 +2,9 @@ from biblioteca import bd_conn
 from biblioteca.models.dao import autores_dao, gerenciadores_dao, cursos_dao, projeto_autor_dao, palavras_chave_dao, orientadores_dao
 from biblioteca.models.classes import Projetos, Avalicoes, Autores, Cursos, PalavrasChave, Gerenciadores, Orientadores
 from biblioteca.util import json_res
-from datetime import date, datetime
 from werkzeug.exceptions import BadRequestKeyError
 from random import randint
+from mysql.connector.errors import DataError, IntegrityError
 from werkzeug.utils import secure_filename
 import os
 
@@ -39,8 +39,6 @@ def busca_projeto_curso(nomeCurso = '', ordem = 0, crescente = True):
         __ordena(ordem,crescente),
         (nomeCurso, nomeCurso)
     )
-    
-    #proj = get_proj_obj(ret)
 
     return ret
     
@@ -63,8 +61,6 @@ def busca_projeto_descricao(descricao, ordem = 0, crescente = True):
         __ordena(ordem,crescente),
         (descricao,)
     )
-
-    #proj = get_proj_obj(ret)
     
     return ret
 
@@ -76,8 +72,6 @@ def busca_projeto_orientador(nomeOrientador, ordem = 0, crescente = True):
         QUERY_ORIENTADOR + __ordena(ordem,crescente),
         (nomeOrientador,)
     )
-
-    #proj = get_proj_obj(ret)
     
     return ret
 
@@ -89,8 +83,6 @@ def busca_projeto_autor(nomeAutor, ordem = 0, crescente = True):
         QUERY_AUTOR + __ordena(ordem,crescente),
         (nomeAutor,)
     )
-
-    #proj = get_proj_obj(ret)
     
     return ret
 
@@ -102,8 +94,6 @@ def busca_projeto_palavras_chave(palavra_chave, ordem = 0, crescente = True):
         __ordena(ordem, crescente),
         (palavra_chave,)
     )
-
-    #proj = get_proj_obj(ret)
     
     return ret
 
@@ -136,8 +126,6 @@ def busca_projeto_descricao_pag(descricao, ordem = 0, crescente = True, pag = 1)
         QUERY_DESCRICAO + __ordena(ordem,crescente) + __get_limit(pag),
         (descricao,)
     )
-
-    #proj = get_proj_obj(ret)
     
     return ret
 
@@ -149,8 +137,6 @@ def busca_projeto_orientador_pag(nomeOrientador, ordem = 0, crescente = True, pa
         QUERY_ORIENTADOR + __ordena(ordem,crescente) + __get_limit(pag),
         (nomeOrientador,)
     )
-
-    #proj = get_proj_obj(ret)
     
     return ret
 
@@ -162,8 +148,6 @@ def busca_projeto_autor_pag(nomeAutor, ordem = 0, crescente = True, pag = 1):
         QUERY_AUTOR + __ordena(ordem,crescente) + __get_limit(pag),
         (nomeAutor,)
     )
-
-    #proj = get_proj_obj(ret)
     
     return ret
 
@@ -174,8 +158,6 @@ def busca_projeto_palavras_chave_pag(palavra_chave, ordem = 0, crescente = True,
         QUERY_PALAVRAS_CHAVE + __ordena(ordem, crescente) + __get_limit(pag),
         (palavra_chave,)
     )
-
-    #proj = get_proj_obj(ret)
     
     return ret
 
@@ -203,8 +185,6 @@ def busca_projeto_ranking(titulo, tipo, ordem):
         query += 'order by numVisitas' + ordem
     elif tipo == 'numDownloads':
         query += 'order by numDownloads' + ordem
-    elif tipo == 'notaProjeto':
-        query += 'order by notaProjeto' + ordem
     else:
         query += ' order by likes' + ordem
 
@@ -223,8 +203,6 @@ def busca_projeto_ranking_pag(titulo, tipo, ordem, pag):
         query += 'order by numVisitas' + ordem
     elif tipo == 'numDownloads':
         query += 'order by numDownloads' + ordem
-    elif tipo == 'notaProjeto':
-        query += 'order by notaProjeto' + ordem
     else:
         query += ' order by likes' + ordem
 
@@ -241,27 +219,6 @@ def get_cod_projeto_titulo(titulo):
     )
 
     return val['codProjeto']
-
-def get_proj_obj(ret):
-    return Projetos(
-        ret['codProjeto'],
-        ret['tituloProjeto'],
-        ret['nomeOrientador'],
-        ret['descricao'],
-        ret['nomeArquivo'],
-        ret['notaProjeto'],
-        date.strftime(ret['dataAvaliacao'], '%d/%m/%y'),
-        date.strftime(ret['dataEnvio'], '%d/%m/%y'),
-        Avalicoes(
-            ret['likes'],
-            ret['deslikes'],
-            ret['numVisitas'],
-            ret['numDownloads']
-        ),
-        gerenciadores_dao.busca_um_gerenciador_codGerenciador(ret['codGerenciador']),
-        cursos_dao.busca_curso_cod(ret['codCurso']),
-        autores_dao.busca_autores_proj(ret['codProjeto'])
-    )  
 
 def get_count():
     query = 'select count(*) as projetos from projetos'
@@ -296,140 +253,18 @@ def __ordena(ordem, crescente):
     else:
         return ''
 
-def upload_projeto(req, nomeUsr):
-    file = req.files['file']
-
-    codGer = gerenciadores_dao.get_codGer_nomeUsuario(nomeUsr)
-
-    try:
-        titulo = req.form['titulo']
-        nomeOrientador = req.form['nomeOrientador']
-        raOrientador = req.form['raOrientador']
-        descricao = req.form['descricao']
-        dataAvaliacao = req.form['dataAvaliacao']
-        codCurso = req.form['curso']
-        subTitulo = req.form['subTitulo']
-    except BadRequestKeyError:
-        return json_res.get_erro('A requisicao deve conter os campos "titulo", "nomeOrientador", "raOrientador", "descricao", "dataAvaliacao", "subTitulo" e "curso"')
-
-    if not(titulo and nomeOrientador and raOrientador and descricao and dataAvaliacao and codCurso and subTitulo):
-        return json_res.get_erro('Os valores de "titulo", "nomeOrientador", "raOrientador", "descricao", "dataAvaliacao", "subTitulo" e "curso" nao podem ser nulos')
-
-    projeto = Projetos(
-        tituloProjeto = titulo,
-        subTitulo = subTitulo,
-        descricao = descricao,
-        dataAvaliacao = dataAvaliacao,
-        autores=[], 
-        palavrasChave=[],
-        orientador= orientadores_dao.get_add_orientador(raOrientador, nomeOrientador),
-        curso = cursos_dao.get_curso_codCurso(codCurso),
-        gerenciador = gerenciadores_dao.get_gerenciador_cod_ger(codGer)
-    )
-
-    try:
-        ra_autor = req.form['ra_autor']
-        autor = req.form['autor']
-    except BadRequestKeyError:
-        return json_res.get_erro('A requisicao deve conter ao menos um campo "ra_autor" e um "autor"')
-
-    if not (ra_autor and autor):
-        return json_res.get_erro('Os valores de "ra_autor" e "autor" nao podem ser nulos')
-
-    projeto.autores.append(Autores(
-        ra_autor,
-        autor
-    ))
-
-    i = 1
-    try:
-        while req.form['autor_' + str(i)] != None or i < 4:
-            nome = req.form['autor_' + str(i)]
-            ra = req.form['ra_autor_' + str(i)]
-            if(nome != '' and ra != ''):
-                projeto.autores.append(
-                    Autores(ra,nome)
-                )
-                i += 1
-    except BadRequestKeyError:
-       pass
-    
-    try:
-        palavra = req.form['palavra_chave']
-    except BadRequestKeyError:
-        return json_res.get_erro('A requisicao deve conter ao menos um campo "palavra_chave". Os demais campos devem estar no formato: palavra_chave_(numero da palavra)')
-
-    if not palavra:
-        return json_res.get_erro('O valor de "palavra_chave" nao pode ser nulo')
-
-    projeto.palavrasChave.append(
-        PalavrasChave(palavra)
-    )
-    j = 1
-    try:
-        while (req.form['palavra_chave_' + str(j)] != None or j < 3):
-            palavra = req.form['palavra_chave_' + str(j)]
-            if(palavra != ''):
-                projeto.palavrasChave.append(
-                    PalavrasChave(palavra)
-                )
-                j += 1
-    except BadRequestKeyError:
-        None
-
-
-    rand = hex(randint(0x100000,0xffffff))
-    data = datetime.now().date()
-
-    #-------------------------------------------------------------
-
-    filename = secure_filename(file.filename)
-    nfilename = filename.rsplit('.',2)[0]
-
-    descricaoCurso = projeto.curso.descricaoCurso
-    if len(descricaoCurso) >= 10:
-        descricaoCurso = projeto.curso.abreviacao
-
-    titulo = projeto.tituloProjeto
-    if len(titulo) > 41:
-        aux = titulo.split()
-        titulo = ""
-        for div in aux:
-            titulo += div[0]
-
-    filename = filename.replace(
-        nfilename,
-        descricaoCurso.upper().replace(' ', '-') + '-' +
-        titulo.upper().replace(' ', '-') + '-' + 
-        str(data) + "-" + str(rand).upper()
-    )
-    
-    projeto.nomeArquivo = filename
-
-    grava_projeto(
-        projeto
-    )
-
-    file.save(
-        os.path.join(
-            app.config['UPLOAD_FOLDER'], 
-            filename
-        )
-    )
-    return json_res.get_ok('Projeto cadastrado com sucesso')
 
 def grava_projeto(
     projeto
 ):
     bd_conn.bd_gravar(
         'insert into projetos'+
-        '(tituloProjeto, subTitulo, descricao, nomeArquivo, notaProjeto, dataAvaliacao, codGerenciador, codCurso, ativo)'+
-        'values(%s,%s,%s,%s,%s,%s,%s,%s,1)',
+        '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codGerenciador, codCurso, ativo)'+
+        'values(%s,%s,%s,%s,%s,%s,%s,1)',
         (projeto.tituloProjeto,
         projeto.subTitulo,
         projeto.descricao, 
         projeto.nomeArquivo, 
-        projeto.notaProjeto, 
         projeto.dataAvaliacao,
         projeto.gerenciador.codGerenciador,
         projeto.curso.codCurso)
@@ -438,13 +273,29 @@ def grava_projeto(
     projeto.codProjeto = get_cod_projeto_titulo(projeto.tituloProjeto)
     
     for aut in projeto.autores:
-        codAutor = aut.grava_autor(projeto.codProjeto)
-        projeto_autor_dao.grava_autor_proj(projeto.codProjeto, codAutor)
+        try:
+            codAutor = aut.grava_autor(projeto.codProjeto)
+        except DataError:
+            autores_dao.deleta_autores(projeto.codProjeto)
+            deleta_projeto(projeto.codProjeto)
+            return json_res.get_erro('O ra enviado deve ter no maximo 13 caracteres e o nome deve ter no maximo 200')
+        try:
+            projeto_autor_dao.grava_autor_proj(projeto.codProjeto, codAutor)
+        except IntegrityError:
+            autores_dao.deleta_autores(projeto.codProjeto)
+            deleta_projeto(projeto.codProjeto)
+            return json_res.get_erro('Voce nao pode cadastrar dois alunos com o mesmo ra no mesmo projeto')
 
     for palavra in projeto.palavrasChave:
         palavra.grava_palavra_chave(projeto.codProjeto)
 
     __grava_proj_ori(projeto.codProjeto, projeto.orientador.codOrientador)
+
+    return json_res.get_ok('Projeto cadastrado com sucesso')
+
+def deleta_projeto(codProjeto):
+    query = 'delete from projetos where codProjeto = (%s)'
+    bd_conn.bd_gravar(query, (codProjeto,))
 
 def projeto_existe(codProjeto):
     query = 'select * from projetos where codProjeto = (%s)'

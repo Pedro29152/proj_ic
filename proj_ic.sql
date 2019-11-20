@@ -26,13 +26,10 @@ CREATE TABLE `autores` (
   `codAutor` int(11) NOT NULL AUTO_INCREMENT,
   `raAutor` varchar(13) NOT NULL,
   `nomeAutor` varchar(200) NOT NULL,
-  `codProjeto` int(11) NOT NULL,
   PRIMARY KEY (`codAutor`),
   UNIQUE KEY `raAutor_UNIQUE` (`raAutor`),
-  UNIQUE KEY `codAutor_UNIQUE` (`codAutor`),
-  KEY `FK_PROJETO_idx` (`codProjeto`),
-  CONSTRAINT `FK_AUTOR_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`)
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `codAutor_UNIQUE` (`codAutor`)
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,7 +38,7 @@ CREATE TABLE `autores` (
 
 LOCK TABLES `autores` WRITE;
 /*!40000 ALTER TABLE `autores` DISABLE KEYS */;
-INSERT INTO `autores` VALUES (21,'1111111111111','Autor1',42),(22,'2222222222222','Autor2',42),(23,'123123','qwe',43),(24,'0128301283','autor teste',44),(25,'7319273212','autor teste 2',45);
+INSERT INTO `autores` VALUES (21,'1111111111111','Autor1'),(22,'2222222222222','Autor2'),(23,'123123','qwe'),(24,'0128301283','autor teste'),(25,'7319273212','autor teste 2'),(26,'1231231231231','pqoe'),(27,'1231231231','pqoe'),(41,'1231231123123','qpowepoqkew');
 /*!40000 ALTER TABLE `autores` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -60,7 +57,7 @@ CREATE TABLE `cursos` (
   PRIMARY KEY (`codCurso`),
   UNIQUE KEY `abreviacao_UNIQUE` (`abreviacao`),
   UNIQUE KEY `descricaoCurso_UNIQUE` (`descricaoCurso`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -69,7 +66,7 @@ CREATE TABLE `cursos` (
 
 LOCK TABLES `cursos` WRITE;
 /*!40000 ALTER TABLE `cursos` DISABLE KEYS */;
-INSERT INTO `cursos` VALUES (1,'Jogos Digitais',1,'JD'),(2,'Analise e Desenvolvimento de Sistemas',1,'ADS');
+INSERT INTO `cursos` VALUES (1,'Jogos Digitais',1,'JD'),(2,'Analise e Desenvolvimento de Sistemas',1,'ADS'),(14,'aeaeaea',1,'JDasd');
 /*!40000 ALTER TABLE `cursos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -89,7 +86,7 @@ CREATE TABLE `gerenciadores` (
   `ativo` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`codGerenciador`),
   UNIQUE KEY `cpfGerenciador_UNIQUE` (`cpfGerenciador`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -98,7 +95,7 @@ CREATE TABLE `gerenciadores` (
 
 LOCK TABLES `gerenciadores` WRITE;
 /*!40000 ALTER TABLE `gerenciadores` DISABLE KEYS */;
-INSERT INTO `gerenciadores` VALUES (1,'12312312312','Fatec','Pedro','Pedro@mail.com',1),(2,'12332112312','Fatec','Teste','teste@mail.com',1);
+INSERT INTO `gerenciadores` VALUES (1,'12312312312','Fatec','Pedro','Pedro@mail.com',1),(2,'12332112312','Fatec','Teste','teste@mail.com',1),(6,'123123123','Faaf','Nome doidoa','Emailalei.mcaomcoa@as',1);
 /*!40000 ALTER TABLE `gerenciadores` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -115,7 +112,7 @@ CREATE TABLE `orientadores` (
   `raOrientador` varchar(20) NOT NULL,
   PRIMARY KEY (`codOrientador`),
   UNIQUE KEY `raOrientador_UNIQUE` (`raOrientador`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -124,7 +121,7 @@ CREATE TABLE `orientadores` (
 
 LOCK TABLES `orientadores` WRITE;
 /*!40000 ALTER TABLE `orientadores` DISABLE KEYS */;
-INSERT INTO `orientadores` VALUES (1,'nome ori','1237816283'),(2,'nome ori 2','0000000122');
+INSERT INTO `orientadores` VALUES (1,'nome ori','1237816283'),(2,'nome ori 2','0000000122'),(3,'orientador B ay','12345678912345678900');
 /*!40000 ALTER TABLE `orientadores` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -141,8 +138,8 @@ CREATE TABLE `palavras_chave` (
   `codProjeto` int(11) NOT NULL,
   PRIMARY KEY (`codPalavra`),
   KEY `FK_PROJETO_idx` (`codProjeto`),
-  CONSTRAINT `FK_PALAVRA_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `FK_PALAVRA_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -151,7 +148,7 @@ CREATE TABLE `palavras_chave` (
 
 LOCK TABLES `palavras_chave` WRITE;
 /*!40000 ALTER TABLE `palavras_chave` DISABLE KEYS */;
-INSERT INTO `palavras_chave` VALUES (5,'Palavra1',42),(6,'Palavra2',42),(7,'qweqwe',43),(8,'pal k',44),(9,'pal k 2',45);
+INSERT INTO `palavras_chave` VALUES (5,'Palavra1',42),(6,'Palavra2',42),(7,'qweqwe',43),(8,'pal k',44),(9,'pal k 2',45),(10,'pal',48),(11,'pal',59);
 /*!40000 ALTER TABLE `palavras_chave` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -168,7 +165,7 @@ CREATE TABLE `projeto_autor` (
   PRIMARY KEY (`codProjeto`,`codAutor`),
   KEY `FK_AUTOR_idx` (`codAutor`),
   CONSTRAINT `FK_AUTOR` FOREIGN KEY (`codAutor`) REFERENCES `autores` (`codautor`),
-  CONSTRAINT `FK_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`)
+  CONSTRAINT `FK_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -178,7 +175,7 @@ CREATE TABLE `projeto_autor` (
 
 LOCK TABLES `projeto_autor` WRITE;
 /*!40000 ALTER TABLE `projeto_autor` DISABLE KEYS */;
-INSERT INTO `projeto_autor` VALUES (42,21),(42,22),(43,23),(44,24),(45,25);
+INSERT INTO `projeto_autor` VALUES (42,21),(42,22),(43,23),(44,24),(45,25),(48,26),(51,27),(54,27),(59,27),(59,41);
 /*!40000 ALTER TABLE `projeto_autor` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -205,7 +202,7 @@ CREATE TABLE `projeto_orientador` (
 
 LOCK TABLES `projeto_orientador` WRITE;
 /*!40000 ALTER TABLE `projeto_orientador` DISABLE KEYS */;
-INSERT INTO `projeto_orientador` VALUES (1,44),(2,45);
+INSERT INTO `projeto_orientador` VALUES (1,44),(2,45),(3,48),(3,59);
 /*!40000 ALTER TABLE `projeto_orientador` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -225,7 +222,6 @@ CREATE TABLE `projetos` (
   `deslikes` int(11) NOT NULL DEFAULT '0',
   `numVisitas` int(11) NOT NULL DEFAULT '0',
   `numDownloads` int(11) NOT NULL DEFAULT '0',
-  `notaProjeto` decimal(5,2) NOT NULL,
   `dataAvaliacao` date NOT NULL,
   `dataEnvio` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `codGerenciador` int(11) NOT NULL,
@@ -239,7 +235,7 @@ CREATE TABLE `projetos` (
   KEY `FK_CURSO_idx` (`codCurso`),
   CONSTRAINT `FK_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codcurso`),
   CONSTRAINT `FK_GERENCIAOR` FOREIGN KEY (`codGerenciador`) REFERENCES `gerenciadores` (`codgerenciador`)
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -248,7 +244,7 @@ CREATE TABLE `projetos` (
 
 LOCK TABLES `projetos` WRITE;
 /*!40000 ALTER TABLE `projetos` DISABLE KEYS */;
-INSERT INTO `projetos` VALUES (42,'Projeto','descricao','ADS-PROJETO-2019-10-30-0XA63950.pdf',0,0,0,0,0.00,'2019-10-30','2019-10-30 18:08:54',2,2,1,''),(43,'tit','des','ADS-TIT-2019-11-01-0X710B8F.pdf',0,0,0,0,0.00,'1232-09-17','2019-11-01 16:42:11',2,2,1,''),(44,'teste ori','qoejhoqdqiow fdde desc','JD-TESTE-ORI-2019-11-04-0X4A63A5.pdf',0,0,0,0,0.00,'2019-10-14','2019-11-04 17:52:08',2,1,1,''),(45,'teste ori 2','qoejhoqdqiow fdde desc 2','JD-TESTE-ORI-2-2019-11-04-0XA15714.pdf',0,0,0,0,0.00,'2019-07-19','2019-11-04 17:59:18',2,1,1,'');
+INSERT INTO `projetos` VALUES (42,'Projeto','descricao','ADS-PROJETO-2019-10-30-0XA63950.pdf',0,0,0,0,'2019-10-30','2019-10-30 18:08:54',2,2,1,''),(43,'tit','des','ADS-TIT-2019-11-01-0X710B8F.pdf',0,0,0,0,'1232-09-17','2019-11-01 16:42:11',2,2,1,''),(44,'teste ori','qoejhoqdqiow fdde desc','JD-TESTE-ORI-2019-11-04-0X4A63A5.pdf',0,0,0,0,'2019-10-14','2019-11-04 17:52:08',2,1,1,''),(45,'teste ori 2','qoejhoqdqiow fdde desc 2','JD-TESTE-ORI-2-2019-11-04-0XA15714.pdf',0,0,0,0,'2019-07-19','2019-11-04 17:59:18',2,1,1,''),(46,'tiu','oaisdn','JD-TIU-2019-11-20-0XC59CD9.pdf',0,0,0,0,'2019-12-12','2019-11-20 16:47:34',2,1,1,'owansdn'),(47,'tiu','oaisdn','JD-TIU-2019-11-20-0XBBD6A1.pdf',0,0,0,0,'2019-12-12','2019-11-20 16:53:10',2,1,1,'owansdn'),(48,'tiu','oaisdn','JD-TIU-2019-11-20-0XFA9AC0.pdf',0,0,0,2,'2019-12-12','2019-11-20 17:01:01',2,1,1,'owansdn'),(51,'tiu','oaisdn','JD-TIU-2019-11-20-0X202ADB.pdf',0,0,0,0,'2019-12-12','2019-11-20 17:37:27',2,1,1,'owansdn'),(52,'tiu','oaisdn','JD-TIU-2019-11-20-0XD5AD0A.pdf',0,0,0,0,'2019-12-12','2019-11-20 17:44:15',2,1,1,'owansdn'),(54,'tiu','oaisdn','JD-TIU-2019-11-20-0XEC1D41.pdf',0,0,0,0,'2019-12-12','2019-11-20 17:46:43',2,1,1,'owansdn'),(59,'ititiatia','oaisdn','JD-ITITIATIA-2019-11-20-0X8E4854.pdf',0,0,0,0,'2019-12-12','2019-11-20 17:52:39',2,1,1,'owansdn');
 /*!40000 ALTER TABLE `projetos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -292,4 +288,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-11-12 23:47:02
+-- Dump completed on 2019-11-20 17:55:59

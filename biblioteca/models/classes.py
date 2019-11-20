@@ -3,15 +3,16 @@ from biblioteca.util import json_res
 from mysql.connector.errors import IntegrityError
 
 class Autores:
-    def __init__(self, raAutor="", nomeAutor="", projeto=None):        
+    def __init__(self, raAutor="", nomeAutor=""):        
         self.raAutor = raAutor
         self.nomeAutor = nomeAutor
 
-        self.projeto = projeto
-
     def grava_autor(self, codProjeto):
-        bd_conn.bd_gravar("INSERT INTO autores(raAutor, nomeAutor, codProjeto) values(%s,%s,%s)",
-        (self.raAutor, self.nomeAutor, codProjeto))
+        try:
+            bd_conn.bd_gravar("INSERT INTO autores(raAutor, nomeAutor) values(%s,%s)",
+            (self.raAutor, self.nomeAutor))
+        except IntegrityError:
+            pass
         return bd_conn.bd_busca_um("select codAutor from autores where raAutor = %s",(self.raAutor,))['codAutor']
 
 class Cursos:
@@ -66,7 +67,6 @@ class Projetos:
     subTitulo='', 
     descricao='', 
     nomeArquivo='', 
-    notaProjeto=0, 
     dataAvaliacao=None, 
     dataEnvio=None, 
     avaliacao=None, 
@@ -81,7 +81,6 @@ class Projetos:
         self.subTitulo = subTitulo
         self.descricao = descricao
         self.nomeArquivo = nomeArquivo
-        self.notaProjeto = notaProjeto
         self.dataAvaliacao = dataAvaliacao
         self.dataEnvio = dataEnvio
 

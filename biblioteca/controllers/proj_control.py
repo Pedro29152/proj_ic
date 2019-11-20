@@ -1,4 +1,8 @@
-from biblioteca.models.dao import projetos_dao
+from biblioteca.models.dao import projetos_dao, gerenciadores_dao, cursos_dao, orientadores_dao
+from biblioteca.models.classes import Projetos, Avalicoes, Autores, Cursos, PalavrasChave, Gerenciadores, Orientadores
+from random import randint
+from werkzeug.utils import secure_filename
+from datetime import date, datetime
 from biblioteca.util import json_res 
 from werkzeug.exceptions import BadRequestKeyError
 from flask import session, current_app as app
@@ -95,13 +99,139 @@ def upload(req):
         return json_res.get_falha('Nenhum arquivo selecionado')
 
     if req.files['file'] and allowed_file(req.files['file'].filename):
-        return projetos_dao.upload_projeto(req, session['username'])
+        return upload_projeto(req, session['username'])
             
     elif not allowed_file(req.files['file'].filename):
         return json_res.get_falha('Erro: extensão nao suportada')
     
     else:
         return json_res.get_erro('Um erro inesperado occoreu')
+
+def upload_projeto(req, nomeUsr):
+    file = req.files['file']
+
+    codGer = gerenciadores_dao.get_codGer_nomeUsuario(nomeUsr)
+
+    try:
+        titulo = req.form['titulo']
+        raOrientador = req.form['raOrientador']
+        descricao = req.form['descricao']
+        dataAvaliacao = req.form['dataAvaliacao']
+        codCurso = req.form['curso']
+        subTitulo = req.form['subTitulo']
+    except BadRequestKeyError:
+        return json_res.get_erro('A requisicao deve conter os campos "titulo", "raOrientador", "descricao", "dataAvaliacao", "subTitulo" e "curso"')
+
+    if not(titulo and raOrientador and descricao and dataAvaliacao and codCurso and subTitulo):
+        return json_res.get_erro('Os valores de "titulo", "raOrientador", "descricao", "dataAvaliacao", "subTitulo" e "curso" nao podem ser nulos')
+
+    projeto = Projetos(
+        tituloProjeto = titulo,
+        subTitulo = subTitulo,
+        descricao = descricao,
+        dataAvaliacao = dataAvaliacao,
+        autores=[], 
+        palavrasChave=[],
+        curso = cursos_dao.get_curso_codCurso(codCurso),
+        gerenciador = gerenciadores_dao.get_gerenciador_cod_ger(codGer)
+    )
+
+    orientador= orientadores_dao.get_orientador(raOrientador)
+    if not orientador:
+        return json_res.get_falha('O codigo do orientador enviado e invalido')
+    projeto.orientador = orientador
+
+    try:
+        ra_autor = req.form['ra_autor']
+        autor = req.form['autor']
+    except BadRequestKeyError:
+        return json_res.get_erro('A requisicao deve conter ao menos um campo "ra_autor" e um "autor"')
+
+    if not (ra_autor and autor):
+        return json_res.get_erro('Os valores de "ra_autor" e "autor" nao podem ser nulos')
+
+    projeto.autores.append(Autores(
+        ra_autor,
+        autor
+    ))
+
+    i = 1
+    try:
+        while req.form['autor_' + str(i)] != None or i < 4:
+            nome = req.form['autor_' + str(i)]
+            ra = req.form['ra_autor_' + str(i)]
+            if(nome != '' and ra != ''):
+                projeto.autores.append(
+                    Autores(ra,nome)
+                )
+                i += 1
+    except BadRequestKeyError:
+       pass
+    
+    try:
+        palavra = req.form['palavra_chave']
+    except BadRequestKeyError:
+        return json_res.get_erro('A requisicao deve conter ao menos um campo "palavra_chave". Os demais campos devem estar no formato: palavra_chave_(numero da palavra)')
+
+    if not palavra:
+        return json_res.get_erro('O valor de "palavra_chave" nao pode ser nulo')
+
+    projeto.palavrasChave.append(
+        PalavrasChave(palavra)
+    )
+    j = 1
+    try:
+        while (req.form['palavra_chave_' + str(j)] != None or j < 3):
+            palavra = req.form['palavra_chave_' + str(j)]
+            if(palavra != ''):
+                projeto.palavrasChave.append(
+                    PalavrasChave(palavra)
+                )
+                j += 1
+    except BadRequestKeyError:
+        None
+
+
+    rand = hex(randint(0x100000,0xffffff))
+    data = datetime.now().date()
+
+    #-------------------------------------------------------------
+
+    filename = secure_filename(file.filename)
+    nfilename = filename.rsplit('.',2)[0]
+
+    descricaoCurso = projeto.curso.descricaoCurso
+    if len(descricaoCurso) >= 10:
+        descricaoCurso = projeto.curso.abreviacao
+
+    titulo = projeto.tituloProjeto
+    if len(titulo) > 41:
+        aux = titulo.split()
+        titulo = ""
+        for div in aux:
+            titulo += div[0]
+
+    filename = filename.replace(
+        nfilename,
+        descricaoCurso.upper().replace(' ', '-') + '-' +
+        titulo.upper().replace(' ', '-') + '-' + 
+        str(data) + "-" + str(rand).upper()
+    )
+    
+    projeto.nomeArquivo = filename
+
+    ret = projetos_dao.grava_projeto(
+        projeto
+    )
+
+    file.save(
+        os.path.join(
+            app.config['UPLOAD_FOLDER'], 
+            filename
+        )
+    )
+
+    return ret
 
 def allowed_file(filename):
     return '.' in filename and \
