@@ -187,7 +187,7 @@ def upload_projeto(req):
         nfilename,
         descricaoCurso.upper().replace(' ', '-') + '-' +
         titulo.upper().replace(' ', '-') + '-' + 
-        str(data) + "-" + str(rand).upper()
+        str(data) + "-" + str(rand).upper().replace('0X','')
     )
     
     projeto.nomeArquivo = filename
@@ -244,6 +244,7 @@ def get_projeto(codProjeto):
     ret = projetos_dao.get_projeto(codProjeto)
     if ret:
         projetos_dao.prenche_projeto(ret)
+        projetos_dao.add_view(codProjeto)
         return json_res.get_data(ret)
     return json_res.get_falha('Projeto requisitado nao existe')
 

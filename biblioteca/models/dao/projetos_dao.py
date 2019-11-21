@@ -241,13 +241,11 @@ def grava_projeto(
         try:
             codAutor = aut.grava_autor(projeto.codProjeto)
         except DataError:
-            autores_dao.deleta_autores(projeto.codProjeto)
             deleta_projeto(projeto.codProjeto)
             return json_res.get_erro('O ra enviado deve ter no maximo 13 caracteres e o nome deve ter no maximo 200')
         try:
             projeto_autor_dao.grava_autor_proj(projeto.codProjeto, codAutor)
         except IntegrityError:
-            autores_dao.deleta_autores(projeto.codProjeto)
             deleta_projeto(projeto.codProjeto)
             return json_res.get_erro('Voce nao pode cadastrar dois alunos com o mesmo ra no mesmo projeto')
 
@@ -304,6 +302,12 @@ def download_file(codProjeto):
     query = 'UPDATE projetos SET numDownloads = numDownloads + 1 WHERE codProjeto = (%s)'
 
     bd_conn.bd_gravar(query, (codProjeto,))
+
+def add_view(codProjeto):
+    query = 'UPDATE projetos SET numVisitas = numVisitas + 1 WHERE codProjeto = (%s)'
+
+    bd_conn.bd_gravar(query, (codProjeto,))
+
 
 def __busca_projeto_full(query, *args):
     ret = bd_conn.bd_busca(query, *args)

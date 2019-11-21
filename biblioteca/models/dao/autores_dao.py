@@ -11,7 +11,3 @@ def busca_autores_proj(codProjeto):
         ''',
         (codProjeto,)
     )
-
-def deleta_autores(codProjeto):
-    query = 'delete from projeto_autor where codProjeto = (%s)'
-    bd_conn.bd_gravar(query, (codProjeto,))

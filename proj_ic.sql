@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.12, for Win64 (x86_64)
 --
--- Host: 127.0.0.1    Database: proj_ic
+-- Host: localhost    Database: proj_ic
 -- ------------------------------------------------------
 -- Server version	8.0.12
 
@@ -29,7 +29,7 @@ CREATE TABLE `autores` (
   PRIMARY KEY (`codAutor`),
   UNIQUE KEY `raAutor_UNIQUE` (`raAutor`),
   UNIQUE KEY `codAutor_UNIQUE` (`codAutor`)
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -38,7 +38,7 @@ CREATE TABLE `autores` (
 
 LOCK TABLES `autores` WRITE;
 /*!40000 ALTER TABLE `autores` DISABLE KEYS */;
-INSERT INTO `autores` VALUES (21,'1111111111111','Autor1'),(22,'2222222222222','Autor2'),(23,'123123','qwe'),(24,'0128301283','autor teste'),(25,'7319273212','autor teste 2'),(26,'1231231231231','pqoe'),(27,'1231231231','pqoe'),(41,'1231231123123','qpowepoqkew');
+INSERT INTO `autores` VALUES (48,'1231231123444','aut 1'),(49,'123123332313','aut 2');
 /*!40000 ALTER TABLE `autores` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -66,7 +66,7 @@ CREATE TABLE `cursos` (
 
 LOCK TABLES `cursos` WRITE;
 /*!40000 ALTER TABLE `cursos` DISABLE KEYS */;
-INSERT INTO `cursos` VALUES (1,'Jogos Digitais',1,'JD'),(2,'Analise e Desenvolvimento de Sistemas',1,'ADS'),(14,'aeaeaea',0,'JDasd');
+INSERT INTO `cursos` VALUES (1,'Jogos Digitais',1,'JD'),(2,'Analise e Desenvolvimento de Sistemas',1,'ADS');
 /*!40000 ALTER TABLE `cursos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -110,7 +110,7 @@ CREATE TABLE `palavras_chave` (
   PRIMARY KEY (`codPalavra`),
   KEY `FK_PROJETO_idx` (`codProjeto`),
   CONSTRAINT `FK_PALAVRA_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -119,7 +119,7 @@ CREATE TABLE `palavras_chave` (
 
 LOCK TABLES `palavras_chave` WRITE;
 /*!40000 ALTER TABLE `palavras_chave` DISABLE KEYS */;
-INSERT INTO `palavras_chave` VALUES (5,'Palavra1',42),(6,'Palavra2',42),(7,'qweqwe',43),(8,'pal k',44),(9,'pal k 2',45),(10,'pal',48),(11,'pal',59),(12,'pal',60),(13,'pal',61);
+INSERT INTO `palavras_chave` VALUES (14,'pal',64),(15,'pal kkkkkkkkk',65);
 /*!40000 ALTER TABLE `palavras_chave` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -135,7 +135,7 @@ CREATE TABLE `projeto_autor` (
   `codAutor` int(11) NOT NULL,
   PRIMARY KEY (`codProjeto`,`codAutor`),
   KEY `FK_AUTOR_idx` (`codAutor`),
-  CONSTRAINT `FK_AUTOR` FOREIGN KEY (`codAutor`) REFERENCES `autores` (`codautor`),
+  CONSTRAINT `FK_AUTOR` FOREIGN KEY (`codAutor`) REFERENCES `autores` (`codautor`) ON DELETE CASCADE,
   CONSTRAINT `FK_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -146,7 +146,7 @@ CREATE TABLE `projeto_autor` (
 
 LOCK TABLES `projeto_autor` WRITE;
 /*!40000 ALTER TABLE `projeto_autor` DISABLE KEYS */;
-INSERT INTO `projeto_autor` VALUES (42,21),(42,22),(43,23),(44,24),(45,25),(48,26),(51,27),(54,27),(59,27),(60,27),(61,27),(59,41),(60,41),(61,41);
+INSERT INTO `projeto_autor` VALUES (64,48),(65,48),(64,49),(65,49);
 /*!40000 ALTER TABLE `projeto_autor` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -162,8 +162,8 @@ CREATE TABLE `projeto_orientador` (
   `codProjeto` int(11) NOT NULL,
   PRIMARY KEY (`codOrientador`,`codProjeto`),
   KEY `FK_PROJETO_ORI_idx` (`codProjeto`),
-  CONSTRAINT `FK_ORIENTADOR` FOREIGN KEY (`codOrientador`) REFERENCES `orientadores` (`codorientador`),
-  CONSTRAINT `FK_PROJETO_ORI` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`)
+  CONSTRAINT `FK_ORIENTADOR` FOREIGN KEY (`codOrientador`) REFERENCES `orientadores` (`codorientador`) ON DELETE CASCADE,
+  CONSTRAINT `FK_PROJETO_ORI` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -173,7 +173,7 @@ CREATE TABLE `projeto_orientador` (
 
 LOCK TABLES `projeto_orientador` WRITE;
 /*!40000 ALTER TABLE `projeto_orientador` DISABLE KEYS */;
-INSERT INTO `projeto_orientador` VALUES (1,44),(2,45),(3,48),(3,59),(3,60),(3,61);
+INSERT INTO `projeto_orientador` VALUES (3,64),(3,65);
 /*!40000 ALTER TABLE `projeto_orientador` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -203,7 +203,7 @@ CREATE TABLE `projetos` (
   UNIQUE KEY `codProjeto_UNIQUE` (`codProjeto`),
   KEY `FK_CURSO_idx` (`codCurso`),
   CONSTRAINT `FK_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codcurso`)
-) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -212,7 +212,7 @@ CREATE TABLE `projetos` (
 
 LOCK TABLES `projetos` WRITE;
 /*!40000 ALTER TABLE `projetos` DISABLE KEYS */;
-INSERT INTO `projetos` VALUES (42,'Projeto','descricao','ADS-PROJETO-2019-10-30-0XA63950.pdf',0,0,0,0,'2019-10-30','2019-10-30 18:08:54',2,1,''),(43,'tit','des','ADS-TIT-2019-11-01-0X710B8F.pdf',0,0,0,0,'1232-09-17','2019-11-01 16:42:11',2,1,''),(44,'teste ori','qoejhoqdqiow fdde desc','JD-TESTE-ORI-2019-11-04-0X4A63A5.pdf',0,0,0,0,'2019-10-14','2019-11-04 17:52:08',1,1,''),(45,'teste ori 2','qoejhoqdqiow fdde desc 2','JD-TESTE-ORI-2-2019-11-04-0XA15714.pdf',0,0,0,0,'2019-07-19','2019-11-04 17:59:18',1,1,''),(46,'tiu','oaisdn','JD-TIU-2019-11-20-0XC59CD9.pdf',0,0,0,0,'2019-12-12','2019-11-20 16:47:34',1,1,'owansdn'),(47,'tiu','oaisdn','JD-TIU-2019-11-20-0XBBD6A1.pdf',0,0,0,0,'2019-12-12','2019-11-20 16:53:10',1,1,'owansdn'),(48,'tiu','oaisdn','JD-TIU-2019-11-20-0XFA9AC0.pdf',0,0,0,2,'2019-12-12','2019-11-20 17:01:01',1,1,'owansdn'),(51,'tiu','oaisdn','JD-TIU-2019-11-20-0X202ADB.pdf',0,0,0,0,'2019-12-12','2019-11-20 17:37:27',1,1,'owansdn'),(52,'tiu','oaisdn','JD-TIU-2019-11-20-0XD5AD0A.pdf',0,0,0,0,'2019-12-12','2019-11-20 17:44:15',1,0,'owansdn'),(54,'tiu','oaisdn','JD-TIU-2019-11-20-0XEC1D41.pdf',0,0,0,0,'2019-12-12','2019-11-20 17:46:43',1,1,'owansdn'),(59,'ititiatia','oaisdn','JD-ITITIATIA-2019-11-20-0X8E4854.pdf',0,0,0,0,'2019-12-12','2019-11-20 17:52:39',1,1,'owansdn'),(60,'ititiatia','oaisdn','JD-ITITIATIA-2019-11-20-0XD4C44E.pdf',0,0,0,0,'2019-12-12','2019-11-20 19:49:46',1,1,'owansdn'),(61,'proj teste','oaisdn','JD-PROJ-TESTE-2019-11-20-0X8C4BD8.pdf',0,0,0,0,'2019-12-12','2019-11-20 19:50:08',1,1,'owansdn');
+INSERT INTO `projetos` VALUES (64,'proj teste','oaisdn','JD-PROJ-TESTE-2019-11-20-A6C7FE.pdf',0,0,0,0,'2019-12-12','2019-11-20 22:56:09',1,1,'owansdn'),(65,'Projeto Bom Msm','aaaaaaaaaaaaaa','JD-PROJETO-BOM-MSM-2019-11-20-D82A35.pdf',0,0,0,0,'2019-12-12','2019-11-20 23:01:03',1,1,'sub ne');
 /*!40000 ALTER TABLE `projetos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -243,7 +243,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:50000$ugKk3qk8$a68e58926f85dff54dd23416597dff7465f9855ff94f877d9dbdc4243e1d80d9',3,1,'Silvia','oiasda@iaon.com'),(9,'pedro','pbkdf2:sha256:150000$11LdKkAa$35848c4199690f50c414c1b7498d542cc29cea3e8d3168a9d94fcc574cdcfc71',3,1,'Pedro','asdm@pedro.com'),(14,'testae','pbkdf2:sha256:50000$Q9sCBfRj$a379f8fe699df61c37d1eb8ed5cd178a1046ab7e0c18fee2091a4c6344b4dba4',1,1,'teste','teste@teste.teste'),(17,'popouu','pbkdf2:sha256:50000$gYFpTdWW$60746f27258e537bf018717fc0ed66c87ed7d895e9ced720f46664cb73ce06c4',1,1,'Pou Jonsonsns','eam@qweqwe');
+INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:50000$ugKk3qk8$a68e58926f85dff54dd23416597dff7465f9855ff94f877d9dbdc4243e1d80d9',3,1,'Silvia','oiasda@iaon.com');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -256,4 +256,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-11-20 21:01:57
+-- Dump completed on 2019-11-20 23:06:37
