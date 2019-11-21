@@ -26,12 +26,14 @@ def get_negado(message='negado'):
         'message': message
     }
 
-def get_logado(nivel, username):
+def get_logado(nivel, username, nome, email):
     return {
         'cod_s': 1,
         'status':'logado',
         'username': username,
-        'nivel_acesso': nivel
+        'nivel_acesso': nivel,
+        'nome': nome,
+        'email': email
     }
 
 def get_deslogado():

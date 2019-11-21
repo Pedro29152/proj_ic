@@ -35,18 +35,6 @@ class Cursos:
         else:
             return True
 
-class Gerenciadores:
-    def __init__(self, codGerenciador=0, cpfGerenciador='', instituicao='', nomeGerenciador='', emailGerenciador=''):
-        self.codGerenciador = codGerenciador
-        self.cpfGerenciador = cpfGerenciador
-        self.instituicao = instituicao
-        self.nomeGerenciador = nomeGerenciador
-        self.emailGerenciador = emailGerenciador
-
-    def grava_gerenciador(self):
-        bd_conn.bd_gravar('insert into gerenciadores(cpfGerenciador, instituicao, nomeGerenciador, emailGerenciador) values(%s,%s,%s,%s)',
-        (self.cpfGerenciador, self.instituicao, self.nomeGerenciador, self.emailGerenciador))
-
 class PalavrasChave:
     def __init__(self, palavraChave='', codPalavra = 0, projeto = None):
         self.codPalavra = codPalavra
@@ -69,8 +57,7 @@ class Projetos:
     nomeArquivo='', 
     dataAvaliacao=None, 
     dataEnvio=None, 
-    avaliacao=None, 
-    gerenciador=None, 
+    avaliacao=None,
     curso=None, 
     autores=None,
     orientador=None, 
@@ -85,7 +72,6 @@ class Projetos:
         self.dataEnvio = dataEnvio
 
         self.avaliacao = avaliacao
-        self.gerenciador = gerenciador
         self.curso = curso
         self.autores = autores
         self.orientador = orientador
@@ -103,14 +89,12 @@ class Avalicoes:
 
 
 class Usuarios:
-    def __init__(self, codUsuario, nomeUsuario, senha, tipoUsuario, gerenciador):
+    def __init__(self, codUsuario, nomeUsuario, senha, tipoUsuario):
         self.codUsuario = codUsuario
         self.nomeUsuario = nomeUsuario
         self.senha = senha
         self.tipoUsuario = tipoUsuario
-
-        self.gerenciador = gerenciador
-
+        
 class Orientadores:
     def __init__(self, codOrientador=None, nomeOrientador=None, raOrientador=None):
         self.codOrientador = codOrientador

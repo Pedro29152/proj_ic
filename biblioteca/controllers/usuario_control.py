@@ -1,5 +1,5 @@
 from flask import session
-from biblioteca.models.dao import usuario_dao, gerenciadores_dao, usuario_dao
+from biblioteca.models.dao import usuario_dao, usuario_dao
 from werkzeug.exceptions import BadRequestKeyError
 from biblioteca.util import json_res
 
@@ -14,10 +14,13 @@ def tentar_login(request, next_page=''):
             'A requisicao deve conter os campos "username" e "password" em seu corpo para poder ser reconhecida'
         )
         
-    if usuario_dao.verifica_usr(user, senha):
+    usr = usuario_dao.verifica_usr(user, senha)
+    if usr:
             session['username'] = user
             session['logged_in'] = True
-            session['nivel_acesso'] = usuario_dao.busca_nivel_acesso(user)
+            session['nivel_acesso'] = usr['tipoUsuario']
+            session['nome'] = usr['nome']
+            session['email'] = usr['email']
 
             ret = json_res.get_ok('Ususario logado com sucesso')
             ret['next_page'] = next_page
@@ -34,25 +37,19 @@ def logout_url():
 def cadastro_usr(request):
     try:
         user = request.form['username']
-        tipoUsuario = request.form['tipoUsuario']
-        codGer = request.form['gerenciador']
         senha = request.form['password']
+        tipoUsuario = request.form['tipoUsuario']
+        nome = request.form['nome']
+        email = request.form['email']
     except BadRequestKeyError:
         return json_res.get_erro(
-            'A requisicao deve possuir os campos "username", "tipoUsuario", "gerenciador" e "password" em seu corpo'
+            'A requisicao deve possuir os campos "username", "tipoUsuario", "email", "nome" e "password" em seu corpo'
         )
 
-    if not (user and tipoUsuario and codGer and senha):
+    if not (user and tipoUsuario and senha):
         return json_res.get_falha('Os campos enviados nao podem estar vazios')
-
-    if(tipoUsuario == "Usuario"):
-        tipoUsuario = 1
-    if(tipoUsuario == "Diretor"):
-        tipoUsuario = 2
-    if(tipoUsuario == "Admin"):
-        tipoUsuario = 3
-    
-    if usuario_dao.add_usr(user, senha,tipoUsuario,codGer):
+        
+    if usuario_dao.add_usr(user, senha, tipoUsuario, nome, email):
         return json_res.get_ok(
             'Usuario cadastrado com sucesso'
         )
@@ -71,7 +68,7 @@ def buscar_usuario(req):
 
 def usuario_logado():
     if logado():
-        return json_res.get_logado(session['nivel_acesso'], session['username'])
+        return json_res.get_logado(session['nivel_acesso'], session['username'], session['nome'], session['email'])
     return json_res.get_deslogado()
 
 def logado():
@@ -100,17 +97,19 @@ def edita_usuario(codUsuario, req):
 
     try:
         nomeUsuario = req.form['nomeUsuario']
+        nome = req.form['nome']
     except BadRequestKeyError:
-        return json_res.get_erro('A requsicao deve conter o campo "nomeUsuario" em seu corpo')
-        
+        return json_res.get_erro('A requsicao deve conter o campo "nome" e "nomeUsuario" em seu corpo')
+
     codUsuario = int(codUsuario)
     usr = usuario_dao.get_usuario(codUsuario)
 
     if usr:
-        if nomeUsuario:
-            usuario_dao.edita_usuario(codUsuario, nomeUsuario)
+        if nomeUsuario and nome:
+            usuario_dao.edita_usuario(codUsuario, nomeUsuario, nome)
             if usr['nomeUsuario'] == session['username']:
                 session['username'] = nomeUsuario
+                session['nome'] = nome
             return json_res.get_ok('Usuario editado com sucesso')
         return json_res.get_falha('Os campos enviados nao podem ser vazios')
     return json_res.get_falha('O codigo enviado nao esta relacionado a nenhum usuario')

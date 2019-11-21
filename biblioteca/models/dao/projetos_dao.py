@@ -11,18 +11,18 @@ QUERY_TITULO = 'SELECT * FROM projetos WHERE tituloProjeto LIKE (%s) AND ativo =
 QUERY_DESCRICAO = 'SELECT * FROM projetos WHERE descricao LIKE (%s) AND ativo = 1 '
 QUERY_ORIENTADOR = '''
     SELECT codProjeto, tituloProjeto, descricao, nomeArquivo, likes, deslikes, 
-    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codGerenciador, codCurso, ativo FROM proj_ic.projetos natural join projeto_orientador natural join orientadores where nomeOrientador like (%s);
+    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, ativo FROM proj_ic.projetos natural join projeto_orientador natural join orientadores where nomeOrientador like (%s);
     '''
 QUERY_AUTOR = '''
     select distinct 
     codProjeto, tituloProjeto, descricao, nomeArquivo, likes, deslikes, 
-    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codGerenciador, codCurso, ativo
+    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, ativo
     from autores natural join projeto_autor natural join projetos pj where nomeAutor like (%s)
     '''
 QUERY_PALAVRAS_CHAVE = '''
     select distinct 
     codProjeto, tituloProjeto, descricao, nomeArquivo, likes, deslikes, 
-    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codGerenciador, codCurso, ativo
+    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, ativo
     from palavras_chave natural join projetos pj where palavraChave like (%s)
     '''
     
@@ -225,14 +225,13 @@ def grava_projeto(
 ):
     bd_conn.bd_gravar(
         'insert into projetos'+
-        '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codGerenciador, codCurso, ativo)'+
-        'values(%s,%s,%s,%s,%s,%s,%s,1)',
+        '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, ativo)'+
+        'values(%s,%s,%s,%s,%s,%s,1)',
         (projeto.tituloProjeto,
         projeto.subTitulo,
         projeto.descricao, 
         projeto.nomeArquivo, 
         projeto.dataAvaliacao,
-        projeto.gerenciador.codGerenciador,
         projeto.curso.codCurso)
     )
 

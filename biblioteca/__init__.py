@@ -1,7 +1,6 @@
 from flask import Flask
 from biblioteca.routers.cursos_blueprint import CURSOS_ROUTER
 from biblioteca.routers.usuarios_blueprint import USUARIOS_ROUTER
-from biblioteca.routers.gerenciadores_blueprint import GERENCIADORES_ROUTER
 from biblioteca.routers.projetos_blueprint import PROJETOS_ROUTER
 from biblioteca.routers.orientadores_blueprint import ORIENTADORES_ROUTER
 import os
@@ -24,7 +23,6 @@ app.jinja_options.update(dict(
 
 app.register_blueprint(CURSOS_ROUTER)
 app.register_blueprint(USUARIOS_ROUTER)
-app.register_blueprint(GERENCIADORES_ROUTER)
 app.register_blueprint(PROJETOS_ROUTER)
 app.register_blueprint(ORIENTADORES_ROUTER)
 

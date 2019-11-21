@@ -1,5 +1,5 @@
-from biblioteca.models.dao import projetos_dao, gerenciadores_dao, cursos_dao, orientadores_dao
-from biblioteca.models.classes import Projetos, Autores, Cursos, PalavrasChave, Gerenciadores, Orientadores
+from biblioteca.models.dao import projetos_dao, cursos_dao, orientadores_dao
+from biblioteca.models.classes import Projetos, Autores, Cursos, PalavrasChave, Orientadores
 from random import randint
 from werkzeug.utils import secure_filename
 from datetime import date, datetime
@@ -75,17 +75,15 @@ def upload(req):
         return json_res.get_falha('Nenhum arquivo selecionado')
 
     if req.files['file'] and allowed_file(req.files['file'].filename):
-        return upload_projeto(req, session['username'])
+        return upload_projeto(req)
             
     elif not allowed_file(req.files['file'].filename):
         return json_res.get_falha('Erro: extensão nao suportada')
     
     return json_res.get_erro('Um erro inesperado occoreu')
 
-def upload_projeto(req, nomeUsr):
+def upload_projeto(req):
     file = req.files['file']
-
-    codGer = gerenciadores_dao.get_codGer_nomeUsuario(nomeUsr)
 
     try:
         titulo = req.form['titulo']
@@ -107,8 +105,7 @@ def upload_projeto(req, nomeUsr):
         dataAvaliacao = dataAvaliacao,
         autores=[], 
         palavrasChave=[],
-        curso = cursos_dao.get_curso_codCurso(codCurso),
-        gerenciador = gerenciadores_dao.get_gerenciador_cod_ger(codGer)
+        curso = cursos_dao.get_curso_codCurso(codCurso)
     )
 
     orientador= orientadores_dao.get_orientador(raOrientador)
