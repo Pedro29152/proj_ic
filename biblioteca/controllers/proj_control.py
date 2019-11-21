@@ -40,7 +40,7 @@ def busca_pag(req = None, tipo='', pag = 1):
     else:
         return json_res.get_falha('Nenhum projeto listado')
 
-def busca_ranking(req = None, pag = 1):    
+def busca_ranking(req = None):    
     query, tipo, ordem = __get_filtro_rank(req)
 
     ret = projetos_dao.busca_projeto_ranking(query, tipo, ordem)

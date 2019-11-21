@@ -16,17 +16,16 @@ def tentar_login(request, next_page=''):
         
     usr = usuario_dao.verifica_usr(user, senha)
     if usr:
-            session['username'] = user
-            session['logged_in'] = True
-            session['nivel_acesso'] = usr['tipoUsuario']
-            session['nome'] = usr['nome']
-            session['email'] = usr['email']
+        session['username'] = user
+        session['logged_in'] = True
+        session['nivel_acesso'] = usr['tipoUsuario']
+        session['nome'] = usr['nome']
+        session['email'] = usr['email']
 
-            ret = json_res.get_ok('Ususario logado com sucesso')
-            ret['next_page'] = next_page
-            return ret
-    else:
-        return json_res.get_erro('Ususario ou senha incorretos, tente novamente')
+        ret = json_res.get_ok('Ususario logado com sucesso')
+        ret['next_page'] = next_page
+        return ret
+    return json_res.get_erro('Ususario ou senha incorretos, tente novamente')
 
 def logout_url():
     session.clear()
