@@ -4,9 +4,7 @@ from flask import flash
 def __conecta():
     conn = connector.connect(
         user='root', 
-        password='LabRobotica123#@',
-        host='127.0.0.1',
-        port='3306',
+        password= '1234',
         database='proj_ic'
     )
 
@@ -16,32 +14,28 @@ def __conecta():
 
 def bd_busca(query, *args):
     conn, cursor = __conecta()
-    try:
-        cursor.execute(query, *args)
 
-        val = cursor.fetchall()
+    cursor.execute(query, *args)
 
-    finally:
-        conn.close()
+    val = cursor.fetchall()
+
+    conn.close()
 
     return val
 
 def bd_busca_um(query, *args):
-    try:
-        conn, cursor = __conecta()
-        cursor.execute(query, *args)
+    conn, cursor = __conecta()
+    cursor.execute(query, *args)
 
-        val = cursor.fetchone()
+    val = cursor.fetchone()
 
-    finally:
-        conn.close()
+    conn.close()
 
     return val
 
 def bd_gravar(query, *args):
-    try:
-        conn, cursor = __conecta()
-        cursor.execute(query, *args)
-        conn.commit()
-    finally:
-        conn.close()
+    conn, cursor = __conecta()
+    cursor.execute(query, *args)
+    conn.commit()
+    
+    conn.close()
