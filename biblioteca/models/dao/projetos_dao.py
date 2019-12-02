@@ -242,19 +242,19 @@ def grava_projeto(
             codAutor = aut.grava_autor(projeto.codProjeto)
         except DataError:
             deleta_projeto(projeto.codProjeto)
-            return json_res.get_erro('O ra enviado deve ter no maximo 13 caracteres e o nome deve ter no maximo 200')
+            return json_res.get_erro('O ra enviado deve ter no maximo 13 caracteres e o nome deve ter no maximo 200'), 404
         try:
             projeto_autor_dao.grava_autor_proj(projeto.codProjeto, codAutor)
         except IntegrityError:
             deleta_projeto(projeto.codProjeto)
-            return json_res.get_erro('Voce nao pode cadastrar dois alunos com o mesmo ra no mesmo projeto')
+            return json_res.get_erro('Voce nao pode cadastrar dois alunos com o mesmo ra no mesmo projeto'), 404
 
     for palavra in projeto.palavrasChave:
         palavra.grava_palavra_chave(projeto.codProjeto)
 
     __grava_proj_ori(projeto.codProjeto, projeto.orientador.codOrientador)
 
-    return json_res.get_ok('Projeto cadastrado com sucesso')
+    return json_res.get_ok('Projeto cadastrado com sucesso'), 200
 
 def deleta_projeto(codProjeto):
     query = 'delete from projetos where codProjeto = (%s)'

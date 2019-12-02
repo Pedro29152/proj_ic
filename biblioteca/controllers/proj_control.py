@@ -19,16 +19,16 @@ def busca(req = None, tipo = ''):
         ret = projetos_dao.busca_projeto()
 
     if ret:
-        return json_res.get_data(ret)
+        return json_res.get_data(ret), 200
     else:
-        return json_res.get_falha('Nenhum projeto listado')
+        return json_res.get_falha('Nenhum projeto listado'), 404
 
 def busca_pag(req = None, tipo='', pag = 1):
     dados, ordem, cres = __get_filtro(req)
     try:
         pag = int(pag)
     except ValueError:
-        return json_res.get_erro('O valor do parametro "page" deve ser do tipo inteiro')
+        return json_res.get_erro('O valor do parametro "page" deve ser do tipo inteiro'), 404
     
     if tipo: 
         ret = projetos_dao.busca_projeto_tipo_pag(tipo,dados,ordem,cres)
@@ -36,9 +36,9 @@ def busca_pag(req = None, tipo='', pag = 1):
         ret = projetos_dao.busca_projeto_pag(pag)
 
     if ret:
-        return json_res.get_data(ret)
+        return json_res.get_data(ret), 200
     else:
-        return json_res.get_falha('Nenhum projeto listado')
+        return json_res.get_falha('Nenhum projeto listado'), 404
 
 def busca_ranking(req = None):    
     query, tipo, ordem = __get_filtro_rank(req)
@@ -46,41 +46,41 @@ def busca_ranking(req = None):
     ret = projetos_dao.busca_projeto_ranking(query, tipo, ordem)
 
     if ret == None:
-        return json_res.get_falha('Nenhum projeto listado')
+        return json_res.get_falha('Nenhum projeto listado'), 404
 
-    return json_res.get_data(ret)
+    return json_res.get_data(ret), 200
 
 def busca_ranking_pag(req = None, page = 1):
     query, tipo, ordem = __get_filtro_rank(req)
     
     if not __cod_valido(page):
-        return json_res.get_erro('O valor do parametro "page" deve ser do tipo inteiro')
+        return json_res.get_erro('O valor do parametro "page" deve ser do tipo inteiro'), 404
 
     ret = projetos_dao.busca_projeto_ranking_pag(query, tipo, ordem, page)
 
     if ret == None:
-        return json_res.get_falha('Nenhum projeto listado')
+        return json_res.get_falha('Nenhum projeto listado'), 404
 
-    return json_res.get_data(ret)
+    return json_res.get_data(ret), 200
 
 def get_count():
     count = projetos_dao.get_count()
-    return json_res.get_count(count)
+    return json_res.get_count(count), 200
 
 def upload(req):
     if 'file' not in req.files:
-        return json_res.get_falha('Nenhum arquivo foi enviado')
+        return json_res.get_falha('Nenhum arquivo foi enviado'), 404
 
     if req.files['file'].filename == '':
-        return json_res.get_falha('Nenhum arquivo selecionado')
+        return json_res.get_falha('Nenhum arquivo selecionado'), 404
 
     if req.files['file'] and allowed_file(req.files['file'].filename):
         return upload_projeto(req)
             
     elif not allowed_file(req.files['file'].filename):
-        return json_res.get_falha('Erro: extensão nao suportada')
+        return json_res.get_falha('Erro: extensão nao suportada'), 404
     
-    return json_res.get_erro('Um erro inesperado occoreu')
+    return json_res.get_erro('Um erro inesperado occoreu'), 404
 
 def upload_projeto(req):
     file = req.files['file']
@@ -93,10 +93,10 @@ def upload_projeto(req):
         codCurso = req.form['curso']
         subTitulo = req.form['subTitulo']
     except BadRequestKeyError:
-        return json_res.get_erro('A requisicao deve conter os campos "titulo", "raOrientador", "descricao", "dataAvaliacao", "subTitulo" e "curso"')
+        return json_res.get_erro('A requisicao deve conter os campos "titulo", "raOrientador", "descricao", "dataAvaliacao", "subTitulo" e "curso"'), 404
 
     if not(titulo and raOrientador and descricao and dataAvaliacao and codCurso and subTitulo):
-        return json_res.get_erro('Os valores de "titulo", "raOrientador", "descricao", "dataAvaliacao", "subTitulo" e "curso" nao podem ser nulos')
+        return json_res.get_erro('Os valores de "titulo", "raOrientador", "descricao", "dataAvaliacao", "subTitulo" e "curso" nao podem ser nulos'), 404
 
     projeto = Projetos(
         tituloProjeto = titulo,
@@ -110,17 +110,17 @@ def upload_projeto(req):
 
     orientador= orientadores_dao.get_orientador(raOrientador)
     if not orientador:
-        return json_res.get_falha('O codigo do orientador enviado e invalido')
+        return json_res.get_falha('O codigo do orientador enviado e invalido'), 404
     projeto.orientador = orientador
 
     try:
         ra_autor = req.form['ra_autor']
         autor = req.form['autor']
     except BadRequestKeyError:
-        return json_res.get_erro('A requisicao deve conter ao menos um campo "ra_autor" e um "autor"')
+        return json_res.get_erro('A requisicao deve conter ao menos um campo "ra_autor" e um "autor"'), 404
 
     if not (ra_autor and autor):
-        return json_res.get_erro('Os valores de "ra_autor" e "autor" nao podem ser nulos')
+        return json_res.get_erro('Os valores de "ra_autor" e "autor" nao podem ser nulos'), 404
 
     projeto.autores.append(Autores(
         ra_autor,
@@ -143,10 +143,10 @@ def upload_projeto(req):
     try:
         palavra = req.form['palavra_chave']
     except BadRequestKeyError:
-        return json_res.get_erro('A requisicao deve conter ao menos um campo "palavra_chave". Os demais campos devem estar no formato: palavra_chave_(numero da palavra)')
+        return json_res.get_erro('A requisicao deve conter ao menos um campo "palavra_chave". Os demais campos devem estar no formato: palavra_chave_(numero da palavra)'), 404
 
     if not palavra:
-        return json_res.get_erro('O valor de "palavra_chave" nao pode ser nulo')
+        return json_res.get_erro('O valor de "palavra_chave" nao pode ser nulo'), 404
 
     projeto.palavrasChave.append(
         PalavrasChave(palavra)
@@ -219,38 +219,38 @@ def download_arquivo(filename):
 
 def desativa_projeto(codProjeto):
     if not __cod_valido(codProjeto):
-        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro'), 404
 
     if projetos_dao.projeto_existe(codProjeto):
         projetos_dao.desativa_projeto(codProjeto)
 
-        return json_res.get_ok('Projeto desativado com sucesso')
-    return json_res.get_falha('Projeto requisitado nao existe')
+        return json_res.get_ok('Projeto desativado com sucesso'), 200
+    return json_res.get_falha('Projeto requisitado nao existe'), 404
 
 def ativa_projeto(codProjeto):
     if not __cod_valido(codProjeto):
-        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro'), 404
 
     if projetos_dao.projeto_existe(codProjeto):
         projetos_dao.ativa_projeto(codProjeto)
 
-        return json_res.get_ok('Projeto ativado com sucesso')
-    return json_res.get_falha('Projeto requisitado nao existe')
+        return json_res.get_ok('Projeto ativado com sucesso'), 200
+    return json_res.get_falha('Projeto requisitado nao existe'), 404
 
 def get_projeto(codProjeto):
     if not __cod_valido(codProjeto):
-        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro'), 404
 
     ret = projetos_dao.get_projeto(codProjeto)
     if ret:
         projetos_dao.prenche_projeto(ret)
         projetos_dao.add_view(codProjeto)
-        return json_res.get_data(ret)
-    return json_res.get_falha('Projeto requisitado nao existe')
+        return json_res.get_data(ret), 200
+    return json_res.get_falha('Projeto requisitado nao existe'), 404
 
 def edita_projeto(codProjeto, req):
     if not __cod_valido(codProjeto):
-        return json_res.get_erro('O valor enviado deve ser do tipo inteiro')
+        return json_res.get_erro('O valor enviado deve ser do tipo inteiro'), 404
     
     if projetos_dao.get_projeto(codProjeto):
         try:
@@ -258,13 +258,13 @@ def edita_projeto(codProjeto, req):
             descricao = req.form['descricao']
             subtitulo = req.form['subTitulo']
         except BadRequestKeyError:
-            return json_res.get_erro('A requsicao deve ter os campos "tituloProjeto","descricao" e "subTitulo" em seu corpo')
+            return json_res.get_erro('A requsicao deve ter os campos "tituloProjeto","descricao" e "subTitulo" em seu corpo'), 404
 
         if titulo and descricao and subtitulo:
             projetos_dao.edita_projeto(codProjeto, titulo, descricao, subtitulo)
-            return json_res.get_ok('Projeto editado com sucesso')
-        return json_res.get_falha('Os campos enviados devem possuir algum valor')
-    return json_res.get_falha('Projeto requisitado nao existe')
+            return json_res.get_ok('Projeto editado com sucesso'), 200
+        return json_res.get_falha('Os campos enviados devem possuir algum valor'), 404
+    return json_res.get_falha('Projeto requisitado nao existe'), 404
 
 def __cod_valido(codProj):
     try:

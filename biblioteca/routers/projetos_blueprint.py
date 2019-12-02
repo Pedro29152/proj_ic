@@ -9,38 +9,40 @@ PROJETOS_ROUTER = Blueprint('projetos_router', __name__)
 @PROJETOS_ROUTER.route("/projetos/cadastrar", methods=['POST'])
 @login_reqired
 def upload_file():
-    status = proj_control.upload(request)
+    status, cod = proj_control.upload(request)
 
-    return util.response_ext(jsonify(status))
+    return util.response_ext(jsonify(status)), cod
 
 @PROJETOS_ROUTER.route("/projetos/buscar", methods=["GET"], defaults={'tipo':''})
 @PROJETOS_ROUTER.route("/projetos/buscar/<path:tipo>", methods=["GET"])
 def busca_projetos(tipo):
     projs = None
+    cod = 200
     if request.args.get('page'):
         page = request.args.get('page')
-        projs = proj_control.busca_pag(request, tipo, page)
+        projs, cod = proj_control.busca_pag(request, tipo, page)
     else:
-        projs = proj_control.busca(request, tipo)
+        projs, cod = proj_control.busca(request, tipo)
 
-    return util.response_ext(jsonify(projs))
+    return util.response_ext(jsonify(projs)), cod
     
 @PROJETOS_ROUTER.route('/projetos/get/<path:codProjeto>', methods=['GET'])
 def projeto_get(codProjeto):
-    status = proj_control.get_projeto(codProjeto)
+    status, cod = proj_control.get_projeto(codProjeto)
     
-    return util.response_ext(jsonify(status))
+    return util.response_ext(jsonify(status)), cod
 
 @PROJETOS_ROUTER.route("/projetos/buscar/ranking", methods=["GET"])
 def busca_ranking():
     projs = None
+    cod = 200
     if request.args.get('page'):
         page = request.args.get('page')
-        projs = proj_control.busca_ranking_pag(request, page)
+        projs, cod = proj_control.busca_ranking_pag(request, page)
     else:
-        projs = proj_control.busca_ranking(request)
+        projs, cod = proj_control.busca_ranking(request)
 
-    return util.response_ext(jsonify(projs))
+    return util.response_ext(jsonify(projs)), cod
 
 #rota para download de arquivos
 @PROJETOS_ROUTER.route("/projetos/download_file/<path:filename>", methods=["POST","GET"])
@@ -52,34 +54,34 @@ def download(filename):
                 as_attachment=True
             )
 
-        return util.response_ext(f)
+        return util.response_ext(f), 200
     
     abort(404)
 
 @PROJETOS_ROUTER.route('/projetos/count', methods=['GET'])
 def projetos_count():
-    ret = proj_control.get_count()
+    status, cod = proj_control.get_count()
     
     
-    return util.response_ext(jsonify(ret))
+    return util.response_ext(jsonify(status)), cod
 
 @PROJETOS_ROUTER.route('/projetos/ativar/<path:codProjeto>', methods=['POST'])
 @login_reqired
 def ativa_projeto(codProjeto):
-    status = proj_control.ativa_projeto(codProjeto)
+    status, cod = proj_control.ativa_projeto(codProjeto)
     
-    return util.response_ext(jsonify(status))
+    return util.response_ext(jsonify(status)), cod
 
 @PROJETOS_ROUTER.route('/projetos/desativar/<path:codProjeto>', methods=['POST'])
 @login_reqired
 def desativa_projeto(codProjeto):
-    status = proj_control.desativa_projeto(codProjeto)
+    status, cod = proj_control.desativa_projeto(codProjeto)
     
-    return util.response_ext(jsonify(status))
+    return util.response_ext(jsonify(status)), cod
 
 @PROJETOS_ROUTER.route('/projetos/edit/<path:codProjeto>', methods=['POST'])
 @login_reqired
 def projeto_edit(codProjeto):
-    status = proj_control.edita_projeto(codProjeto, request)
+    status, cod = proj_control.edita_projeto(codProjeto, request)
     
-    return util.response_ext(jsonify(status))
+    return util.response_ext(jsonify(status)), cod
