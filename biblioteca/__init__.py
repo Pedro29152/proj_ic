@@ -10,7 +10,7 @@ UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static/files')
 
 app = Flask(__name__)
 
-app.template_folder = "./dist"
+app.template_folder = "./template"
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
