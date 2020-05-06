@@ -20,6 +20,9 @@
 # Created by https://www.gitignore.io/api/flask,python,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=flask,python,visualstudiocode
 
+# Created by https://www.gitignore.io/api/flask,python
+# Edit at https://www.gitignore.io/?templates=flask,python
+
 ### Flask ###
 instance/*
 !instance/.gitignore
@@ -189,3 +192,4 @@ dmypy.json
 .history
 
 # End of https://www.gitignore.io/api/flask,python,visualstudiocode
+# End of https://www.gitignore.io/api/flask,python
