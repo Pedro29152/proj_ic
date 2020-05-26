@@ -169,3 +169,9 @@ dmypy.json
 # End of https://www.gitignore.io/api/flask,python,visualstudiocode
 
 .env
+
+# exclude everything
+static/files/*
+
+# exception to the rule
+!static/files/.gitkeep 

@@ -82,11 +82,15 @@ class BuscaRankingResource(Resource):
 
 class DownloadArquivoProjetoResource(Resource):
     def get(self, filename):
+        attatch = False
+        if request.args.get('as_attachment'):
+            attatch = True if request.args.get('as_attachment').lower() == 'true' else False
+
         if download_arquivo(filename):
             f = send_from_directory(    
                     app.config['UPLOAD_FOLDER'],
                     filename, 
-                    as_attachment=True
+                    as_attachment=attatch
                 )
 
             return f
@@ -118,6 +122,7 @@ class AtivaProjetoResource(Resource):
         resp = jsonify(status)
         resp.status_code = cod
         return resp
+
 
 def busca(req = None, tipo = ''):
     dados, ordem, cres = __get_filtro(req)
