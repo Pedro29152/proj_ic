@@ -331,10 +331,7 @@ def __busca_projeto_full(query, *args):
 
 def prenche_projetos(ret):
     for item in ret:
-        item['autores'] = autores_dao.busca_autores_proj(item['codProjeto'])
-        item['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(item['codProjeto'])
-        item['curso'] = cursos_dao.busca_curso_cod(item['codCurso'])
-        item['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(item['codProjeto'])
+        prenche_projeto(item)
 
 def prenche_projeto(ret):
     ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])

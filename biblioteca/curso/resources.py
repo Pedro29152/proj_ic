@@ -13,16 +13,8 @@ from biblioteca.extensions import (
     token_required,
     admin_token_required
 )
+from . import cursos_dao
 from .schemas import Cursos
-from .cursos_dao import (
-    busca_cursos,
-    is_ativo,
-    reativa_curso,
-    ativa_curso, 
-    desativa_curso,
-    busca_cursos_inativo,
-    get_count
-)
 
 class CursoResource(Resource):
     @admin_token_required
@@ -44,42 +36,42 @@ class CursoResource(Resource):
             curso.grava_curso()
             return get_ok('Curso gravado com suscesso')
         except IntegrityError:
-            if not is_ativo(curso):
-                reativa_curso(curso)
+            if not cursos_dao.is_ativo(curso):
+                cursos_dao.reativa_curso(curso)
                 return get_ok('O curso ja existia, porem esta inativo. O curso foi reativado com os dados novos')
             else:
                 return get_erro('O nome ou a breviacao desse curso ja foi cadastrado')
 
     @token_required
     def get(self):
-        cursos = busca_cursos()
+        cursos = cursos_dao.busca_cursos()
         
         return get_data(cursos)
 
 class AtivaCursoResource(Resource):
     @admin_token_required
-    def post(self, page_id):    
-        ativa_curso(page_id)
+    def post(self, id):    
+        cursos_dao.ativa_curso(id)
 
         return get_ok('Curso ativado com sucesso')
 
 class DesativaCursoResource(Resource):
     @admin_token_required
-    def post(self, page_id):    
-        desativa_curso(page_id)
+    def post(self, id):    
+        cursos_dao.desativa_curso(id)
 
         return get_ok('Curso desativado com sucesso')
 
-class CursosInativosResource(Resource):
+class TodosCursosResource(Resource):
     @admin_token_required
     def get(self):
-        cursos = busca_cursos_inativo()
+        cursos = cursos_dao.busca_cursos_inativo()
     
         return get_data(cursos)
 
 class CountCursosResource(Resource):
     @token_required
     def get(self):
-        count = get_count()
+        count = cursos_dao.get_count()
 
         return get_count_res(count)

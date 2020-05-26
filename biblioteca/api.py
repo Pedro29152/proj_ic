@@ -8,24 +8,24 @@ from biblioteca.curso.resources import (
     AtivaCursoResource, 
     DesativaCursoResource, 
     CountCursosResource, 
-    CursosInativosResource
+    TodosCursosResource
 )
 from biblioteca.orientador.resources import (
     OrientadorResource,
-    CountOrientadoresResource
+    CountOrientadoresResource,
+    AtivaOrientadorResource,
+    DesativaOrientadorResource,
+    TodosOrientadoresResource
 )
 from biblioteca.projeto.resources import (
     BuscaProjetoResource,
     BuscaRankingResource,
     GetProjetoResource,
-
     UploadProjetoResource,
     DownloadArquivoProjetoResource,
-
     DesativaProjetoResource,
     AtivaProjetoResource,
     AlteraProjetoResource,
-
     CountProjetosResource
 )
 from biblioteca.usuarios.resources import (
@@ -62,13 +62,16 @@ def configure_api(app):
 
     #Rotas de curso
     api.add_resource(CursoResource, '/api/cursos')
-    api.add_resource(CursosInativosResource, '/api/cursos/inativos')
+    api.add_resource(TodosCursosResource, '/api/cursos/todos')
     api.add_resource(CountCursosResource, '/api/cursos/count')
-    api.add_resource(AtivaCursoResource, '/api/cursos/ativar/<int:page_id>')
-    api.add_resource(DesativaCursoResource, '/api/cursos/desativar/<int:page_id>')
+    api.add_resource(AtivaCursoResource, '/api/cursos/ativar/<int:id>')
+    api.add_resource(DesativaCursoResource, '/api/cursos/desativar/<int:id>')
 
     #Rotas de orientador
     api.add_resource(OrientadorResource, '/api/orientadores')
+    api.add_resource(TodosOrientadoresResource, '/api/orientadores/todos')
+    api.add_resource(AtivaOrientadorResource, '/api/orientadores/ativar/<int:id>')
+    api.add_resource(DesativaOrientadorResource, '/api/orientadores/desativar/<int:id>')
     api.add_resource(CountOrientadoresResource, '/api/orientadores/count')
 
     #Rotas de projetos
