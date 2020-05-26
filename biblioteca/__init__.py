@@ -1,32 +1,26 @@
-from flask import Flask
-from biblioteca.routers.cursos_blueprint import CURSOS_ROUTER
-from biblioteca.routers.usuarios_blueprint import USUARIOS_ROUTER
-from biblioteca.routers.projetos_blueprint import PROJETOS_ROUTER
-from biblioteca.routers.orientadores_blueprint import ORIENTADORES_ROUTER
-import os
+from flask import Flask, render_template
+from config import config
 
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static/files')
+# Realize a importação da função que configura a api
+from .api import configure_api
 
-app = Flask(__name__)
+def create_app(config_name):
+    app = Flask('biblioteca-api')
+    
+    app.config.from_object(config[config_name])
+    
+    app.jinja_options = Flask.jinja_options.copy()
+    app.jinja_options.update(dict(
+        variable_start_string='[[',  
+        variable_end_string=']]',
+    ))
+    
+    # executa a chamada da função de configuração
+    configure_api(app)
+    
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def catch_all(path):
+        return render_template("index.html")
 
-app.template_folder = "./template"
-
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024
-app.jinja_options = Flask.jinja_options.copy()
-app.jinja_options.update(dict(
-    variable_start_string='[[',  
-    variable_end_string=']]',
-))
-
-app.register_blueprint(CURSOS_ROUTER)
-app.register_blueprint(USUARIOS_ROUTER)
-app.register_blueprint(PROJETOS_ROUTER)
-app.register_blueprint(ORIENTADORES_ROUTER)
-
-from biblioteca import routes
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    return app
