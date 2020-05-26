@@ -170,8 +170,6 @@ dmypy.json
 
 .env
 
-# exclude everything
 static/files/*
 
-# exception to the rule
 !static/files/.gitkeep 

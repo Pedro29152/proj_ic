@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import BadRequestKeyError
 from datetime import date, datetime
 from random import randint
+from PyPDF2 import PdfFileReader, PdfFileWriter
 
 from biblioteca.curso import cursos_dao
 from biblioteca.orientador import orientadores_dao
@@ -287,12 +288,17 @@ def upload_projeto(req):
         projeto
     )
 
-    file.save(
-        os.path.join(
-            app.config['UPLOAD_FOLDER'], 
-            filename
-        )
+    filepath = os.path.join(
+        app.config['UPLOAD_FOLDER'], 
+        filename
     )
+    file.save(
+        filepath
+    )
+
+    capa = os.path.join(app.static_folder, 'Capa.pdf')
+
+    __adicionar_cabecalio([capa, filepath], filepath)
 
     return ret
 
@@ -431,3 +437,15 @@ def __get_filtro_rank(req = None):
         ordem = ''
 
     return query, tipo, ordem
+def __adicionar_cabecalio(paths, output):
+    pdf_writer = PdfFileWriter()
+
+    for path in paths:
+        pdf_reader = PdfFileReader(path)
+        for page in range(pdf_reader.getNumPages()):
+            # Add each page to the writer object
+            pdf_writer.addPage(pdf_reader.getPage(page))
+
+    # Write out the merged PDF
+    with open(output, 'wb') as out:
+        pdf_writer.write(out)
