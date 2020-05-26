@@ -3,7 +3,11 @@ from flask_restful import Resource, request, current_app
 from werkzeug.exceptions import BadRequestKeyError
 from datetime import datetime, timedelta
 
-from biblioteca.extensions import token_required, admin_token_required, user_admin_token_required
+from biblioteca.extensions import (
+    token_required,
+    admin_token_required,
+    user_admin_token_required
+)
 from biblioteca.responses import (
     get_falha,
     get_erro,

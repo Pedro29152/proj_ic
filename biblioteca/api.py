@@ -38,6 +38,9 @@ from biblioteca.usuarios.resources import (
     EditarUsuarioResource,
     MudarSenhaUsuarioResource
 )
+from biblioteca.geral.resources import (
+    AllCountsResource
+)
 from .db import bd_busca   
 
 # Criamos uma classe que extende de Resource
@@ -55,6 +58,7 @@ def configure_api(app):
 
     # adicionamos na rota '/' a sua classe correspondente Index
     api.add_resource(Index, '/api')
+    api.add_resource(AllCountsResource, '/api/allcounts')
 
     #Rotas de curso
     api.add_resource(CursoResource, '/api/cursos')
