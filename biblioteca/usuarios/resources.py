@@ -34,7 +34,11 @@ class LoginResource(Resource):
         if usr:
             extDt = datetime.now() + timedelta(hours=12)
             extDt = extDt.__str__()
-            token = jwt.encode({"username": usr['nomeUsuario'], 'tipoUsuario': str(usr['tipoUsuario']), 'ext': extDt},
+            token = jwt.encode({
+                "username": usr['nomeUsuario'], 
+                'tipoUsuario': str(usr['tipoUsuario']), 
+                'ext': extDt
+            },
                 current_app.config['SECRET_KEY'])
 
             ret = get_ok("Usuario logado com sucesso")

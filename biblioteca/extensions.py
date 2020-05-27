@@ -2,6 +2,7 @@ import jwt
 from functools import wraps
 from flask import request, jsonify, current_app as app
 from datetime import datetime
+from dateutil import parser 
 
 from biblioteca import responses
 from .usuarios import usuario_dao
@@ -18,7 +19,7 @@ def token_required(f):
         try:
             token = token_arr[1]
             data = jwt.decode(token, app.config['SECRET_KEY'])
-            ext = datetime.fromisoformat(data['ext'])
+            ext = parser.parse(data['ext'])
             if(ext < datetime.now()):
                 return jsonify(responses.get_erro('Token enviado expirou'))
             current_user = usuario_dao.busca_usuarios_nome(data['username'])
@@ -28,7 +29,32 @@ def token_required(f):
             return jsonify(responses.get_erro('Token enviado não é valido ou esta expirado'))
         return f(*args, **kwargs)
     return decorated
-    
+
+def secretaria_token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth_str = request.headers.get('AUTHORIZATION')
+        if not auth_str:
+            return jsonify(responses.get_erro('Token não foi enviado'))
+        token_arr = auth_str.split(' ')
+        if(not token_arr[0] == 'Bearer'):
+            return jsonify(responses.get_erro('O Token enviado deve ser do tipo Bearer'))
+        try:
+            token = token_arr[1]
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+            ext = parser.parse(data['ext'])
+            if(ext < datetime.now()):
+                return jsonify(responses.get_erro('O Token enviado expirou'))
+            current_user = usuario_dao.busca_usuarios_nome(data['username'])
+            if(not current_user['tipoUsuario'] == 3 or not current_user['tipoUsuario'] == 1 ):
+                return jsonify(responses.get_falha('Seu nível de acesso não lhe permite esta ação'))
+            if(not current_user):
+                raise Exception()
+        except:
+            return jsonify(responses.get_erro('O Token enviado não é valido ou esta expirado'))
+        return f(*args, **kwargs)
+    return decorated
+
 def admin_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -41,11 +67,11 @@ def admin_token_required(f):
         try:
             token = token_arr[1]
             data = jwt.decode(token, app.config['SECRET_KEY'])
-            ext = datetime.fromisoformat(data['ext'])
+            ext = parser.parse(data['ext'])
             if(ext < datetime.now()):
                 return jsonify(responses.get_erro('O Token enviado expirou'))
             current_user = usuario_dao.busca_usuarios_nome(data['username'])
-            if(not current_user['tipoUsuario'] > 2):
+            if(not current_user['tipoUsuario'] == 3):
                 return jsonify(responses.get_falha('Seu nível de acesso não lhe permite esta ação'))
             if(not current_user):
                 raise Exception()
@@ -66,13 +92,13 @@ def user_admin_token_required(f):
         try:
             token = token_arr[1]
             data = jwt.decode(token, app.config['SECRET_KEY'])
-            ext = datetime.fromisoformat(data['ext'])
+            ext = parser.parse(data['ext'])
             if(ext < datetime.now()):
                 return jsonify(responses.get_erro('O Token enviado expirou'))
             current_user = usuario_dao.busca_usuarios_nome(data['username'])
             kwargs['is_user'] = False
             if(kwargs['id'] != str(current_user['codUsuario'])):
-                if(not current_user['tipoUsuario'] > 2):
+                if(not current_user['tipoUsuario'] == 3):
                     return jsonify(responses.get_falha('Seu nível de acesso não lhe permite esta ação'))
             else:
                 kwargs['is_user'] = True
