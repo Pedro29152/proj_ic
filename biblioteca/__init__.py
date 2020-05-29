@@ -1,7 +1,8 @@
 from flask import Flask, render_template
+from flask_cors import CORS
+
 from config import config
 
-# Realize a importação da função que configura a api
 from .api import configure_api
 
 def create_app(config_name):
@@ -14,7 +15,9 @@ def create_app(config_name):
         variable_start_string='[[',  
         variable_end_string=']]',
     ))
-    
+
+    CORS(app)
+
     # executa a chamada da função de configuração
     configure_api(app)
     
