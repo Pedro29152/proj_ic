@@ -28,7 +28,7 @@ from .schemas import Projetos, Autores, PalavrasChave
 ALLOWED_EXTENSIONS = set(['pdf'])
 
 class BuscaProjetoResource(Resource):
-    #Parametros: "query", "ordem" e "crescente"
+    #Parametros: "query", "ordem", "crescente" e "page"
     def get(self, id=None):
         projs = None
         cod = 200
