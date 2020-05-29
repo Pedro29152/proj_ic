@@ -19,7 +19,8 @@ from biblioteca.responses import (
 )
 from biblioteca.extensions import(
     admin_token_required,
-    token_required
+    token_required,
+    secretaria_token_required
 )
 from . import projetos_dao
 from .schemas import Projetos, Autores, PalavrasChave
@@ -42,7 +43,7 @@ class BuscaProjetoResource(Resource):
         return resp
 
 class UploadProjetoResource(Resource):
-    @token_required
+    @secretaria_token_required
     def post(self):
         status, cod = upload(request)
 

@@ -4,9 +4,11 @@ from werkzeug.exceptions import BadRequestKeyError
 from datetime import datetime, timedelta
 
 from biblioteca.extensions import (
-    token_required,
+    secretaria_token_required,
     admin_token_required,
-    user_admin_token_required
+    user_admin_token_required,
+    professor_token_required,
+    TiposUsuario
 )
 from biblioteca.responses import (
     get_falha,
@@ -32,7 +34,7 @@ class LoginResource(Resource):
 
         usr = usuario_dao.verifica_usr(user, senha)
         if usr:
-            extDt = datetime.now() + timedelta(hours=12)
+            extDt = datetime.now() + timedelta(hours=1)
             extDt = extDt.__str__()
             token = jwt.encode({
                 "username": usr['nomeUsuario'], 
@@ -52,26 +54,53 @@ class CadastroUsuarioResource(Resource):
         try:
             user = request.form['username']
             senha = request.form['password']
-            tipoUsuario = request.form['tipoUsuario']
+            tipoUsuario = int(request.form['tipoUsuario'])
             nome = request.form['nome']
             email = request.form['email']
         except BadRequestKeyError:
             return get_erro(
                 'A requisicao deve possuir os campos "username", "tipoUsuario", "email", "nome" e "password" em seu corpo'
             )
+        except ValueError:
+            return get_erro(
+                'O campo "tipoUsuario" deve ser do tipo inteiro'
+            )
 
-        if not (user and tipoUsuario and senha):
+        if not (user and tipoUsuario and senha and email and nome):
             return get_falha('Os campos enviados nao podem estar vazios')
-            
+        if not (tipoUsuario - 1) in range(TiposUsuario.Administrador.value):
+            return get_falha('O tipo de usuario enviado é invalido')
+
         if usuario_dao.add_usr(user, senha, tipoUsuario, nome, email):
             return get_ok(
                 'Usuario cadastrado com sucesso'
             )
-
         return get_erro('O nome de usuario "{}" ja esta sendo utilizado'.format(user))
+
+class CadastroAlunoResource(Resource):
+    @professor_token_required
+    def post(self):
+        try:
+            user = request.form['username']
+            senha = request.form['password']
+            nome = request.form['nome']
+            email = request.form['email']
+        except BadRequestKeyError:
+            return get_erro(
+                'A requisicao deve possuir os campos "username", "email", "nome" e "password" em seu corpo'
+            )
+
+        if not (user and senha and email and nome):
+            return get_falha('Os campos enviados nao podem estar vazios')
         
+        if usuario_dao.add_usr(user, senha, 1, nome, email):
+            return get_ok(
+                'Usuario cadastrado com sucesso'
+            )
+        return get_erro('O nome de usuario "{}" ja esta sendo utilizado'.format(user))
+
 class CountUsuariosResource(Resource):
-    @token_required
+    @secretaria_token_required
     def get(self):
         count = usuario_dao.get_count()
         return get_count(count)

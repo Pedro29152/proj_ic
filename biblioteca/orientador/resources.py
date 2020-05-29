@@ -13,7 +13,7 @@ from biblioteca.responses import (
 )
 from biblioteca.extensions import(
     admin_token_required,
-    token_required
+    secretaria_token_required
 )
 from . import orientadores_dao
 
@@ -40,7 +40,7 @@ class OrientadorResource(Resource):
         except IntegrityError:
             return get_erro('Os campos "email" e "raAutor" devem ser unicos')
 
-    @token_required
+    @secretaria_token_required
     def get(self):
         query = request.args.get('nomeOrientador')
 
@@ -55,7 +55,7 @@ class OrientadorResource(Resource):
             return get_falha('Nenhum orientador listado')
 
 class TodosOrientadoresResource(Resource):
-    @token_required
+    @secretaria_token_required
     def get(self):
         query = request.args.get('nomeOrientador')
 
@@ -88,7 +88,7 @@ class DesativaOrientadorResource(Resource):
         return get_ok('Orientador desativado com sucesso')
 
 class CountOrientadoresResource(Resource):
-    @token_required
+    @secretaria_token_required
     def get(self):
         count = orientadores_dao.get_count()
 

@@ -10,7 +10,7 @@ from biblioteca.responses import (
     get_count as get_count_res
 )
 from biblioteca.extensions import (
-    token_required,
+    secretaria_token_required,
     admin_token_required
 )
 from . import cursos_dao
@@ -42,7 +42,7 @@ class CursoResource(Resource):
             else:
                 return get_erro('O nome ou a breviacao desse curso ja foi cadastrado')
 
-    @token_required
+    @secretaria_token_required
     def get(self):
         cursos = cursos_dao.busca_cursos()
         
@@ -70,7 +70,7 @@ class TodosCursosResource(Resource):
         return get_data(cursos)
 
 class CountCursosResource(Resource):
-    @token_required
+    @secretaria_token_required
     def get(self):
         count = cursos_dao.get_count()
 

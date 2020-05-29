@@ -6,11 +6,11 @@ from biblioteca.orientador import orientadores_dao
 from biblioteca.curso import cursos_dao
 from biblioteca.responses import get_data
 from biblioteca.extensions import (
-    token_required
+    secretaria_token_required
 )
 
 class AllCountsResource(Resource):
-    @token_required
+    @secretaria_token_required
     def get(self):
         usuarios_count = usuario_dao.get_count()
         projetos_count = projetos_dao.get_count()

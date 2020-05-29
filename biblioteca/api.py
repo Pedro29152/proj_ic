@@ -31,6 +31,7 @@ from biblioteca.projeto.resources import (
 from biblioteca.usuarios.resources import (
     LoginResource,
     CadastroUsuarioResource,
+    CadastroAlunoResource,
     CountUsuariosResource,
     DeletaUsuarioResource,
     BuscaUsuariosResource,
@@ -88,6 +89,7 @@ def configure_api(app):
     #Rotas de autorizacao
     api.add_resource(LoginResource, '/api/auth/login')
     api.add_resource(CadastroUsuarioResource, '/api/usuarios/cadastro')
+    api.add_resource(CadastroAlunoResource, '/api/usuarios/cadastro/aluno')
     api.add_resource(CountUsuariosResource, '/api/usuarios/count')
     api.add_resource(DeletaUsuarioResource, '/api/usuarios/deletar/<id>')
     api.add_resource(BuscaUsuariosResource, '/api/usuarios/buscar')
