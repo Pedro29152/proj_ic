@@ -114,15 +114,19 @@ def login():
     if usr:
         extDt = datetime.now() + timedelta(hours=1)
         extDt = extDt.__str__()
-        token = jwt.encode({
-            "username": usr['nomeUsuario'], 
-            'tipoUsuario': str(usr['tipoUsuario']), 
+        token_data = {
+            'username': usr['nomeUsuario'], 
+            'tipoUsuario': str(usr['tipoUsuario']),
+            'nome': usr['nome'],
             'ext': extDt
-        },
+        }
+
+        token = jwt.encode(token_data,
             current_app.config['SECRET_KEY'])
 
         ret = get_ok("Usuario logado com sucesso")
         ret['token'] = token.decode('utf-8')
+        ret['data'] = token_data
         return ret, 200
     return get_erro('Ususario ou senha incorretos, tente novamente'), 401
 
