@@ -43,6 +43,13 @@ class EditaCursoResource(Resource):
         resp.status_code = cod
         return resp 
 
+class GetCursoResource(Resource):
+    def get(self, id):
+        res, cod = get_curso(id)
+        
+        resp = jsonify(res)
+        resp.status_code = cod
+        return resp 
 
 class AtivaCursoResource(Resource):
     @admin_token_required
@@ -105,6 +112,12 @@ def buscar_cursos():
         if cursos:
             return get_data(cursos), 200
         return get_falha("Nenhum curso listado"), 204
+
+def get_curso(codCurso):
+    curso = cursos_dao.get_curso_codCurso(codCurso, False)
+    if not curso:
+        return get_erro('Codigo de curso nao encontrado'), 404
+    return curso, 200
 
 def edita_curso(codCurso):
     curso = cursos_dao.get_curso_codCurso(codCurso)

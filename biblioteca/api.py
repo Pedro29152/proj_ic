@@ -9,7 +9,8 @@ from biblioteca.curso.resources import (
     DesativaCursoResource, 
     CountCursosResource, 
     TodosCursosResource,
-    EditaCursoResource
+    EditaCursoResource,
+    GetCursoResource
 )
 from biblioteca.orientador.resources import (
     OrientadorResource,
@@ -68,6 +69,7 @@ def configure_api(app):
     api.add_resource(CursoResource, '/api/cursos')
     api.add_resource(TodosCursosResource, '/api/cursos/todos')
     api.add_resource(CountCursosResource, '/api/cursos/count')
+    api.add_resource(GetCursoResource, '/api/cursos/get/<int:id>')
     api.add_resource(EditaCursoResource, '/api/cursos/edit/<int:id>')
     api.add_resource(AtivaCursoResource, '/api/cursos/ativar/<int:id>')
     api.add_resource(DesativaCursoResource, '/api/cursos/desativar/<int:id>')
