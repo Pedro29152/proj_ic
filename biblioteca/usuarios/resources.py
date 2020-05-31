@@ -48,7 +48,7 @@ class UsuarioIdResource(Resource):
 
     @user_admin_token_required
     def put(self, id, is_user, is_admin):
-        res, cod = edita_usuario(id, is_admin)
+        res, cod = edita_usuario(id, is_admin, is_user)
         
         resp = jsonify(res)
         resp.status_code = cod
@@ -206,7 +206,7 @@ def get_usuario(id):
         return get_data(ret), 200
     return get_falha('Usuario requisitado nao existe'), 404
 
-def edita_usuario(codUsuario, is_admin):
+def edita_usuario(codUsuario, is_admin, is_user):
     if not util.is_cod_valido(codUsuario):
         return get_erro('O valor enviado deve ser do tipo inteiro'), 400
 
@@ -215,7 +215,7 @@ def edita_usuario(codUsuario, is_admin):
         nome = request.form['nome']
         email = request.form['email']
         tipoUsuario = None
-        if is_admin:
+        if is_admin and not is_user:
             tipoUsuario = request.form['tipoUsuario']
     except BadRequestKeyError:
         return get_erro('A requsicao deve conter o campo "nome", "email", "tipoUsuario" e "nomeUsuario" em seu corpo'), 400
