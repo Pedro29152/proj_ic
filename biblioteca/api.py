@@ -9,17 +9,15 @@ from biblioteca.curso.resources import (
     DesativaCursoResource, 
     CountCursosResource, 
     TodosCursosResource,
-    EditaCursoResource,
-    GetCursoResource
+    CursoIdResource
 )
 from biblioteca.orientador.resources import (
     OrientadorResource,
     CountOrientadoresResource,
     AtivaOrientadorResource,
     DesativaOrientadorResource,
-    TodosOrientadoresResource,
-    EditaOrientadorResource, 
-    GetOrientadorResource
+    TodosOrientadoresResource, 
+    OrientadorIdResource
 )
 from biblioteca.projeto.resources import (
     BuscaProjetoResource,
@@ -37,10 +35,8 @@ from biblioteca.usuarios.resources import (
     CadastroUsuarioResource,
     CadastroAlunoResource,
     CountUsuariosResource,
-    DeletaUsuarioResource,
     BuscaUsuariosResource,
-    GetUsuarioResource,
-    EditarUsuarioResource,
+    UsuarioIdResource,
     MudarSenhaUsuarioResource
 )
 from biblioteca.geral.resources import (
@@ -69,16 +65,14 @@ def configure_api(app):
     api.add_resource(CursoResource, '/api/cursos')
     api.add_resource(TodosCursosResource, '/api/cursos/todos')
     api.add_resource(CountCursosResource, '/api/cursos/count')
-    api.add_resource(GetCursoResource, '/api/cursos/get/<int:id>')
-    api.add_resource(EditaCursoResource, '/api/cursos/edit/<int:id>')
+    api.add_resource(CursoIdResource, '/api/cursos/<int:id>')
     api.add_resource(AtivaCursoResource, '/api/cursos/ativar/<int:id>')
     api.add_resource(DesativaCursoResource, '/api/cursos/desativar/<int:id>')
 
     #Rotas de orientador
     api.add_resource(OrientadorResource, '/api/orientadores')
+    api.add_resource(OrientadorIdResource, '/api/orientadores/<int:id>')
     api.add_resource(TodosOrientadoresResource, '/api/orientadores/todos')
-    api.add_resource(EditaOrientadorResource, '/api/orientadores/edit/<int:id>')
-    api.add_resource(GetOrientadorResource, '/api/orientadores/get/<int:id>')
     api.add_resource(AtivaOrientadorResource, '/api/orientadores/ativar/<int:id>')
     api.add_resource(DesativaOrientadorResource, '/api/orientadores/desativar/<int:id>')
     api.add_resource(CountOrientadoresResource, '/api/orientadores/count')
@@ -96,13 +90,11 @@ def configure_api(app):
 
     #Rotas de autorizacao
     api.add_resource(LoginResource, '/api/auth/login')
+    api.add_resource(BuscaUsuariosResource, '/api/usuarios/buscar')
+    api.add_resource(UsuarioIdResource, '/api/usuarios/<int:id>')
     api.add_resource(CadastroUsuarioResource, '/api/usuarios/cadastro')
     api.add_resource(CadastroAlunoResource, '/api/usuarios/cadastro/aluno')
     api.add_resource(CountUsuariosResource, '/api/usuarios/count')
-    api.add_resource(DeletaUsuarioResource, '/api/usuarios/deletar/<int:id>')
-    api.add_resource(BuscaUsuariosResource, '/api/usuarios/buscar')
-    api.add_resource(GetUsuarioResource, '/api/usuarios/get/<int:id>')
-    api.add_resource(EditarUsuarioResource, '/api/usuarios/edit/<int:id>')
     api.add_resource(MudarSenhaUsuarioResource, '/api/usuarios/mudarsenha/<int:id>')
 
     # inicializamos a api com as configurações do flask vinda por parâmetro

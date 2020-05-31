@@ -34,18 +34,17 @@ class CursoResource(Resource):
         resp.status_code = cod
         return resp 
 
-class EditaCursoResource(Resource):
-    @admin_token_required
-    def put(self, id):
-        res, cod = edita_curso(id)
+class CursoIdResource(Resource):
+    def get(self, id):
+        res, cod = get_curso(id)
         
         resp = jsonify(res)
         resp.status_code = cod
         return resp 
 
-class GetCursoResource(Resource):
-    def get(self, id):
-        res, cod = get_curso(id)
+    @admin_token_required
+    def put(self, id):
+        res, cod = edita_curso(id)
         
         resp = jsonify(res)
         resp.status_code = cod

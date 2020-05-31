@@ -29,6 +29,31 @@ class LoginResource(Resource):
         resp.status_code = cod
         return resp 
 
+class UsuarioIdResource(Resource):
+    @user_admin_token_required
+    def get(self, id, is_user):
+        res, cod = get_usuario(id)
+        
+        resp = jsonify(res)
+        resp.status_code = cod
+        return resp 
+
+    @user_admin_token_required
+    def delete(self, id, is_user):
+        res, cod = deleta_usuario(id, is_user)
+        
+        resp = jsonify(res)
+        resp.status_code = cod
+        return resp 
+
+    @user_admin_token_required
+    def put(self, id, is_user):
+        res, cod = edita_usuario(id)
+        
+        resp = jsonify(res)
+        resp.status_code = cod
+        return resp
+
 class CadastroUsuarioResource(Resource):
     @admin_token_required
     def post(self):
@@ -53,37 +78,10 @@ class CountUsuariosResource(Resource):
         count = usuario_dao.get_count()
         return get_count(count)
 
-class DeletaUsuarioResource(Resource):
-    @user_admin_token_required
-    def delete(self, id, is_user):
-        res, cod = deleta_usuario(id, is_user)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
-
 class BuscaUsuariosResource(Resource):
     @admin_token_required
     def get(self):
         res, cod = busca_usuarios()
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
-
-class GetUsuarioResource(Resource):
-    @user_admin_token_required
-    def get(self, id, is_user):
-        res, cod = get_usuario(id)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
-
-class EditarUsuarioResource(Resource):
-    @user_admin_token_required
-    def put(self, id, is_user):
-        res, cod = edita_usuario(id)
         
         resp = jsonify(res)
         resp.status_code = cod
@@ -155,7 +153,7 @@ def cadastro_usuario():
         return get_ok(
             'Usuario cadastrado com sucesso'
         ), 201
-    return get_erro('O nome de usuario "{}" ja esta sendo utilizado'.format(user)), 400
+    return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
 
 def cadastro_aluno():
     try:

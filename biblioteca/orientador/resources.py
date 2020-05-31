@@ -44,18 +44,17 @@ class TodosOrientadoresResource(Resource):
         resp.status_code = cod
         return resp 
 
-class EditaOrientadorResource(Resource):
-    @professor_token_required
-    def put(self, id):
-        res, cod = edita_orientador(id)
+class OrientadorIdResource(Resource):
+    def get(self, id):
+        res, cod = get_orientador(id)
         
         resp = jsonify(res)
         resp.status_code = cod
         return resp 
 
-class GetOrientadorResource(Resource):
-    def get(self, id):
-        res, cod = get_orientador(id)
+    @professor_token_required
+    def put(self, id):
+        res, cod = edita_orientador(id)
         
         resp = jsonify(res)
         resp.status_code = cod
