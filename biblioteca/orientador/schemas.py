@@ -20,3 +20,12 @@ class Orientadores:
             )['codOrientador']
         else:
             raise AttributeError('Os campos "nomeOrientador", "raOrientador", "email" e "linkCurrLattes" devem ser preenchidos')
+    
+    def edita_orientador(self):
+        if not (self.nomeOrientador or self.raOrientador or self.email or self.currLattes):
+            raise AttributeError('Os campos "nomeOrientador", "raOrientador", "email" e "linkCurrLattes" devem ser preenchidos')
+
+        db.bd_gravar(
+            'update orientadores set nomeOrientador = (%s), raOrientador = (%s), email = (%s), currLattes = (%s) where codOrientador = (%s)',
+            (self.nomeOrientador, self.raOrientador, self.email, self.currLattes, self.codOrientador)
+        )

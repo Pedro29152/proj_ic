@@ -8,14 +8,17 @@ from biblioteca.curso.resources import (
     AtivaCursoResource, 
     DesativaCursoResource, 
     CountCursosResource, 
-    TodosCursosResource
+    TodosCursosResource,
+    EditaCursoResource
 )
 from biblioteca.orientador.resources import (
     OrientadorResource,
     CountOrientadoresResource,
     AtivaOrientadorResource,
     DesativaOrientadorResource,
-    TodosOrientadoresResource
+    TodosOrientadoresResource,
+    EditaOrientadorResource, 
+    GetOrientadorResource
 )
 from biblioteca.projeto.resources import (
     BuscaProjetoResource,
@@ -65,25 +68,28 @@ def configure_api(app):
     api.add_resource(CursoResource, '/api/cursos')
     api.add_resource(TodosCursosResource, '/api/cursos/todos')
     api.add_resource(CountCursosResource, '/api/cursos/count')
+    api.add_resource(EditaCursoResource, '/api/cursos/edit/<int:id>')
     api.add_resource(AtivaCursoResource, '/api/cursos/ativar/<int:id>')
     api.add_resource(DesativaCursoResource, '/api/cursos/desativar/<int:id>')
 
     #Rotas de orientador
     api.add_resource(OrientadorResource, '/api/orientadores')
     api.add_resource(TodosOrientadoresResource, '/api/orientadores/todos')
+    api.add_resource(EditaOrientadorResource, '/api/orientadores/edit/<int:id>')
+    api.add_resource(GetOrientadorResource, '/api/orientadores/get/<int:id>')
     api.add_resource(AtivaOrientadorResource, '/api/orientadores/ativar/<int:id>')
     api.add_resource(DesativaOrientadorResource, '/api/orientadores/desativar/<int:id>')
     api.add_resource(CountOrientadoresResource, '/api/orientadores/count')
 
     #Rotas de projetos
-    api.add_resource(BuscaProjetoResource, '/api/projetos/<id>', '/api/projetos') #id: titulo, curso, descricao, orientador, autor e palavrasChave
+    api.add_resource(BuscaProjetoResource, '/api/projetos/<string:id>', '/api/projetos') #id: titulo, curso, descricao, orientador, autor e palavrasChave
     api.add_resource(BuscaRankingResource, '/api/projetos/ranking')
-    api.add_resource(GetProjetoResource, '/api/projetos/get/<id>') #id: codigo do projeto a ser buscado
+    api.add_resource(GetProjetoResource, '/api/projetos/get/<int:id>') #id: codigo do projeto a ser buscado
     api.add_resource(UploadProjetoResource, '/api/projetos/cadastrar')
     api.add_resource(DownloadArquivoProjetoResource, '/api/projetos/download/<path:filename>') #filename: nome do arquivo a ser baixado
-    api.add_resource(DesativaProjetoResource, '/api/projetos/desativar/<id>') #id: codigo do projeto a ser desativado
-    api.add_resource(AtivaProjetoResource, '/api/projetos/ativar/<id>') #id: codigo do projeto a ser ativado
-    api.add_resource(AlteraProjetoResource, '/api/projetos/editar/<id>')  #id: codigo do projeto a ser editado
+    api.add_resource(DesativaProjetoResource, '/api/projetos/desativar/<int:id>') #id: codigo do projeto a ser desativado
+    api.add_resource(AtivaProjetoResource, '/api/projetos/ativar/<int:id>') #id: codigo do projeto a ser ativado
+    api.add_resource(AlteraProjetoResource, '/api/projetos/editar/<int:id>')  #id: codigo do projeto a ser editado
     api.add_resource(CountProjetosResource, '/api/projetos/count')
 
     #Rotas de autorizacao
@@ -91,11 +97,11 @@ def configure_api(app):
     api.add_resource(CadastroUsuarioResource, '/api/usuarios/cadastro')
     api.add_resource(CadastroAlunoResource, '/api/usuarios/cadastro/aluno')
     api.add_resource(CountUsuariosResource, '/api/usuarios/count')
-    api.add_resource(DeletaUsuarioResource, '/api/usuarios/deletar/<id>')
+    api.add_resource(DeletaUsuarioResource, '/api/usuarios/deletar/<int:id>')
     api.add_resource(BuscaUsuariosResource, '/api/usuarios/buscar')
-    api.add_resource(GetUsuarioResource, '/api/usuarios/get/<id>')
-    api.add_resource(EditarUsuarioResource, '/api/usuarios/edit/<id>')
-    api.add_resource(MudarSenhaUsuarioResource, '/api/usuarios/mudarsenha/<id>')
+    api.add_resource(GetUsuarioResource, '/api/usuarios/get/<int:id>')
+    api.add_resource(EditarUsuarioResource, '/api/usuarios/edit/<int:id>')
+    api.add_resource(MudarSenhaUsuarioResource, '/api/usuarios/mudarsenha/<int:id>')
 
     # inicializamos a api com as configurações do flask vinda por parâmetro
     api.init_app(app)

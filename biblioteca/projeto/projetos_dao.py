@@ -223,9 +223,7 @@ def __ordena(ordem, crescente):
         return ''
 
 
-def grava_projeto(
-    projeto
-):
+def grava_projeto(projeto):
     db.bd_gravar(
         'insert into projetos'+
         '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, ativo)'+

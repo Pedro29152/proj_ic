@@ -6,8 +6,19 @@ def get_orientador(raOrientador):
     ret = db.bd_busca_um(query, (raOrientador,))
 
     if ret:
-        ori = Orientadores(ret['codOrientador'], ret['nomeOrientador'], ret['raOrientador'])
+        ori = Orientadores(ret['codOrientador'], ret['nomeOrientador'], ret['raOrientador'], ret['email'], ret['currLattes'])
         return ori
+    return None
+
+def get_orientador_codigo(codOrientador, is_instance=True):
+    query = 'select * from orientadores where codOrientador = (%s) and ativo = 1'
+    ret = db.bd_busca_um(query, (codOrientador,))
+
+    if ret:
+        if is_instance:
+            ori = Orientadores(ret['codOrientador'], ret['nomeOrientador'], ret['raOrientador'], ret['email'], ret['currLattes'])
+            return ori
+        return ret
     return None
 
 def busca_orientadores_codProjeto(codProjeto):

@@ -13,7 +13,8 @@ from biblioteca.responses import (
 )
 from biblioteca.extensions import(
     admin_token_required,
-    secretaria_token_required
+    secretaria_token_required,
+    professor_token_required
 )
 from . import orientadores_dao
 
@@ -38,6 +39,23 @@ class TodosOrientadoresResource(Resource):
     @secretaria_token_required
     def get(self):
         res, cod = busca_todos_orientadores()
+        
+        resp = jsonify(res)
+        resp.status_code = cod
+        return resp 
+
+class EditaOrientadorResource(Resource):
+    @professor_token_required
+    def put(self, id):
+        res, cod = edita_orientador(id)
+        
+        resp = jsonify(res)
+        resp.status_code = cod
+        return resp 
+
+class GetOrientadorResource(Resource):
+    def get(self, id):
+        res, cod = get_orientador(id)
         
         resp = jsonify(res)
         resp.status_code = cod
@@ -89,6 +107,45 @@ def cadastro_orientador():
         return get_erro('Os campos "nomeOrientador", "raOrientador", "email" e "linkCurrLattes" devem ser enviados no corpo da requisicao'), 400
     except IntegrityError:
         return get_erro('Os campos "email" e "raAutor" devem ser unicos'), 400
+
+def edita_orientador(codOrientador):
+    ori = orientadores_dao.get_orientador_codigo(codOrientador)
+    if not ori:
+        return get_erro('Codigo de orientador enviado não existe'), 404
+
+    try:
+        nomeOrientador = request.form['nomeOrientador']
+        raOrientador = request.form['raOrientador']
+        email = request.form['email']
+        currLattes = request.form['linkCurrLattes']
+
+        if nomeOrientador:
+            ori.nomeOrientador = nomeOrientador
+        if raOrientador:
+            ori.raOrientador = raOrientador
+        if email:
+            ori.email = email
+        if currLattes:
+            ori.currLattes = currLattes
+
+        ori.edita_orientador()
+
+        return get_ok('Orientador editado com sucesso'), 200
+
+    except AttributeError as ex:
+        return get_erro(ex.__str__()), 400
+    except BadRequestKeyError:
+        return get_erro('Os campos "nomeOrientador", "raOrientador", "email" e "linkCurrLattes" devem ser enviados no corpo da requisicao'), 400
+    except IntegrityError:
+        return get_erro('Os campos "email" e "raAutor" devem ser unicos'), 400
+    except DataError:
+        return get_erro('O codigo do orientador deve ter no maximo 20 caracteres e seu nome no maximo 200'), 400
+
+def get_orientador(codOrientador):
+    ori = orientadores_dao.get_orientador_codigo(codOrientador, False)
+    if not ori:
+        return get_erro('Codigo de orientador enviado não existe'), 404
+    return ori, 200
 
 def busca_orientadores():
     query = request.args.get('nomeOrientador')

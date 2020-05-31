@@ -19,3 +19,12 @@ class Cursos:
 
         else:
             return True
+
+    def edita_curso(self):
+        if not (self.codCurso or self.descricaoCurso or self.abreviacao):
+            raise AttributeError('Os campos "codCurso", "descricaoCurso" e "abreviacao" devem ser preenchidos')
+        
+        db.bd_gravar(
+            'update cursos set descricaoCurso = (%s), abreviacao = (%s) where codCurso = (%s)',
+            (self.descricaoCurso, self.abreviacao, self.codCurso)
+        )

@@ -34,6 +34,16 @@ class CursoResource(Resource):
         resp.status_code = cod
         return resp 
 
+class EditaCursoResource(Resource):
+    @admin_token_required
+    def put(self, id):
+        res, cod = edita_curso(id)
+        
+        resp = jsonify(res)
+        resp.status_code = cod
+        return resp 
+
+
 class AtivaCursoResource(Resource):
     @admin_token_required
     def post(self, id):    
@@ -95,6 +105,31 @@ def buscar_cursos():
         if cursos:
             return get_data(cursos), 200
         return get_falha("Nenhum curso listado"), 204
+
+def edita_curso(codCurso):
+    curso = cursos_dao.get_curso_codCurso(codCurso)
+    if not curso:
+        return get_erro('Codigo de curso nao encontrado'), 404
+
+    try:
+        descricaoCurso = request.form['nomeCurso'] 
+        abreviacao = request.form['abreviacao']
+
+        if descricaoCurso:
+            curso.descricaoCurso = descricaoCurso
+        if abreviacao:
+            curso.abreviacao = abreviacao
+
+        curso.edita_curso()
+        
+        return get_ok('Curso editado com sucesso'), 200
+
+    except AttributeError as ex:
+        return get_erro(ex.__str__()), 400
+    except BadRequestKeyError:
+        return get_erro('A requisicao deve conter os campos "nomeCurso" e "abreviacao" em seu corpo'), 400
+    except IntegrityError:
+        return get_erro('Os campos "abreviacao" e "nomeCurso" devem ser unicos'), 400
 
 def buscar_todos_cursos():
         cursos = cursos_dao.busca_cursos_inativo()

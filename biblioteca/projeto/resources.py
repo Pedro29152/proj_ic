@@ -187,17 +187,17 @@ def upload_projeto(req):
     if not(titulo and raOrientador and descricao and dataAvaliacao and codCurso and subTitulo):
         return get_erro('Os valores de "titulo", "raOrientador", "descricao", "dataAvaliacao", "subTitulo" e "curso" nao podem ser nulos'), 400
     
-    try:
-        projeto = Projetos(
-            tituloProjeto = titulo,
-            subTitulo = subTitulo,
-            descricao = descricao,
-            dataAvaliacao = dataAvaliacao,
-            autores=[], 
-            palavrasChave=[],
-            curso = cursos_dao.get_curso_codCurso(codCurso)
-        )
-    except Warning:
+    projeto = Projetos(
+        tituloProjeto = titulo,
+        subTitulo = subTitulo,
+        descricao = descricao,
+        dataAvaliacao = dataAvaliacao,
+        autores=[], 
+        palavrasChave=[],
+        curso = cursos_dao.get_curso_codCurso(codCurso)
+    )
+    
+    if not projeto.curso:
         return get_erro('O campo "curso" deve conter um codigo de curso existente'), 400
 
 

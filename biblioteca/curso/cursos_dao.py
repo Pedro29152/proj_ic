@@ -85,16 +85,17 @@ def get_curso_desc(descricaoCurso):
 
     return curso
 
-def get_curso_codCurso(codCurso):
+def get_curso_codCurso(codCurso, is_instance=True):
     res = db.bd_busca_um("select * from cursos where codCurso = (%s) and ativo = 1",
     (codCurso,))
 
     if(not res):
-        raise Warning("Curso nao encontrado")
-
-    curso = Cursos(res['descricaoCurso'], res['abreviacao'], res['codCurso'])
-
-    return curso
+        return None
+    
+    if is_instance:
+        curso = Cursos(res['descricaoCurso'], res['abreviacao'], res['codCurso'])
+        return curso
+    return res
 
 def get_count():
     query = 'select count(*) as cursos from cursos where ativo = 1'
