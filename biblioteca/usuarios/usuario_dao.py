@@ -81,9 +81,9 @@ def get_usuario(codUsuario):
     ret = db.bd_busca_um(query,(codUsuario,))
     return ret
 
-def edita_usuario(codUsuario, nomeUsuario, nome):
-    query = 'update usuarios set nomeUsuario = (%s), nome = (%s) where codUsuario = (%s)'
-    db.bd_gravar(query,(nomeUsuario, nome, codUsuario))
+def edita_usuario(usuario):
+    query = 'update usuarios set nomeUsuario = (%s), nome = (%s), email = (%s), tipoUsuario = (%s) where codUsuario = (%s)'
+    db.bd_gravar(query,(usuario['nomeUsuario'], usuario['nome'], usuario['email'], usuario['tipoUsuario'], usuario['codUsuario']))
 
 def deleta_usuario(codUsuario):
     query = 'delete from usuarios where codUsuario = (%s)'

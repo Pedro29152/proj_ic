@@ -121,9 +121,12 @@ def user_admin_token_required(f):
             if(not current_user):
                 raise Exception('Usuario invalido')
             kwargs['is_user'] = False
+            kwargs['is_admin'] = False
             if(kwargs['id'] != current_user['codUsuario']):
                 if(not current_user['tipoUsuario'] == TiposUsuario.Administrador.value):
                     raise Exception('Sem autorização para esta ação')
+                else:
+                    kwargs['is_admin'] = True
             else:
                 kwargs['is_user'] = True
 

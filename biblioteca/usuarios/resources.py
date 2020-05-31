@@ -31,7 +31,7 @@ class LoginResource(Resource):
 
 class UsuarioIdResource(Resource):
     @user_admin_token_required
-    def get(self, id, is_user):
+    def get(self, id, is_user, is_admin):
         res, cod = get_usuario(id)
         
         resp = jsonify(res)
@@ -39,7 +39,7 @@ class UsuarioIdResource(Resource):
         return resp 
 
     @user_admin_token_required
-    def delete(self, id, is_user):
+    def delete(self, id, is_user, is_admin):
         res, cod = deleta_usuario(id, is_user)
         
         resp = jsonify(res)
@@ -47,8 +47,8 @@ class UsuarioIdResource(Resource):
         return resp 
 
     @user_admin_token_required
-    def put(self, id, is_user):
-        res, cod = edita_usuario(id)
+    def put(self, id, is_user, is_admin):
+        res, cod = edita_usuario(id, is_admin)
         
         resp = jsonify(res)
         resp.status_code = cod
@@ -206,24 +206,35 @@ def get_usuario(id):
         return get_data(ret), 200
     return get_falha('Usuario requisitado nao existe'), 404
 
-def edita_usuario(id):
-    if not util.is_cod_valido(id):
+def edita_usuario(codUsuario, is_admin):
+    if not util.is_cod_valido(codUsuario):
         return get_erro('O valor enviado deve ser do tipo inteiro'), 400
 
     try:
         nomeUsuario = request.form['nomeUsuario']
         nome = request.form['nome']
+        email = request.form['email']
+        tipoUsuario = None
+        if is_admin:
+            tipoUsuario = request.form['tipoUsuario']
     except BadRequestKeyError:
-        return get_erro('A requsicao deve conter o campo "nome" e "nomeUsuario" em seu corpo'), 400
+        return get_erro('A requsicao deve conter o campo "nome", "email", "tipoUsuario" e "nomeUsuario" em seu corpo'), 400
 
-    codUsuario = int(id)
     usr = usuario_dao.get_usuario(codUsuario)
 
     if usr:
-        if nomeUsuario and nome:
-            usuario_dao.edita_usuario(codUsuario, nomeUsuario, nome)
-            return get_ok('Usuario editado com sucesso'), 200
-        return get_falha('Os campos enviados nao podem ser vazios'), 400
+        if nomeUsuario:
+            usr['nomeUsuario'] = nomeUsuario
+        if nome: 
+            usr['nome'] = nome
+        if email: 
+            usr['email'] = email
+        if tipoUsuario: 
+            usr['tipoUsuario'] = tipoUsuario
+
+        usuario_dao.edita_usuario(usr)
+
+        return get_ok('Usuario editado com sucesso'), 200
     return get_falha('O codigo enviado nao esta relacionado a nenhum usuario'), 404
 
 def mudar_senha(id):
