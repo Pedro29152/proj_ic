@@ -1,11 +1,14 @@
-import jwt
+import jwt, re
 from enum import IntEnum
 from functools import wraps
 from flask import request, jsonify, current_app as app
 from datetime import datetime
 from dateutil import parser 
 
-from biblioteca import responses
+from biblioteca.responses import (
+    get_response_code,
+    get_erro
+)
 from .usuarios import usuario_dao
 
 class TiposUsuario(IntEnum):
@@ -14,130 +17,146 @@ class TiposUsuario(IntEnum):
     Secretaria = 3
     Administrador = 4
 
-def token_required(f):
+def aluno_secretaria_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth_str = request.headers.get('AUTHORIZATION')
-        
-        try:
-            data = get_token_data(auth_str)
-            current_user = usuario_dao.busca_usuarios_nome(data['username'])
-            if(not current_user):
-                raise Exception('Sem autorização para esta ação')
-        except Exception as ex:
-            res = jsonify(responses.get_erro('Erro: ' + ex.__str__()))
-            res.status_code = 401
-            return res
-        return f(*args, **kwargs)
+        success, data = check_tipo_usuario([
+            TiposUsuario.Administrador.value,
+            TiposUsuario.Aluno.value,
+            TiposUsuario.Secretaria.value
+        ])
+
+        if(success):
+            kwargs.update(data)
+            return f(*args, **kwargs)
+        return data
     return decorated
 
 def secretaria_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth_str = request.headers.get('AUTHORIZATION')
-        
-        try:
-            data = get_token_data(auth_str)
-            current_user = usuario_dao.busca_usuarios_nome(data['username'])
-            if(not (current_user['tipoUsuario'] == TiposUsuario.Administrador.value or 
-                    current_user['tipoUsuario'] == TiposUsuario.Secretaria.value)):
-                raise Exception('Seu nível de acesso não lhe permite esta ação')
-            if(not current_user):
-                raise Exception('Sem autorização para esta ação')
-        except Exception as ex:
-            res = jsonify(responses.get_erro('Erro: ' + ex.__str__()))
-            res.status_code = 401
-            return res
-        return f(*args, **kwargs)
+        success, data = check_tipo_usuario([
+            TiposUsuario.Administrador.value,
+            TiposUsuario.Secretaria.value
+        ])
+
+        if(success):
+            return f(*args, **kwargs)
+        return data
     return decorated
 
+def professor_admin_token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        success, data = check_tipo_usuario([
+            TiposUsuario.Administrador.value,
+            TiposUsuario.Professor.value
+        ])
+
+        if(success):
+            return f(*args, **kwargs)
+        return data
+    return decorated
 def professor_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth_str = request.headers.get('AUTHORIZATION')
-        
-        try:
-            data = get_token_data(auth_str)
-            current_user = usuario_dao.busca_usuarios_nome(data['username'])
-            if(not (current_user['tipoUsuario'] == TiposUsuario.Administrador.value or 
-                    current_user['tipoUsuario'] == TiposUsuario.Professor.value)):
-                raise Exception('Seu nível de acesso não lhe permite esta ação')
-            if(not current_user):
-                raise Exception('Sem autorização para esta ação')
-        except Exception as ex:
-            res = jsonify(responses.get_erro('Erro: ' + ex.__str__()))
-            res.status_code = 401
-            return res
-        return f(*args, **kwargs)
+        success, data = check_tipo_usuario([
+            TiposUsuario.Professor.value
+        ], has_user_info=True)
+
+        if(success):
+            kwargs.update(data)
+            return f(*args, **kwargs)
+        return data
     return decorated
 
 def aluno_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth_str = request.headers.get('AUTHORIZATION')
-        
-        try:
-            data = get_token_data(auth_str)
-            current_user = usuario_dao.busca_usuarios_nome(data['username'])
-            if(not (current_user['tipoUsuario'] == TiposUsuario.Administrador.value or 
-                    current_user['tipoUsuario'] == TiposUsuario.Aluno.value)):
-                raise Exception('Seu nível de acesso não lhe permite esta ação')
-            if(not current_user):
-                raise Exception('Sem autorização para esta ação')
-        except Exception as ex:
-            res = jsonify(responses.get_erro('Erro: ' + ex.__str__()))
-            res.status_code = 401
-            return res
-        return f(*args, **kwargs)
+        success, data = check_tipo_usuario([
+            TiposUsuario.Aluno.value
+        ], has_user_info=True)
+
+        if(success):
+            kwargs.update(data)
+            return f(*args, **kwargs)
+        return data
     return decorated
 
 def admin_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth_str = request.headers.get('AUTHORIZATION')
+        success, data = check_tipo_usuario([
+            TiposUsuario.Administrador.value
+        ])
 
-        try:
-            data = get_token_data(auth_str)
-            current_user = usuario_dao.busca_usuarios_nome(data['username'])
-            if(not current_user['tipoUsuario'] == TiposUsuario.Administrador.value):
-                raise Exception('Seu nível de acesso não lhe permite esta ação')
-            if(not current_user):
-                raise Exception('Sem autorização para esta ação')
-        except Exception as ex:
-            res = jsonify(responses.get_erro('Erro: ' + ex.__str__()))
-            res.status_code = 401
-            return res
-        return f(*args, **kwargs)
+        if(success):
+            return f(*args, **kwargs)
+        return data
     return decorated
 
 def user_admin_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth_str = request.headers.get('AUTHORIZATION')
+        success, data = check_tipo_usuario([
+            TiposUsuario.Administrador.value
+        ], has_is_user=True, has_is_admin=True, id=kwargs['id'])
 
-        try:
-            data = get_token_data(auth_str)
-            current_user = usuario_dao.busca_usuarios_nome(data['username'])
-            if(not current_user):
-                raise Exception('Usuario invalido')
-            kwargs['is_user'] = False
-            kwargs['is_admin'] = False
-            if(kwargs['id'] != current_user['codUsuario']):
-                if(not current_user['tipoUsuario'] == TiposUsuario.Administrador.value):
-                    raise Exception('Sem autorização para esta ação')
-                else:
-                    kwargs['is_admin'] = True
-            else:
-                kwargs['is_user'] = True
-
-        except Exception as ex:
-            res = jsonify(responses.get_erro('Erro: ' + ex.__str__()))
-            res.status_code = 401
-            return res
-        return f(*args, **kwargs)
+        if(success):
+            kwargs.update(data)
+            return f(*args, **kwargs)
+        return data
     return decorated
 
-def get_token_data(auth_header):
+def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has_user_info=False, id=None):
+    is_user = False
+    is_admin = False
+    try:
+        authorized = False
+        data = get_token_data()
+        current_user = usuario_dao.busca_usuarios_nome(data['username'])
+
+        if not current_user:
+            raise Exception('Sem autorização para esta ação')
+
+        if has_is_user:
+            if not id:
+                raise AttributeError('A propriedade id deve ser enviada')
+            if id == current_user['codUsuario']:
+                authorized = True 
+                is_user = True
+
+        if has_is_admin:
+            if current_user['tipoUsuario'] == TiposUsuario.Administrador.value:
+                authorized = True
+                is_admin = True
+
+        if not authorized:
+            for item in tipos_usuario:
+                if item == current_user['tipoUsuario']:
+                    authorized = True
+
+        if not authorized:
+            raise Exception('Seu nível de acesso não lhe permite esta ação')
+    except Exception as ex:
+        return False, get_response_code(
+            get_erro('Erro: ' + ex.__str__()), 
+            401)
+
+    res_data = {}
+    if has_is_user:
+        res_data.update({ 'is_user': is_user })
+    if has_is_admin:
+        res_data.update({ 'is_admin': is_admin })
+    if has_user_info:
+        res_data.update({ 'user_info': current_user })
+
+    return True, res_data
+    
+
+def get_token_data():
+    auth_header = request.headers.get('AUTHORIZATION')
+
     if not auth_header:
         raise Exception('Token não foi enviado')
     token_arr = auth_header.split(' ')
@@ -159,3 +178,7 @@ def is_valid(token_data):
     if(ext < datetime.now()):
         return False
     return True
+
+def is_valid_email(email):
+    email_regex = '^[a-z0-9]+[\\._]?[a-z0-9]+[@]\\w+[.]\\w{2,3}$'
+    return re.search(email_regex, email)

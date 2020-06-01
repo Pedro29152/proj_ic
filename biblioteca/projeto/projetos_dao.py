@@ -1,7 +1,8 @@
 from mysql.connector.errors import DataError, IntegrityError
 
 from biblioteca import db
-from biblioteca.ext_dao import autores_dao, projeto_autor_dao, palavras_chave_dao
+from biblioteca.ext_dao import palavras_chave_dao
+from biblioteca.autor import autores_dao, projeto_autor_dao
 from biblioteca.curso import cursos_dao
 from biblioteca.orientador import orientadores_dao
 from biblioteca.responses import (
@@ -226,8 +227,8 @@ def __ordena(ordem, crescente):
 def grava_projeto(projeto):
     db.bd_gravar(
         'insert into projetos'+
-        '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, ativo)'+
-        'values(%s,%s,%s,%s,%s,%s,1)',
+        '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso)'+
+        'values(%s,%s,%s,%s,%s,%s)',
         (projeto.tituloProjeto,
         projeto.subTitulo,
         projeto.descricao, 
@@ -240,15 +241,15 @@ def grava_projeto(projeto):
     
     for aut in projeto.autores:
         try:
-            codAutor = aut.grava_autor(projeto.codProjeto)
+            codAutor = aut.tenta_gravar_autor(projeto.codProjeto)
         except DataError:
             deleta_projeto(projeto.codProjeto)
-            return get_erro('O ra enviado deve ter no maximo 13 caracteres e o nome deve ter no maximo 200'), 404
+            return get_erro('O ra enviado deve ter no maximo 13 caracteres e o nome deve ter no maximo 200'), 400
         try:
             projeto_autor_dao.grava_autor_proj(projeto.codProjeto, codAutor)
         except IntegrityError:
             deleta_projeto(projeto.codProjeto)
-            return get_erro('Voce nao pode cadastrar dois alunos com o mesmo ra no mesmo projeto'), 404
+            return get_erro('Voce nao pode cadastrar dois alunos com o mesmo ra no mesmo projeto'), 400
 
     for palavra in projeto.palavrasChave:
         palavra.grava_palavra_chave(projeto.codProjeto)

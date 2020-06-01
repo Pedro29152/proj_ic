@@ -21,6 +21,24 @@ def get_orientador_codigo(codOrientador, is_instance=True):
         return ret
     return None
 
+def get_orientador_orientando_codUsuario(codUsuario, is_instance=True):
+    query = '''
+        select distinct o.codOrientador, nomeOrientador, raOrientador, currLattes, o.email 
+        from orientadores as o 
+        join usuario_orientado as uo 
+        on o.codOrientador = uo.codOrientador 
+        join usuarios as u 
+        on uo.codUsuario = u.codUsuario 
+        where u.codUsuario = (%s) and o.ativo = 1 and (uo.dataValidade > current_date() and uo.status = 0)
+    '''
+    ret = db.bd_busca_um(query, (codUsuario,))
+    if ret:
+        if is_instance:
+            ori = Orientadores(ret['codOrientador'], ret['nomeOrientador'], ret['raOrientador'], ret['email'], ret['currLattes'])
+            return ori
+        return ret
+    return None
+
 def busca_orientadores_codProjeto(codProjeto):
     val = db.bd_busca_um(
         'select codOrientador, nomeOrientador, raOrientador, email, currLattes from orientadores natural join projeto_orientador where codProjeto = (%s)',

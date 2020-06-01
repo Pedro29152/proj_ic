@@ -14,7 +14,7 @@ from biblioteca.responses import (
 from biblioteca.extensions import(
     admin_token_required,
     secretaria_token_required,
-    professor_token_required
+    professor_admin_token_required
 )
 from . import orientadores_dao
 
@@ -52,7 +52,7 @@ class OrientadorIdResource(Resource):
         resp.status_code = cod
         return resp 
 
-    @professor_token_required
+    @professor_admin_token_required
     def put(self, id):
         res, cod = edita_orientador(id)
         

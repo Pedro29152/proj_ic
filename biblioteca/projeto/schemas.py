@@ -1,4 +1,4 @@
-from mysql.connector.errors import IntegrityError
+from mysql.connector.errors import DataError, IntegrityError
 
 from biblioteca import db
 
@@ -52,14 +52,18 @@ class PalavrasChave:
         return True
 
 class Autores:
-    def __init__(self, raAutor="", nomeAutor=""):        
+    def __init__(self, raAutor=None, nomeAutor=None, email=None):        
         self.raAutor = raAutor
         self.nomeAutor = nomeAutor
+        self.email = email
 
-    def grava_autor(self, codProjeto):
+    def tenta_gravar_autor(self, codProjeto):
         try:
-            db.bd_gravar("INSERT INTO autores(raAutor, nomeAutor) values(%s,%s)",
-            (self.raAutor, self.nomeAutor))
+            db.bd_gravar(
+                "INSERT INTO autores(raAutor, nomeAutor, email) values(%s,%s,%s)",
+                (self.raAutor, self.nomeAutor, self.email)
+            )
         except IntegrityError:
             pass
+
         return db.bd_busca_um("select codAutor from autores where raAutor = %s",(self.raAutor,))['codAutor']

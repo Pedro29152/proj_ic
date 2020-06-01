@@ -28,7 +28,8 @@ from biblioteca.projeto.resources import (
     DesativaProjetoResource,
     AtivaProjetoResource,
     AlteraProjetoResource,
-    CountProjetosResource
+    CountProjetosResource,
+    UploadProjetoAlunoResource
 )
 from biblioteca.usuarios.resources import (
     LoginResource,
@@ -82,6 +83,7 @@ def configure_api(app):
     api.add_resource(BuscaRankingResource, '/api/projetos/ranking')
     api.add_resource(GetProjetoResource, '/api/projetos/get/<int:id>') #id: codigo do projeto a ser buscado
     api.add_resource(UploadProjetoResource, '/api/projetos/cadastrar')
+    api.add_resource(UploadProjetoAlunoResource, '/api/projetos/cadastrar/aluno')
     api.add_resource(DownloadArquivoProjetoResource, '/api/projetos/download/<path:filename>') #filename: nome do arquivo a ser baixado
     api.add_resource(DesativaProjetoResource, '/api/projetos/desativar/<int:id>') #id: codigo do projeto a ser desativado
     api.add_resource(AtivaProjetoResource, '/api/projetos/ativar/<int:id>') #id: codigo do projeto a ser ativado
