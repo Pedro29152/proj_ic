@@ -24,9 +24,14 @@ class TestingConfig(Config):
     FLASK_ENV = 'testing'
     TESTING = True
 
+class ProductionConfig(Config):
+    FLASK_ENV = 'production'
+    DEBUG = False
+
 
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
+    'production': ProductionConfig,
     'default': DevelopmentConfig
 }
