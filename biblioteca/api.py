@@ -39,7 +39,10 @@ from biblioteca.usuarios.resources import (
     CountUsuariosResource,
     BuscaUsuariosResource,
     UsuarioIdResource,
-    MudarSenhaUsuarioResource
+    MudarSenhaUsuarioResource,
+    DesativaUsuarioResource,
+    AtivaUsuarioResource,
+    BuscaUsuariosInativosResource
 )
 from biblioteca.geral.resources import (
     AllCountsResource
@@ -80,7 +83,8 @@ def configure_api(app):
     api.add_resource(CountOrientadoresResource, '/api/orientadores/count')
 
     #Rotas de projetos
-    api.add_resource(BuscaProjetoResource, '/api/projetos/<string:id>', '/api/projetos') #id: titulo, curso, descricao, orientador, autor e palavrasChave
+    api.add_resource(BuscaProjetoResource, '/api/projetos/<string:id>', 
+                                        '/api/projetos') #id: titulo, curso, descricao, orientador, autor e palavrasChave
     api.add_resource(BuscaRankingResource, '/api/projetos/ranking')
     api.add_resource(GetProjetoResource, '/api/projetos/get/<int:id>') #id: codigo do projeto a ser buscado
     api.add_resource(UploadProjetoResource, '/api/projetos/cadastrar')
@@ -93,8 +97,12 @@ def configure_api(app):
 
     #Rotas de autorizacao
     api.add_resource(LoginResource, '/api/auth/login')
+    #Rotas de usuario
     api.add_resource(BuscaUsuariosResource, '/api/usuarios/buscar')
+    api.add_resource(BuscaUsuariosInativosResource, '/api/usuarios/buscar/inativos')
     api.add_resource(UsuarioIdResource, '/api/usuarios/<int:id>')
+    api.add_resource(DesativaUsuarioResource, '/api/usuarios/desativar/<int:id>')
+    api.add_resource(AtivaUsuarioResource, '/api/usuarios/ativar/<int:id>')
     api.add_resource(CadastroUsuarioResource, '/api/usuarios/cadastro')
     api.add_resource(CadastroAlunoResource, '/api/usuarios/cadastro/aluno')
     api.add_resource(CadastroProfessorResource, '/api/usuarios/cadastro/orientador')

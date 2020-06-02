@@ -5,9 +5,11 @@ from flask import request, jsonify, current_app as app
 from datetime import datetime
 from dateutil import parser 
 
+from biblioteca.autor import autores_dao
 from biblioteca.responses import (
     get_response_code,
-    get_erro
+    get_erro,
+    get_unauthorized
 )
 from .usuarios import usuario_dao
 
@@ -79,8 +81,11 @@ def aluno_token_required(f):
         ], has_user_info=True)
 
         if(success):
+            is_valid = autores_dao.is_aluno_expired(data['user_info']['codUsuario'])
+            if not is_valid:
+                return get_unauthorized('Seu acesso está expirado')
             kwargs.update(data)
-            return f(*args, **kwargs)
+            return f(*args, **kwargs)            
         return data
     return decorated
 
@@ -92,6 +97,19 @@ def admin_token_required(f):
         ])
 
         if(success):
+            return f(*args, **kwargs)
+        return data
+    return decorated
+
+def admin_is_user_token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        success, data = check_tipo_usuario([
+            TiposUsuario.Administrador.value
+        ], has_is_user=True, id=kwargs['id'])
+
+        if(success):
+            kwargs.update(data)
             return f(*args, **kwargs)
         return data
     return decorated
@@ -183,3 +201,13 @@ def is_valid(token_data):
 def is_valid_email(email):
     email_regex = '^[a-z0-9]+[\\._]?[a-z0-9]+[@]\\w+[.]\\w{2,3}$'
     return re.search(email_regex, email)
+
+def is_valid_http_link(link):
+    regex = re.compile(
+            r'^(?:http|ftp)s?://' # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+            r'localhost|' #localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+            r'(?::\d+)?' # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    return re.match(regex, link)

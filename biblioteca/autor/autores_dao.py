@@ -24,3 +24,16 @@ def cadastra_autor(nome, email, ra):
         return get_autor_ra(ra)
     except IntegrityError:
         return None
+
+def is_aluno_expired(codUsuario):
+    query = '''
+        select distinct u.codUsuario 
+        from usuarios as u 
+        join usuario_orientado as uo 
+        on u.codUsuario = uo.codUsuario 
+        join autores as a 
+        on a.codAutor = uo.codAutor 
+        where dataValidade > now() and u.codUsuario = (%s)
+    '''
+    return db.bd_busca_um(query, (codUsuario,))
+    

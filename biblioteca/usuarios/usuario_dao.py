@@ -2,7 +2,6 @@ from mysql.connector.errors import DatabaseError
 from werkzeug.security import check_password_hash, generate_password_hash
 from mysql.connector.errors import IntegrityError
 from datetime import datetime, timedelta
-
 from biblioteca import db
 
 def verifica_usr(usuario, senha):
@@ -14,14 +13,6 @@ def verifica_usr(usuario, senha):
             return busca_usuarios_nome(usuario)
 
     return None
-    
-def busca_nivel_acesso(username):
-    val = db.bd_busca_um(
-        'SELECT tipoUsuario FROM usuarios WHERE nomeUsuario = %s',
-        (username,)
-    )
-
-    return val['tipoUsuario']
 
 def busca_usuarios():
     val = db.bd_busca(
@@ -32,6 +23,50 @@ def busca_usuarios():
         val = []
 
     return val
+
+def busca_usuarios_nome_like(nomeUsuario):
+    nomeUsuario = '%{}%'.format(nomeUsuario)
+    val = db.bd_busca(
+        'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where nomeUsuario like (%s) and ativo = 1',
+        (nomeUsuario,)
+    )
+    if(not val):
+        val = []
+
+    return val
+
+def busca_usuarios_inativos():
+    val = db.bd_busca(
+        'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where ativo = 0',
+        None
+    )
+    if(not val):
+        val = []
+
+    return val
+
+def busca_usuarios_inativos_nome_like(nomeUsuario):
+    nomeUsuario = '%{}%'.format(nomeUsuario)
+    val = db.bd_busca(
+        'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where nomeUsuario like (%s) and ativo = 0',
+        (nomeUsuario,)
+    )
+    if(not val):
+        val = []
+
+    return val
+
+def busca_usuarios_codAutor_not_codUsuario(codAutor, codUsuario):
+    query = '''
+        select u.codUsuario, nomeUsuario, tipoUsuario, u.nome, u.email 
+        from usuarios as u 
+        join usuario_orientado as uo 
+        on uo.codUsuario = u.codUsuario 
+        join autores as a 
+        on a.codAutor = uo.codAutor 
+        where ativo = 1 and a.codAutor = (%s) and not u.codUsuario = (%s)
+    '''
+    return db.bd_busca(query, (codAutor, codUsuario))
 
 def busca_usuarios_nome(nomeUsuario):
     val = db.bd_busca_um(
@@ -50,17 +85,6 @@ def busca_senha_nome(nomeUsuario):
         return val['senha']
     return None
 
-def busca_usuarios_nome_like(nomeUsuario):
-    nomeUsuario = '%{}%'.format(nomeUsuario)
-    val = db.bd_busca(
-        'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where nomeUsuario like (%s) and ativo = 1',
-        (nomeUsuario,)
-    )
-    if(not val):
-        val = []
-
-    return val
-
 def add_usr(usuario, senha, tipoUsuario, nome, email):
     try:
         db.bd_gravar(
@@ -76,12 +100,22 @@ def add_aluno(user, senha, nome, email, codAutor, codOrientador):
     user = add_usr(user, senha, 1, nome, email)
     if not user:
         return False
-
-    dataValidade = datetime.now() + timedelta(days=30)
+    
+    now = datetime.now()
+    dataValidade = now + timedelta(days=30)
     codUsuario = user['codUsuario']
-    query = 'insert into usuario_orientado(codOrientador, codAutor, codUsuario, dataValidade) values (%s, %s, %s, %s)'
-    db.bd_gravar(query, (codOrientador, codAutor, codUsuario, dataValidade.__str__()))
+    query = 'insert into usuario_orientado(codOrientador, codAutor, codUsuario, dataValidade, dataCriacao) values (%s, %s, %s, %s, %s)'
+    db.bd_gravar(query, (codOrientador, codAutor, codUsuario, dataValidade.__str__(), now.__str__()))
+
+    desativa_anteriores(codAutor, codUsuario)
+
     return True
+
+def desativa_anteriores(codAutor, codUsuario):
+    aut = busca_usuarios_codAutor_not_codUsuario(codAutor, codUsuario)
+
+    for item in aut:
+        desativa_usuario(item['codUsuario'])
 
 def add_orientador(user, senha, nome, email, codOrientador):
     usr = add_usr(user, senha, 2, nome, email)
@@ -99,7 +133,12 @@ def get_count():
     return ret['usuarios']
 
 def get_usuario(codUsuario):
-    query = 'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where codUsuario = (%s)'
+    query = 'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where codUsuario = (%s) and ativo = 1'
+    ret = db.bd_busca_um(query,(codUsuario,))
+    return ret
+
+def get_usuario_inativo(codUsuario):
+    query = 'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where codUsuario = (%s) and ativo = 0'
     ret = db.bd_busca_um(query,(codUsuario,))
     return ret
 
@@ -116,20 +155,14 @@ def deleta_usuario(codUsuario):
     query = 'delete from usuarios where codUsuario = (%s)'
     db.bd_gravar(query,(codUsuario,))
 
+def desativa_usuario(codUsuario):
+    query = 'update usuarios set ativo = 0 where codUsuario = (%s)'
+    db.bd_gravar(query, (codUsuario,))
+
+def ativa_usuario(codUsuario):
+    query = 'update usuarios set ativo = 1 where codUsuario = (%s)'
+    db.bd_gravar(query, (codUsuario,))
+
 def edita_senha(codUsuario, novaSenha):
     query = 'update usuarios set senha = (%s) where codUsuario = (%s)'
     db.bd_gravar(query, (generate_password_hash(novaSenha), codUsuario))
-
-def is_user(codUsuario, username):
-    query = 'select codUsuario from usuarios where codUsuario = (%s) and nomeUsuario = (%s)'
-    if db.bd_busca_um(query, (codUsuario, username)):
-        return True
-    return False
-
-def is_usuario_logado(codUsuario, nomeUsuarioLogado):
-    query = 'select codUsuario from usuarios where nomeUsuario = (%s)'
-    ret = db.bd_busca_um(query, (nomeUsuarioLogado,))
-    if ret:
-        if (ret['codUsuario'] == codUsuario):
-            return True
-    return False

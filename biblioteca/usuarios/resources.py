@@ -12,7 +12,8 @@ from biblioteca.extensions import (
     user_admin_token_required,
     professor_token_required,
     TiposUsuario,
-    is_valid_email
+    is_valid_email,
+    admin_is_user_token_required
 )
 from biblioteca.responses import (
     get_falha,
@@ -79,6 +80,18 @@ class CadastroProfessorResource(Resource):
         data, cod = cadastra_professor()
         return get_response_code(data, cod)
 
+class DesativaUsuarioResource(Resource):
+    @admin_is_user_token_required
+    def delete(self, id, is_user):
+        res, cod = desativa_usuario(id, is_user)
+        return get_response_code(res, cod)
+
+class AtivaUsuarioResource(Resource):
+    @admin_is_user_token_required
+    def post(self, id, is_user):
+        res, cod = ativa_usuario(id, is_user)
+        return get_response_code(res, cod)
+
 class CountUsuariosResource(Resource):
     @secretaria_token_required
     def get(self):
@@ -89,10 +102,13 @@ class BuscaUsuariosResource(Resource):
     @admin_token_required
     def get(self):
         res, cod = busca_usuarios()
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
+
+class BuscaUsuariosInativosResource(Resource):
+    @admin_token_required
+    def get(self):
+        res, cod = busca_usuarios_inativos()
+        return get_response_code(res, cod)
 
 class MudarSenhaUsuarioResource(Resource):
     @user_admin_token_required
@@ -158,9 +174,9 @@ def cadastro_usuario():
     if not (tipoUsuario - 1) in range(TiposUsuario.Administrador.value):
         return get_falha('O tipo de usuario enviado é invalido'), 400
     if tipoUsuario == TiposUsuario.Aluno.value:
-        return get_falha('Para cadastrart um aluno utiliza a rota "/api/usuarios/cadastro/aluno"'), 400
+        return get_falha('Para cadastrar um aluno utilize a rota "/api/usuarios/cadastro/aluno"'), 400
     if tipoUsuario == TiposUsuario.Professor.value:
-        return get_falha('Para cadastrart um orientador utiliza a rota "/api/usuarios/cadastro/orientador"'), 400
+        return get_falha('Para cadastrar um orientador utilize a rota "/api/usuarios/cadastro/orientador"'), 400
 
     if usuario_dao.add_usr(user, senha, tipoUsuario, nome, email):
         return get_ok(
@@ -192,7 +208,26 @@ def cadastra_professor():
             'Usuario cadastrado com sucesso'
         ), 201
     return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
-    
+
+def desativa_usuario(codUsuario, is_user):
+    if is_user:
+        return get_erro('Voce não pode desativar o próprio usuário'), 400
+        
+    usr = usuario_dao.get_usuario(codUsuario)
+    if usr:
+        usuario_dao.desativa_usuario(codUsuario)
+        return get_ok('Usuario desativado com sucesso'), 200
+    return get_erro('O código de usuário enviado não existe'), 404
+
+def ativa_usuario(codUsuario, is_user):
+    if is_user:
+        return get_erro('Voce não pode ativar o próprio usuário'), 400
+
+    usr = usuario_dao.get_usuario_inativo(codUsuario)
+    if usr:
+        usuario_dao.ativa_usuario(codUsuario)
+        return get_ok('Usuario ativado com sucesso'), 200
+    return get_erro('O código de usuário enviado não existe'), 404
 
 def cadastro_aluno(professor_user_info):
     try:
@@ -242,6 +277,18 @@ def busca_usuarios():
         ret = usuario_dao.busca_usuarios_nome_like(nome)
     else:
         ret = usuario_dao.busca_usuarios()
+    
+    if ret:
+        return get_data(ret), 200
+    return get_falha("Nenhum usuario retornado"), 204
+
+def busca_usuarios_inativos():
+    nome = request.args.get('nomeUsuario')
+
+    if nome:
+        ret = usuario_dao.busca_usuarios_inativos_nome_like(nome)
+    else:
+        ret = usuario_dao.busca_usuarios_inativos()
     
     if ret:
         return get_data(ret), 200

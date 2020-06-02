@@ -15,7 +15,8 @@ from biblioteca.extensions import(
     admin_token_required,
     secretaria_token_required,
     professor_admin_token_required,
-    is_valid_email
+    is_valid_email,
+    is_valid_http_link
 )
 from . import orientadores_dao
 
@@ -125,9 +126,11 @@ def edita_orientador(codOrientador):
             ori.raOrientador = raOrientador
         if email:
             ori.email = email
-        if not is_valid_email(email):
-            raise AttributeError('O campo "email" deve ser um email valido')
+            if not is_valid_email(email):
+                raise AttributeError('O campo "email" deve ser um email valido')
         if currLattes:
+            if not is_valid_http_link(currLattes):
+                raise AttributeError('O campo "currLattes" deve ser um link http/https valido')
             ori.currLattes = currLattes
 
         ori.edita_orientador()
