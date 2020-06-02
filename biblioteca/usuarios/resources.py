@@ -4,19 +4,23 @@ from flask_restful import Resource, request, current_app
 from werkzeug.exceptions import BadRequestKeyError
 from datetime import datetime, timedelta
 
+from biblioteca.orientador import orientadores_dao
+from biblioteca.autor import autores_dao
 from biblioteca.extensions import (
     secretaria_token_required,
     admin_token_required,
     user_admin_token_required,
     professor_token_required,
-    TiposUsuario
+    TiposUsuario,
+    is_valid_email
 )
 from biblioteca.responses import (
     get_falha,
     get_erro,
     get_ok,
     get_data,
-    get_count
+    get_count,
+    get_response_code
 )
 from . import usuario_dao
 from . import util
@@ -62,15 +66,18 @@ class CadastroUsuarioResource(Resource):
         resp = jsonify(res)
         resp.status_code = cod
         return resp 
-        
+
 class CadastroAlunoResource(Resource):
     @professor_token_required
+    def post(self, user_info):
+        res, cod = cadastro_aluno(user_info)
+        return get_response_code(res, cod)
+
+class CadastroProfessorResource(Resource):
+    @admin_token_required
     def post(self):
-        res, cod = cadastro_aluno()
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        data, cod = cadastra_professor()
+        return get_response_code(data, cod)
 
 class CountUsuariosResource(Resource):
     @secretaria_token_required
@@ -146,8 +153,14 @@ def cadastro_usuario():
 
     if not (user and tipoUsuario and senha and email and nome):
         return get_falha('Os campos enviados nao podem estar vazios'), 400
+    if not is_valid_email(email):
+        return get_erro('O campo "email" dever ser um email valido'), 400
     if not (tipoUsuario - 1) in range(TiposUsuario.Administrador.value):
         return get_falha('O tipo de usuario enviado é invalido'), 400
+    if tipoUsuario == TiposUsuario.Aluno.value:
+        return get_falha('Para cadastrart um aluno utiliza a rota "/api/usuarios/cadastro/aluno"'), 400
+    if tipoUsuario == TiposUsuario.Professor.value:
+        return get_falha('Para cadastrart um orientador utiliza a rota "/api/usuarios/cadastro/orientador"'), 400
 
     if usuario_dao.add_usr(user, senha, tipoUsuario, nome, email):
         return get_ok(
@@ -155,25 +168,63 @@ def cadastro_usuario():
         ), 201
     return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
 
-def cadastro_aluno():
+def cadastra_professor():
     try:
         user = request.form['username']
         senha = request.form['password']
         nome = request.form['nome']
         email = request.form['email']
+        codOrientador = request.form['cod_orientador']
     except BadRequestKeyError:
         return get_erro(
-            'A requisicao deve possuir os campos "username", "email", "nome" e "password" em seu corpo'
+            'A requisicao deve possuir os campos "username", "email", "nome", "cod_orientador" e "password" em seu corpo'
         ), 400
-
-    if not (user and senha and email and nome):
+        
+    if not (user and senha and email and nome and codOrientador):
         return get_falha('Os campos enviados nao podem estar vazios'), 400
-    
-    if usuario_dao.add_usr(user, senha, 1, nome, email):
+    if not is_valid_email(email):
+        return get_erro('O campo "email" dever ser um email valido'), 400
+    if not orientadores_dao.exists(codOrientador):
+        return get_erro('O orientador enviado nao existe'), 400
+
+    if usuario_dao.add_orientador(user, senha, nome, email, codOrientador):
         return get_ok(
             'Usuario cadastrado com sucesso'
         ), 201
-    return get_erro('O nome de usuario "{}" ja esta sendo utilizado'.format(user)), 400
+    return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
+    
+
+def cadastro_aluno(professor_user_info):
+    try:
+        user = request.form['username']
+        senha = request.form['password']
+        nome = request.form['nome']
+        email = request.form['email']
+        ra = request.form['ra_aluno']
+    except BadRequestKeyError:
+        return get_erro(
+            'A requisicao deve possuir os campos "username", "email", "nome", "ra_aluno" e "password" em seu corpo'
+        ), 400
+
+    if not (user and senha and email and nome and ra):
+        return get_falha('Os campos enviados nao podem estar vazios'), 400
+    if not is_valid_email(email):
+        return get_erro('O campo "email" dever ser um email valido'), 400
+    
+    autor = autores_dao.get_autor_ra(ra)
+    if not autor:
+        autor = autores_dao.cadastra_autor(nome, email, ra)
+        if not autor:
+            return get_erro('Já existe um autor com este email cadastrado')
+    orientador = orientadores_dao.get_orientador_codUsuario(professor_user_info['codUsuario'])
+    if not orientador:
+        return get_erro('Você não pode efetuar esta ação pois não esta cadastrado como um orientador válido')
+    
+    if usuario_dao.add_aluno(user, senha, nome, email, autor['codAutor'], orientador['codOrientador']):
+        return get_ok(
+            'Usuario cadastrado com sucesso'
+        ), 201
+    return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
 
 def deleta_usuario(id, is_user):
     if is_user:
@@ -228,6 +279,8 @@ def edita_usuario(codUsuario, is_admin, is_user):
         if nome: 
             usr['nome'] = nome
         if email: 
+            if not is_valid_email(email):
+                return get_erro('O campo "email" dever ser um email valido'), 400
             usr['email'] = email
         if tipoUsuario: 
             usr['tipoUsuario'] = tipoUsuario

@@ -1,6 +1,7 @@
 from mysql.connector.errors import DataError, IntegrityError
 
 from biblioteca import db
+from biblioteca.extensions import is_valid_email
 
 class Projetos:
     def __init__(self, 
@@ -56,6 +57,9 @@ class Autores:
         self.raAutor = raAutor
         self.nomeAutor = nomeAutor
         self.email = email
+
+        if not is_valid_email(self.email):
+            raise AttributeError('O campo "email" dever ser um email valido')
 
     def tenta_gravar_autor(self, codProjeto):
         try:

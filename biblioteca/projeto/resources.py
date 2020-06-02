@@ -240,15 +240,15 @@ def upload_projeto(user_info=None):
         return get_erro('Cada projeto deve ter no mínimo 1 autor'), 400
     if len(palavras_obj) < 1:
         return get_erro('Cada projeto deve ter no mínimo 1 palavra-chave'), 400
-    if len(autores_obj) > 4:
-        return get_erro('Cada projeto so pode ter no máximo 4 autores'), 400
+    if len(autores_obj) > 5:
+        return get_erro('Cada projeto deve ter no máximo 5 autores'), 400
     if len(palavras_obj) > 5:
-        return get_erro('Cada projeto so pode ter no máximo 5 palavras-chave'), 400 
+        return get_erro('Cada projeto deve ter no máximo 5 palavras-chave'), 400 
 
     for item in autores_obj:
         if item['nome'] and item['ra'] and item['email']:
             if not is_valid_email(item['email']):
-                return get_erro('Os campos email de autores devem ser emails validos'), 400
+                return get_erro('Os campos "email" de autores devem ser emails validos'), 400
             projeto.autores.append(Autores(item['ra'], item['nome'], item['email']))
         else:
             return get_erro('Os objetos de autor devem conter os campos "nome", "ra" e "email"'), 400

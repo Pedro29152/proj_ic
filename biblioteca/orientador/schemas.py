@@ -1,4 +1,5 @@
 from biblioteca import db
+from biblioteca.extensions import is_valid_email
 
 class Orientadores:
     def __init__(self, codOrientador=None, nomeOrientador=None, raOrientador=None, email=None, currLattes=None):
@@ -7,6 +8,9 @@ class Orientadores:
         self.raOrientador = raOrientador
         self.email = email
         self.currLattes = currLattes
+
+        if not is_valid_email(self.email):
+            raise AttributeError('O campo "email" deve ser um email valido')
     
     def grava_orientador(self):
         if self.nomeOrientador and self.raOrientador and self.email and self.currLattes:

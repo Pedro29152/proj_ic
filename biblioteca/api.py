@@ -35,6 +35,7 @@ from biblioteca.usuarios.resources import (
     LoginResource,
     CadastroUsuarioResource,
     CadastroAlunoResource,
+    CadastroProfessorResource,
     CountUsuariosResource,
     BuscaUsuariosResource,
     UsuarioIdResource,
@@ -96,6 +97,7 @@ def configure_api(app):
     api.add_resource(UsuarioIdResource, '/api/usuarios/<int:id>')
     api.add_resource(CadastroUsuarioResource, '/api/usuarios/cadastro')
     api.add_resource(CadastroAlunoResource, '/api/usuarios/cadastro/aluno')
+    api.add_resource(CadastroProfessorResource, '/api/usuarios/cadastro/orientador')
     api.add_resource(CountUsuariosResource, '/api/usuarios/count')
     api.add_resource(MudarSenhaUsuarioResource, '/api/usuarios/mudarsenha/<int:id>')
 

@@ -57,6 +57,7 @@ def professor_admin_token_required(f):
             return f(*args, **kwargs)
         return data
     return decorated
+    
 def professor_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
