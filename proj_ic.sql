@@ -26,10 +26,12 @@ CREATE TABLE `autores` (
   `codAutor` int(11) NOT NULL AUTO_INCREMENT,
   `raAutor` varchar(13) NOT NULL,
   `nomeAutor` varchar(200) NOT NULL,
+  `email` varchar(100) NOT NULL,
   PRIMARY KEY (`codAutor`),
-  UNIQUE KEY `raAutor_UNIQUE` (`raAutor`),
-  UNIQUE KEY `codAutor_UNIQUE` (`codAutor`)
-) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `codAutor_UNIQUE` (`codAutor`),
+  UNIQUE KEY `email_ra_UNIQUE` (`email`,`raAutor`) /*!80000 INVISIBLE */,
+  UNIQUE KEY `raAutor_UNIQUE` (`raAutor`)
+) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -38,7 +40,6 @@ CREATE TABLE `autores` (
 
 LOCK TABLES `autores` WRITE;
 /*!40000 ALTER TABLE `autores` DISABLE KEYS */;
-INSERT INTO `autores` VALUES (48,'1231231123444','aut 1'),(49,'123123332313','aut 2'),(52,'12332','asd'),(58,'123','asd'),(71,'122','qwe'),(72,'01293','qwhubqwniu'),(73,'1231231238123','autor besta');
 /*!40000 ALTER TABLE `autores` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -66,7 +67,7 @@ CREATE TABLE `cursos` (
 
 LOCK TABLES `cursos` WRITE;
 /*!40000 ALTER TABLE `cursos` DISABLE KEYS */;
-INSERT INTO `cursos` VALUES (1,'Jogos Digitais',1,'JD'),(2,'Analise e Desenvolvimento de Sistemas',1,'ADS'),(22,'qwe',1,'qqq'),(23,'testeDuh',1,'tst');
+INSERT INTO `cursos` VALUES (1,'Jogos Digitais',1,'JD'),(2,'Analise e Desenvolvimento de Sistemas',1,'ADS');
 /*!40000 ALTER TABLE `cursos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -84,10 +85,13 @@ CREATE TABLE `orientadores` (
   `currLattes` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
   `ativo` int(11) NOT NULL DEFAULT '1',
+  `codUsuario` int(11) DEFAULT NULL,
   PRIMARY KEY (`codOrientador`),
   UNIQUE KEY `raOrientador_UNIQUE` (`raOrientador`),
-  UNIQUE KEY `email_UNIQUE` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `email_UNIQUE` (`email`),
+  UNIQUE KEY `codUsuario_UNIQUE` (`codUsuario`),
+  CONSTRAINT `FK_ORIENTADOR_USUARIO` FOREIGN KEY (`codUsuario`) REFERENCES `usuarios` (`codUsuario`) ON DELETE SET NULL ON UPDATE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -96,7 +100,6 @@ CREATE TABLE `orientadores` (
 
 LOCK TABLES `orientadores` WRITE;
 /*!40000 ALTER TABLE `orientadores` DISABLE KEYS */;
-INSERT INTO `orientadores` VALUES (1,'nome ori','1237816283','http://asdjiaisd.com.br.lattas','ema.il.com',1),(2,'nome ori 2','0000000122','http://asdjiaisd.com.br.lattas','ema.il.coma',1),(3,'orientador B ay','12345678912345678900','http://asdjiaisd.com.br.lattas','ema.il.comas',1),(4,'oooo','110293','http://asdjiaisd.com.br.lattas','ema.il.comsff',1),(5,'nome de gay kk','912083729','http://asdjiaisd.com.br.lattas','ema.il.comssdddas',1),(6,'jojofeg?','908123980123','https://lattes.curr.com.com','emememe.comomo.a',1);
 /*!40000 ALTER TABLE `orientadores` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -114,7 +117,7 @@ CREATE TABLE `palavras_chave` (
   PRIMARY KEY (`codPalavra`),
   KEY `FK_PROJETO_idx` (`codProjeto`),
   CONSTRAINT `FK_PALAVRA_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -123,7 +126,6 @@ CREATE TABLE `palavras_chave` (
 
 LOCK TABLES `palavras_chave` WRITE;
 /*!40000 ALTER TABLE `palavras_chave` DISABLE KEYS */;
-INSERT INTO `palavras_chave` VALUES (24,'pal',83);
 /*!40000 ALTER TABLE `palavras_chave` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -150,7 +152,6 @@ CREATE TABLE `projeto_autor` (
 
 LOCK TABLES `projeto_autor` WRITE;
 /*!40000 ALTER TABLE `projeto_autor` DISABLE KEYS */;
-INSERT INTO `projeto_autor` VALUES (83,73);
 /*!40000 ALTER TABLE `projeto_autor` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -177,7 +178,6 @@ CREATE TABLE `projeto_orientador` (
 
 LOCK TABLES `projeto_orientador` WRITE;
 /*!40000 ALTER TABLE `projeto_orientador` DISABLE KEYS */;
-INSERT INTO `projeto_orientador` VALUES (1,83);
 /*!40000 ALTER TABLE `projeto_orientador` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -200,14 +200,14 @@ CREATE TABLE `projetos` (
   `dataAvaliacao` date NOT NULL,
   `dataEnvio` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `codCurso` int(11) NOT NULL,
-  `ativo` int(11) NOT NULL,
+  `ativo` int(11) NOT NULL DEFAULT '1',
   `subTitulo` longtext NOT NULL,
   PRIMARY KEY (`codProjeto`),
   UNIQUE KEY `nomeArquivo_UNIQUE` (`nomeArquivo`),
   UNIQUE KEY `codProjeto_UNIQUE` (`codProjeto`),
   KEY `FK_CURSO_idx` (`codCurso`),
   CONSTRAINT `FK_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codCurso`)
-) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=104 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -216,8 +216,39 @@ CREATE TABLE `projetos` (
 
 LOCK TABLES `projetos` WRITE;
 /*!40000 ALTER TABLE `projetos` DISABLE KEYS */;
-INSERT INTO `projetos` VALUES (83,'tetas 1','descricao top llllllllllllllllllll','JD-PROJ_TIT-2020-05-18-720B5D.pdf',0,0,1,20,'2020-12-19','2020-05-18 15:16:57',1,1,'suuus');
 /*!40000 ALTER TABLE `projetos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `usuario_orientado`
+--
+
+DROP TABLE IF EXISTS `usuario_orientado`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `usuario_orientado` (
+  `codOrientador` int(11) NOT NULL,
+  `codAutor` int(11) NOT NULL,
+  `codUsuario` int(11) NOT NULL,
+  `dataCriacao` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `dataValidade` datetime NOT NULL,
+  `status` varchar(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`codOrientador`,`codAutor`,`codUsuario`),
+  KEY `FK_AUTOR_USUARIO_ORIENTADO_idx` (`codAutor`),
+  KEY `FK_USUARIO_USUARIO_ORIENTADO_idx` (`codUsuario`),
+  CONSTRAINT `FK_AUTOR_USUARIO_ORIENTADO` FOREIGN KEY (`codAutor`) REFERENCES `autores` (`codAutor`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `FK_ORIENTADOR_USUARIO_ORIENTADO` FOREIGN KEY (`codOrientador`) REFERENCES `orientadores` (`codOrientador`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `FK_USUARIO_USUARIO_ORIENTADO` FOREIGN KEY (`codUsuario`) REFERENCES `usuarios` (`codUsuario`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuario_orientado`
+--
+
+LOCK TABLES `usuario_orientado` WRITE;
+/*!40000 ALTER TABLE `usuario_orientado` DISABLE KEYS */;
+/*!40000 ALTER TABLE `usuario_orientado` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -236,9 +267,8 @@ CREATE TABLE `usuarios` (
   `nome` varchar(150) NOT NULL,
   `email` varchar(150) NOT NULL,
   PRIMARY KEY (`codUsuario`),
-  UNIQUE KEY `nomeUsuario_UNIQUE` (`nomeUsuario`),
-  UNIQUE KEY `email_UNIQUE` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `nomeUsuario_UNIQUE` (`nomeUsuario`)
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -247,7 +277,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:50000$ugKk3qk8$a68e58926f85dff54dd23416597dff7465f9855ff94f877d9dbdc4243e1d80d9',3,1,'Silvia','oiasda@iaon.com'),(18,'jojo','pbkdf2:sha256:150000$NHO4MxY8$8093ee2bb454a5d421286f61786484a5cd62c265872e675835b03eecc912ff9b',3,1,'nono','jojo@joasjd.cp');
+INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:150000$7rHphFnD$397c0a570ba3810f5d5f2fbaea54139512a6309e3757fa1ef730d5ca2d73c5b9',4,1,'admin','admin@admin.com');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -260,4 +290,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-05-26 13:17:51
+-- Dump completed on 2020-06-02 17:26:30
