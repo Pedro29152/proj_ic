@@ -66,6 +66,18 @@ class BuscarProjetosOrientador(Resource):
         res, cod = busca_projetos_orientador(user_info)
         return get_response_code(res, cod)
 
+class AprovarProjetoResource(Resource):
+    @professor_token_required
+    def post(self, id, user_info):
+        res, cod = aprovar_projeto(id, user_info)
+        return get_response_code(res, cod)
+
+class RecusarProjetoResource(Resource):
+    @professor_token_required
+    def post(self, id, user_info):
+        res, cod = recusar_projeto(id, user_info)
+        return get_response_code(res, cod)
+
 class UploadProjetoResource(Resource):
     @secretaria_token_required
     def post(self):
@@ -257,13 +269,13 @@ def upload_projeto(user_info=None):
         projeto.autores.append(Autores(lider['raAutor'], lider['nomeAutor'], lider['email']))
 
         if not projetos_dao.is_valid_project(lider['codAutor']):
-            return get_erro('voce não pode cadastrar mais um projeto, somente alterar o ja cadastrado'), 400
+            return get_erro('Você não pode cadastrar mais um projeto, somente alterar o ja cadastrado caso ele ainda não tenha sido aprovado'), 400
         
     for item in autores_obj:
         try:
             if item['nome'] and item['ra'] and item['email']:
                 if not is_valid_email(item['email']):
-                    return get_erro('Os campos "email" de autores devem ser emails validos'), 400
+                    return get_erro('O email "{}" não é um email valido'.format(item['email'])), 400
                 projeto.autores.append(Autores(item['ra'], item['nome'], item['email']))
             else:
                 return get_erro('Os objetos de autor devem conter os campos "nome", "ra" e "email"'), 400
@@ -294,7 +306,7 @@ def upload_projeto(user_info=None):
         )
 
 
-    if cod == 200: 
+    if cod == 200:
         filepath = os.path.join(
             app.config['UPLOAD_FOLDER'], 
             filename
@@ -308,6 +320,35 @@ def upload_projeto(user_info=None):
 
     return ret, cod
 
+def aprovar_projeto(codProjeto, user_info):
+    proj = projetos_dao.get_projeto_novo(codProjeto)
+    if not proj:
+        return get_erro('Nenhum projeto (não aprovado) com o código de projeto enviado foi encontrado'), 404
+    
+    orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+    if not orientador:
+        return get_erro('O usuario sendo utilizado não possui um orientador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro'), 400
+
+    if projetos_dao.is_orientador_projeto_novo(proj['codProjeto'], orientador['codOrientador']):
+        projetos_dao.aprovar_projeto(proj['codProjeto'])
+        return get_ok('Projeto aprovado com sucesso'), 200
+    return get_erro('Você não pode aprovar este projeto pois você nâo está o orientando'), 400
+
+def recusar_projeto(codProjeto, user_info):
+    proj = projetos_dao.get_projeto_novo(codProjeto)
+    if not proj:
+        return get_erro('Nenhum projeto (não aprovado) com o código de projeto enviado foi encontrado'), 404
+    
+    orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+    if not orientador:
+        return get_erro('O usuario sendo utilizado não possui um orientador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro'), 400
+
+    if projetos_dao.is_orientador_projeto_novo(proj['codProjeto'], orientador['codOrientador']):
+        projetos_dao.recusar_projeto(proj['codProjeto'])
+        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
+        return get_ok('Projeto recusado com sucesso'), 200
+    return get_erro('Você não pode aprovar este projeto pois você nâo está o orientando'), 400
+
 def download_arquivo(filename):
     codProj = projetos_dao.is_ativo_filename(filename)
     if codProj:
@@ -317,29 +358,20 @@ def download_arquivo(filename):
         return False
 
 def desativa_projeto(codProjeto):
-    if not __cod_valido(codProjeto):
-        return get_erro('O valor enviado deve ser do tipo inteiro'), 404
-
-    if projetos_dao.projeto_existe(codProjeto):
+    if projetos_dao.get_projeto(codProjeto):
         projetos_dao.desativa_projeto(codProjeto)
 
         return get_ok('Projeto desativado com sucesso'), 200
     return get_falha('Projeto requisitado nao existe'), 404
 
 def ativa_projeto(codProjeto):
-    if not __cod_valido(codProjeto):
-        return get_erro('O valor enviado deve ser do tipo inteiro'), 404
-
-    if projetos_dao.projeto_existe(codProjeto):
+    if projetos_dao.get_projeto(codProjeto):
         projetos_dao.ativa_projeto(codProjeto)
 
         return get_ok('Projeto ativado com sucesso'), 200
     return get_falha('Projeto requisitado nao existe'), 404
 
 def edita_projeto(codProjeto):
-    if not __cod_valido(codProjeto):
-        return get_erro('O valor enviado deve ser do tipo inteiro'), 400
-    
     if projetos_dao.get_projeto(codProjeto):
         try:
             titulo = request.form['tituloProjeto']
@@ -359,10 +391,7 @@ def edita_projeto(codProjeto):
     return get_falha('Projeto requisitado nao existe'), 404
 
 def get_projeto(codProjeto):
-    if not __cod_valido(codProjeto):
-        return get_erro('O valor enviado deve ser do tipo inteiro'), 400
-
-    ret = projetos_dao.get_projeto(codProjeto)
+    ret = projetos_dao.get_projeto(codProjeto, True)
     if ret:
         projetos_dao.prenche_projeto(ret)
         projetos_dao.add_view(codProjeto)
@@ -399,12 +428,6 @@ def get_count():
 def __allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-def __cod_valido(codProj):
-    try:
-        int(codProj)
-        return True
-    except ValueError:
-        return False
 def __get_filtro():
     desc = request.args.get('query')
     if not desc:

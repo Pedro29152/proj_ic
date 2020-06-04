@@ -14,8 +14,7 @@ QUERY_CURSO = ''''
     SELECT * 
     FROM projetos 
     NATURAL JOIN cursos 
-    WHERE descricaoCurso LIKE (%s) OR abreviacao LIKE (%s) AND ativo = 1 and status = 1 
-'''
+    WHERE descricaoCurso LIKE (%s) OR abreviacao LIKE (%s) AND ativo = 1 and status = 1 '''
 QUERY_TITULO = '''
     SELECT * 
     FROM projetos 
@@ -294,19 +293,19 @@ def deleta_projeto(codProjeto):
     query = 'delete from projetos where codProjeto = (%s)'
     db.bd_gravar(query, (codProjeto,))
 
-def projeto_existe(codProjeto):
-    query = 'select * from projetos where codProjeto = (%s)'
-    ret = db.bd_busca_um(query,(codProjeto,))
-    if ret:
-        return ret
-    return None
+def get_projeto_novo(codProjeto, is_full=False):
+    query = 'select * from projetos where codProjeto = (%s) and status = 0'
+    proj = db.bd_busca_um(query,(codProjeto,))
+    if is_full:
+        prenche_projeto(proj)
+    return proj
 
-def get_projeto(codProjeto):
-    query = 'select * from projetos where codProjeto = (%s) and ativo = 1 and status = 1 '
-    ret = db.bd_busca_um(query,(codProjeto,))
-    if ret:
-        return ret
-    return None
+def get_projeto(codProjeto, is_full=False):
+    query = 'select * from projetos where codProjeto = (%s) and ativo = 1 and status = 1'
+    proj = db.bd_busca_um(query,(codProjeto,))
+    if is_full:
+        prenche_projeto(proj)
+    return proj
 
 def desativa_projeto(codProjeto):
     query = 'update projetos set ativo = 0 where codProjeto = (%s)'
@@ -316,6 +315,18 @@ def desativa_projeto(codProjeto):
 def ativa_projeto(codProjeto):
     query = 'update projetos set ativo = 1 where codProjeto = (%s)'
 
+    db.bd_gravar(query, (codProjeto,))
+
+def aprovar_projeto(codProjeto):
+    query = '''
+        update projetos set status = 1 where codProjeto = (%s)
+    '''
+    db.bd_gravar(query, (codProjeto,))
+
+def recusar_projeto(codProjeto):
+    query = '''
+        update projetos set status = 2 where codProjeto = (%s)
+    '''
     db.bd_gravar(query, (codProjeto,))
 
 def edita_titulo(codProjeto, titulo):
@@ -346,13 +357,26 @@ def is_valid_project(codAutor):
     query = '''
         select * from projeto_autor 
         natural join projetos 
-        where codAutor = (%s) and status = 0
+        where codAutor = (%s) and (status = 0 or status = 1)
     '''
     res = db.bd_busca_um(query, (codAutor,))
 
     if res:
         return False
     return True
+
+def is_orientador_projeto_novo(codProjeto, codOrientador):
+    query = '''
+        select distinct p.codProjeto 
+        from orientadores as o 
+        natural join projeto_orientador as po 
+        join projetos as p 
+        on p.codProjeto = po.codProjeto 
+        where p.codProjeto = (%s) and o.codOrientador = (%s) and p.status = 0
+    '''
+    if db.bd_busca_um(query, (codProjeto, codOrientador)):
+        return True
+    return False
 
 def download_file(codProjeto):
     query = 'UPDATE projetos SET numDownloads = numDownloads + 1 WHERE codProjeto = (%s)'
