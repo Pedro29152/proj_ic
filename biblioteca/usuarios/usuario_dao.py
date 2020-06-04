@@ -147,6 +147,23 @@ def get_usuario_username(username):
     ret = db.bd_busca_um(query,(username,))
     return ret
 
+def get_usuario_codProjeto(codProjeto):
+    query = '''
+    select u.codUsuario
+	from usuarios as u
+	join usuario_orientado as uo
+    on uo.codUsuario = u.codUsuario
+	join autores as a
+    on uo.codAutor = a.codAutor
+	join projeto_autor as pa
+    on pa.codAutor = a.codAutor
+	join projetos as p
+    on pa.codProjeto = p.codProjeto
+	where p.codProjeto = (%s) and u.ativo = 1
+    order by p.dataEnvio
+    '''
+    return db.bd_busca_um(query, (codProjeto,))
+
 def edita_usuario(usuario):
     query = 'update usuarios set nomeUsuario = (%s), nome = (%s), email = (%s), tipoUsuario = (%s) where codUsuario = (%s)'
     db.bd_gravar(query,(usuario['nomeUsuario'], usuario['nome'], usuario['email'], usuario['tipoUsuario'], usuario['codUsuario']))

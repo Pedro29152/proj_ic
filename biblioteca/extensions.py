@@ -63,6 +63,21 @@ def professor_token_required(f):
         return data
     return decorated
 
+def professor_secretaria_token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        success, data = check_tipo_usuario([
+            TiposUsuario.Administrador.value,
+            TiposUsuario.Professor.value,
+            TiposUsuario.Secretaria.value
+        ], has_user_info=True, has_is_admin=True, has_is_secretaria=True)
+
+        if(success):
+            kwargs.update(data)
+            return f(*args, **kwargs)
+        return data
+    return decorated
+
 def aluno_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -117,9 +132,10 @@ def user_admin_token_required(f):
         return data
     return decorated
 
-def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has_user_info=False, id=None):
+def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has_user_info=False, id=None, has_is_secretaria=False):
     is_user = False
     is_admin = False
+    is_secretaria = False
     try:
         authorized = False
         data = get_token_data()
@@ -139,6 +155,10 @@ def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has
             if current_user['tipoUsuario'] == TiposUsuario.Administrador.value:
                 authorized = True
                 is_admin = True
+        if has_is_secretaria:
+            if current_user['tipoUsuario'] == TiposUsuario.Secretaria.value:
+                authorized = True
+                is_secretaria = True
 
         if not authorized:
             for item in tipos_usuario:
@@ -157,6 +177,8 @@ def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has
         res_data.update({ 'is_user': is_user })
     if has_is_admin:
         res_data.update({ 'is_admin': is_admin })
+    if has_is_secretaria:
+        res_data.update({ 'is_secretaria': is_secretaria })
     if has_user_info:
         res_data.update({ 'user_info': current_user })
 

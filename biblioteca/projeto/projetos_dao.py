@@ -4,6 +4,7 @@ from biblioteca import db
 from biblioteca.ext_dao import palavras_chave_dao
 from biblioteca.autor import autores_dao, projeto_autor_dao
 from biblioteca.curso import cursos_dao
+from biblioteca.usuarios import usuario_dao
 from biblioteca.orientador import orientadores_dao
 from biblioteca.responses import (
     get_erro,
@@ -323,11 +324,19 @@ def aprovar_projeto(codProjeto):
     '''
     db.bd_gravar(query, (codProjeto,))
 
+    user = usuario_dao.get_usuario_codProjeto(codProjeto)
+    if user:    
+        usuario_dao.desativa_usuario(user['codUsuario'])
+
 def recusar_projeto(codProjeto):
     query = '''
         update projetos set status = 2 where codProjeto = (%s)
     '''
     db.bd_gravar(query, (codProjeto,))
+    
+    user = usuario_dao.get_usuario_codProjeto(codProjeto)
+    if user:    
+        usuario_dao.desativa_usuario(user['codUsuario'])
 
 def edita_titulo(codProjeto, titulo):
     query = 'update projetos set tituloProjeto = (%s) where codProjeto = (%s)'
@@ -388,14 +397,6 @@ def add_view(codProjeto):
 
     db.bd_gravar(query, (codProjeto,))
 
-
-def __busca_projeto_full(query, *args):
-    ret = db.bd_busca(query, *args)
-
-    prenche_projetos(ret)
-    
-    return ret
-
 def prenche_projetos(ret):
     for item in ret:
         prenche_projeto(item)
@@ -416,4 +417,10 @@ def __get_limit(pag, tam = 20):
     ff = pag * tam
 
     return ' LIMIT {}, {}'.format(fi, ff)
+
+def __busca_projeto_full(query, *args):
+    ret = db.bd_busca(query, *args)
+
+    prenche_projetos(ret)
     
+    return ret 
