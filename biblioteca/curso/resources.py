@@ -8,7 +8,8 @@ from biblioteca.responses import (
     get_falha,
     get_ok,
     get_data,
-    get_count as get_count_res
+    get_count as get_count_res,
+    get_response_code
 )
 from biblioteca.extensions import (
     secretaria_token_required,
@@ -21,34 +22,22 @@ class CursoResource(Resource):
     @admin_token_required
     def post(self):
         res, cod = cadastro_curso()
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
     @secretaria_token_required
     def get(self):
         res, cod = buscar_cursos()
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
 class CursoIdResource(Resource):
     def get(self, id):
         res, cod = get_curso(id)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
     @admin_token_required
     def put(self, id):
         res, cod = edita_curso(id)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
 class AtivaCursoResource(Resource):
     @admin_token_required
@@ -68,10 +57,7 @@ class TodosCursosResource(Resource):
     @admin_token_required
     def get(self):
         res, cod = buscar_todos_cursos()
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
 class CountCursosResource(Resource):
     @secretaria_token_required

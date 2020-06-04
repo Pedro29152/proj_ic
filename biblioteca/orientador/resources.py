@@ -9,7 +9,8 @@ from biblioteca.responses import (
     get_ok,
     get_data,
     get_falha,
-    get_count
+    get_count,
+    get_response_code
 )
 from biblioteca.extensions import(
     admin_token_required,
@@ -24,67 +25,45 @@ class OrientadorResource(Resource):
     @admin_token_required
     def post(self):
         res, cod = cadastro_orientador()
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
     @secretaria_token_required
     def get(self):
         res, cod = busca_orientadores()
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
 class TodosOrientadoresResource(Resource):
     @secretaria_token_required
     def get(self):
         res, cod = busca_todos_orientadores()
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
 class OrientadorIdResource(Resource):
     def get(self, id):
         res, cod = get_orientador(id)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
     @professor_admin_token_required
     def put(self, id):
         res, cod = edita_orientador(id)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
 class AtivaOrientadorResource(Resource):
     @admin_token_required
     def post(self, id):
         res, cod = ativa_orientador(id)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
 class DesativaOrientadorResource(Resource):
     @admin_token_required
     def delete(self, id):
         res, cod = desativa_orientador(id)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
 class CountOrientadoresResource(Resource):
     @secretaria_token_required
     def get(self):
         count = orientadores_dao.get_count()
-
         return get_count(count)
 
 

@@ -29,7 +29,7 @@ def get_orientador_orientando_codUsuario(codUsuario, is_instance=True):
         on o.codOrientador = uo.codOrientador 
         join usuarios as u 
         on uo.codUsuario = u.codUsuario 
-        where u.codUsuario = (%s) and o.ativo = 1 and (uo.dataValidade > current_date() and uo.status = 0)
+        where u.codUsuario = (%s) and o.ativo = 1 and (uo.dataValidade > current_date())
     '''
     ret = db.bd_busca_um(query, (codUsuario,))
     if ret:

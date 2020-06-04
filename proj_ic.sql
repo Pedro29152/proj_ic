@@ -31,7 +31,7 @@ CREATE TABLE `autores` (
   UNIQUE KEY `codAutor_UNIQUE` (`codAutor`),
   UNIQUE KEY `email_ra_UNIQUE` (`email`,`raAutor`) /*!80000 INVISIBLE */,
   UNIQUE KEY `raAutor_UNIQUE` (`raAutor`)
-) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -91,7 +91,7 @@ CREATE TABLE `orientadores` (
   UNIQUE KEY `email_UNIQUE` (`email`),
   UNIQUE KEY `codUsuario_UNIQUE` (`codUsuario`),
   CONSTRAINT `FK_ORIENTADOR_USUARIO` FOREIGN KEY (`codUsuario`) REFERENCES `usuarios` (`codUsuario`) ON DELETE SET NULL ON UPDATE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -117,7 +117,7 @@ CREATE TABLE `palavras_chave` (
   PRIMARY KEY (`codPalavra`),
   KEY `FK_PROJETO_idx` (`codProjeto`),
   CONSTRAINT `FK_PALAVRA_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -193,8 +193,6 @@ CREATE TABLE `projetos` (
   `tituloProjeto` varchar(100) NOT NULL,
   `descricao` longtext NOT NULL,
   `nomeArquivo` varchar(90) NOT NULL,
-  `likes` int(11) NOT NULL DEFAULT '0',
-  `deslikes` int(11) NOT NULL DEFAULT '0',
   `numVisitas` int(11) NOT NULL DEFAULT '0',
   `numDownloads` int(11) NOT NULL DEFAULT '0',
   `dataAvaliacao` date NOT NULL,
@@ -202,12 +200,13 @@ CREATE TABLE `projetos` (
   `codCurso` int(11) NOT NULL,
   `ativo` int(11) NOT NULL DEFAULT '1',
   `subTitulo` longtext NOT NULL,
+  `status` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`codProjeto`),
   UNIQUE KEY `nomeArquivo_UNIQUE` (`nomeArquivo`),
   UNIQUE KEY `codProjeto_UNIQUE` (`codProjeto`),
   KEY `FK_CURSO_idx` (`codCurso`),
   CONSTRAINT `FK_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codCurso`)
-) ENGINE=InnoDB AUTO_INCREMENT=104 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -232,7 +231,6 @@ CREATE TABLE `usuario_orientado` (
   `codUsuario` int(11) NOT NULL,
   `dataCriacao` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `dataValidade` datetime NOT NULL,
-  `status` varchar(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`codOrientador`,`codAutor`,`codUsuario`),
   KEY `FK_AUTOR_USUARIO_ORIENTADO_idx` (`codAutor`),
   KEY `FK_USUARIO_USUARIO_ORIENTADO_idx` (`codUsuario`),
@@ -268,7 +266,7 @@ CREATE TABLE `usuarios` (
   `email` varchar(150) NOT NULL,
   PRIMARY KEY (`codUsuario`),
   UNIQUE KEY `nomeUsuario_UNIQUE` (`nomeUsuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -290,4 +288,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-02 17:26:30
+-- Dump completed on 2020-06-04 14:28:54

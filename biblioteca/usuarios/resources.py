@@ -2,6 +2,7 @@ import jwt
 from flask import jsonify
 from flask_restful import Resource, request, current_app
 from werkzeug.exceptions import BadRequestKeyError
+from mysql.connector.errors import DataError
 from datetime import datetime, timedelta
 
 from biblioteca.orientador import orientadores_dao
@@ -29,44 +30,29 @@ from . import util
 class LoginResource(Resource):
     def post(self):
         res, cod = login()
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
 class UsuarioIdResource(Resource):
     @user_admin_token_required
     def get(self, id, is_user, is_admin):
         res, cod = get_usuario(id)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
     @user_admin_token_required
     def delete(self, id, is_user, is_admin):
         res, cod = deleta_usuario(id, is_user)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
     @user_admin_token_required
     def put(self, id, is_user, is_admin):
         res, cod = edita_usuario(id, is_admin, is_user)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp
+        return get_response_code(res, cod)
 
 class CadastroUsuarioResource(Resource):
     @admin_token_required
     def post(self):
         res, cod = cadastro_usuario()
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
 class CadastroAlunoResource(Resource):
     @professor_token_required
@@ -114,10 +100,7 @@ class MudarSenhaUsuarioResource(Resource):
     @user_admin_token_required
     def put(self, id):
         res, cod = mudar_senha(id)
-        
-        resp = jsonify(res)
-        resp.status_code = cod
-        return resp 
+        return get_response_code(res, cod)
 
 
 def login():
@@ -248,9 +231,12 @@ def cadastro_aluno(professor_user_info):
     
     autor = autores_dao.get_autor_ra(ra)
     if not autor:
-        autor = autores_dao.cadastra_autor(nome, email, ra)
-        if not autor:
-            return get_erro('Já existe um autor com este email cadastrado')
+        try:
+            autor = autores_dao.cadastra_autor(nome, email, ra)
+            if not autor:
+                return get_erro('Já existe um autor com este email cadastrado'), 400
+        except DataError:
+            return get_erro('O ra enviado deve ter no maximo 13 caracteres'), 400
     orientador = orientadores_dao.get_orientador_codUsuario(professor_user_info['codUsuario'])
     if not orientador:
         return get_erro('Você não pode efetuar esta ação pois não esta cadastrado como um orientador válido')

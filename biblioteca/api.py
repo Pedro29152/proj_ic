@@ -29,7 +29,8 @@ from biblioteca.projeto.resources import (
     AtivaProjetoResource,
     AlteraProjetoResource,
     CountProjetosResource,
-    UploadProjetoAlunoResource
+    UploadProjetoAlunoResource,
+    BuscarProjetosOrientador
 )
 from biblioteca.usuarios.resources import (
     LoginResource,
@@ -84,8 +85,9 @@ def configure_api(app):
 
     #Rotas de projetos
     api.add_resource(BuscaProjetoResource, '/api/projetos/<string:id>', 
-                                        '/api/projetos') #id: titulo, curso, descricao, orientador, autor e palavrasChave
+                                           '/api/projetos') #id: titulo, curso, descricao, orientador, autor e palavrasChave
     api.add_resource(BuscaRankingResource, '/api/projetos/ranking')
+    api.add_resource(BuscarProjetosOrientador, '/api/projetos/orientador')
     api.add_resource(GetProjetoResource, '/api/projetos/get/<int:id>') #id: codigo do projeto a ser buscado
     api.add_resource(UploadProjetoResource, '/api/projetos/cadastrar')
     api.add_resource(UploadProjetoAlunoResource, '/api/projetos/cadastrar/aluno')

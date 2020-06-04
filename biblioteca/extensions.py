@@ -19,20 +19,10 @@ class TiposUsuario(IntEnum):
     Secretaria = 3
     Administrador = 4
 
-def aluno_secretaria_token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        success, data = check_tipo_usuario([
-            TiposUsuario.Administrador.value,
-            TiposUsuario.Aluno.value,
-            TiposUsuario.Secretaria.value
-        ])
-
-        if(success):
-            kwargs.update(data)
-            return f(*args, **kwargs)
-        return data
-    return decorated
+class StatusProjeto(IntEnum):
+    Novo = 0
+    Aceito = 1
+    Recusado = 2
 
 def secretaria_token_required(f):
     @wraps(f)
@@ -81,7 +71,7 @@ def aluno_token_required(f):
         ], has_user_info=True)
 
         if(success):
-            is_valid = autores_dao.is_aluno_expired(data['user_info']['codUsuario'])
+            is_valid = autores_dao.is_aluno_valido(data['user_info']['codUsuario'])
             if not is_valid:
                 return get_unauthorized('Seu acesso está expirado')
             kwargs.update(data)

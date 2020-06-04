@@ -33,9 +33,7 @@ class Projetos:
         self.palavrasChave = palavrasChave
 
 class Avalicoes:
-    def __init__(self, likes, deslikes, numVisitas, numDownloads):
-        self.likes = likes
-        self.deslikes = deslikes
+    def __init__(self, numVisitas, numDownloads):
         self.numVisitas = numVisitas
         self.numDownloads = numDownloads
 

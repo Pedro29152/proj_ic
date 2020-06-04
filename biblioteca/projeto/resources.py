@@ -12,6 +12,7 @@ from mysql.connector.errors import IntegrityError
 
 from biblioteca.curso import cursos_dao
 from biblioteca.orientador import orientadores_dao
+from biblioteca.autor import autores_dao
 from biblioteca.responses import (
     get_data,
     get_falha,
@@ -25,6 +26,7 @@ from biblioteca.extensions import(
     admin_token_required,
     secretaria_token_required,
     aluno_token_required,
+    professor_token_required,
     is_valid_email,
     TiposUsuario
 )
@@ -44,9 +46,25 @@ class BuscaProjetoResource(Resource):
         else:
             projs, cod = busca(id)
         
-        resp = jsonify(projs)
-        resp.status_code = cod
-        return resp
+        return get_response_code(projs, cod)
+
+class BuscaRankingResource(Resource):
+    def get(self):
+        projs = None
+        cod = 200
+        if request.args.get('page'):
+            page = request.args.get('page')
+            projs, cod = busca_ranking_pag(page)
+        else:
+            projs, cod = busca_ranking()
+
+        return get_response_code(projs, cod)
+
+class BuscarProjetosOrientador(Resource):
+    @professor_token_required
+    def get(self, user_info):
+        res, cod = busca_projetos_orientador(user_info)
+        return get_response_code(res, cod)
 
 class UploadProjetoResource(Resource):
     @secretaria_token_required
@@ -71,32 +89,12 @@ class AlteraProjetoResource(Resource):
     @admin_token_required
     def put(self, id):
         status, cod = edita_projeto(id)
-    
-        resp = jsonify(status)
-        resp.status_code = cod
-        return resp
+        return get_response_code(status, cod)
 
 class GetProjetoResource(Resource):
     def get(self, id):
         status, cod = get_projeto(id)
-        
-        resp = jsonify(status)
-        resp.status_code = cod
-        return resp
-
-class BuscaRankingResource(Resource):
-    def get(self):
-        projs = None
-        cod = 200
-        if request.args.get('page'):
-            page = request.args.get('page')
-            projs, cod = busca_ranking_pag(page)
-        else:
-            projs, cod = busca_ranking()
-
-        resp = jsonify(projs)
-        resp.status_code = cod
-        return resp
+        return get_response_code(status, cod)
 
 class DownloadArquivoProjetoResource(Resource):
     def get(self, filename):
@@ -118,28 +116,19 @@ class DownloadArquivoProjetoResource(Resource):
 class CountProjetosResource(Resource):
     def get(self):
         status, cod = get_count()
-    
-        resp = jsonify(status)
-        resp.status_code = cod
-        return resp
+        return get_response_code(status, cod)
 
 class DesativaProjetoResource(Resource):
     @admin_token_required
     def delete(self, id):
         status, cod = desativa_projeto(id)
-        
-        resp = jsonify(status)
-        resp.status_code = cod
-        return resp
+        return get_response_code(status, cod)
 
 class AtivaProjetoResource(Resource):
     @admin_token_required
     def post(self, id):
         status, cod = ativa_projeto(id)
-        
-        resp = jsonify(status)
-        resp.status_code = cod
-        return resp
+        return get_response_code(status, cod)
 
 
 def busca(tipo = ''):
@@ -172,6 +161,16 @@ def busca_pag(tipo='', pag = 1):
     else:
         return get_falha('Nenhum projeto listado'), 204
 
+def busca_projetos_orientador(user_info):
+    orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+    if not orientador:
+        return get_erro('O usuario sendo utilizado nao possui um orientador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro'), 400
+
+    res = projetos_dao.busca_projeto_orientador(orientador['codOrientador'])
+    if not res:
+        return None, 204
+    return get_data(res), 200         
+
 def check_file():
     if 'file' not in request.files:
         return get_falha('Nenhum arquivo foi enviado'), 400
@@ -197,9 +196,10 @@ def upload_projeto(user_info=None):
         if user_info == None:
             raOrientador = request.form['raOrientador']
         else:
-            raOrientador = orientadores_dao.get_orientador_orientando_codUsuario(user_info['codUsuario'])
-            if not raOrientador:
-                return get_erro('O usuario sendo utilizado nao possui um orientador relacionado consigo mesmo, contate a secretaria ou seu orientador para efetuar o cadastro')
+            orientador = orientadores_dao.get_orientador_orientando_codUsuario(user_info['codUsuario'])
+            if not orientador:
+                return get_erro('O usuario sendo utilizado nao possui um orientador relacionado consigo mesmo, contate a secretaria ou seu orientador para efetuar o cadastro'), 400
+            raOrientador = orientador.raOrientador
             
         autores = request.form['autores']
         palavras = request.form['palavras_chave']
@@ -209,7 +209,7 @@ def upload_projeto(user_info=None):
 
     if not(titulo and raOrientador and descricao and dataAvaliacao and 
             codCurso and subTitulo):
-        return get_erro('Os valores de "titulo", ' + '"raOrientador", ' if user_info==None else '' + '"descricao", "dataAvaliacao", "subTitulo" e "curso" nao podem ser nulos'), 400
+        return get_erro('Os valores de "titulo", {}"descricao", "dataAvaliacao", "subTitulo" e "curso" nao podem ser nulos'.format('"raOrientador", ' if user_info==None else '')), 400
 
     projeto = Projetos(
         tituloProjeto = titulo,
@@ -223,48 +223,76 @@ def upload_projeto(user_info=None):
     )
     
     if not projeto.curso:
-        return get_erro('O campo "curso" deve conter um codigo de curso existente'), 400
+        return get_erro('O campo "curso" deve conter um código de curso existente'), 400
     if not projeto.orientador:
-        return get_falha('O codigo do orientador enviado e invalido'), 400
+        return get_falha('O codigo do orientador enviado é invalido'), 400
     
     try:
         autores_obj = json.loads(autores)
     except JSONDecodeError:
-        return get_erro('O campo "autores" deve ser um array contendo objetos JSON com os campos: "nome", "ra" e "email"'), 400
+        return get_erro('O campo "autores" deve ser um array contendo objetos JSON com os atributos: "nome", "ra" e "email"'), 400
     try:
         palavras_obj = json.loads(palavras)
     except JSONDecodeError:
-        return get_erro('O campo "palavras_chave" deve ser um array contendo objetos JSON com o campo: "palavra"'), 400
+        return get_erro('O campo "palavras_chave" deve ser um array contendo objetos JSON com o atributo: "palavra"'), 400
 
-    if len(autores_obj) < 1:
-        return get_erro('Cada projeto deve ter no mínimo 1 autor'), 400
+    if not user_info:
+        if len(autores_obj) < 1:
+            return get_erro('Cada projeto deve ter no mínimo 1 autor'), 400
+        if len(autores_obj) > 5:
+            return get_erro('Cada projeto deve ter no máximo 5 autores'), 400
+    else:
+        if len(autores_obj) > 4:
+            return get_erro('Cada projeto deve ter no máximo 4 autores'), 400
+
     if len(palavras_obj) < 1:
         return get_erro('Cada projeto deve ter no mínimo 1 palavra-chave'), 400
-    if len(autores_obj) > 5:
-        return get_erro('Cada projeto deve ter no máximo 5 autores'), 400
     if len(palavras_obj) > 5:
         return get_erro('Cada projeto deve ter no máximo 5 palavras-chave'), 400 
+    
+    if user_info:
+        lider = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+        if not lider:
+            return get_erro('Não foi possivel obter os dados do autor principal'), 400
+        projeto.autores.append(Autores(lider['raAutor'], lider['nomeAutor'], lider['email']))
 
+        if not projetos_dao.is_valid_project(lider['codAutor']):
+            return get_erro('voce não pode cadastrar mais um projeto, somente alterar o ja cadastrado'), 400
+        
     for item in autores_obj:
-        if item['nome'] and item['ra'] and item['email']:
-            if not is_valid_email(item['email']):
-                return get_erro('Os campos "email" de autores devem ser emails validos'), 400
-            projeto.autores.append(Autores(item['ra'], item['nome'], item['email']))
-        else:
-            return get_erro('Os objetos de autor devem conter os campos "nome", "ra" e "email"'), 400
+        try:
+            if item['nome'] and item['ra'] and item['email']:
+                if not is_valid_email(item['email']):
+                    return get_erro('Os campos "email" de autores devem ser emails validos'), 400
+                projeto.autores.append(Autores(item['ra'], item['nome'], item['email']))
+            else:
+                return get_erro('Os objetos de autor devem conter os campos "nome", "ra" e "email"'), 400
+        except KeyError:
+            return get_erro('Cada objeto do campo "autores" deve conter os atributos: "nome", "ra" e "email"'), 400
+    
     for item in palavras_obj:
-        if item['palavra']:
-            projeto.palavrasChave.append(PalavrasChave(item['palavra']))
-        else:
-            return get_erro('Os objetos de palavra chave devem conter o campo "palavra"'), 400
+        try:
+            if item['palavra']:
+                projeto.palavrasChave.append(PalavrasChave(item['palavra']))
+            else:
+                return get_erro('Os objetos de palavra chave devem conter o campo "palavra"'), 400
+        except KeyError:
+            return get_erro('Cada objeto do campo "palavras_chave" deve conter o atributo: "palavra"'), 400
+
 
     file = request.files['file']
     filename = __get_nome_arquivo_projeto(titulo, file.filename, projeto.curso.abreviacao)
     
     projeto.nomeArquivo = filename
-    ret, cod = projetos_dao.grava_projeto(
-        projeto
-    )
+    if user_info:
+        ret, cod = projetos_dao.grava_projeto(
+            projeto, is_secretaria=False
+        )
+    else:
+        ret, cod = projetos_dao.grava_projeto(
+            projeto, is_secretaria=True
+        )
+
 
     if cod == 200: 
         filepath = os.path.join(
@@ -279,11 +307,6 @@ def upload_projeto(user_info=None):
         __adicionar_cabecalio([capa, filepath], filepath)
 
     return ret, cod
-
-# def upload_projeto_aluno():
-#     #ja vem: dados do autor lider e orientador
-#     #precisa: dados de outros autores, curso e palavras chave
-#     pass
 
 def download_arquivo(filename):
     codProj = projetos_dao.is_ativo_filename(filename)
@@ -409,7 +432,7 @@ def __get_filtro_rank():
     
     tipo = request.args.get('tipo')
     if not tipo:
-        tipo = 'like'
+        tipo = 'numVisitas'
 
     ordem = request.args.get('ordem')
     if ordem:

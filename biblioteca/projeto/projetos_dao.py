@@ -10,24 +10,44 @@ from biblioteca.responses import (
     get_ok
 )
 
-QUERY_CURSO = 'SELECT * FROM projetos NATURAL JOIN cursos WHERE descricaoCurso LIKE (%s) OR abreviacao LIKE (%s) AND ativo = 1 '
-QUERY_TITULO = 'SELECT * FROM projetos WHERE tituloProjeto LIKE (%s) AND ativo = 1 '
-QUERY_DESCRICAO = 'SELECT * FROM projetos WHERE descricao LIKE (%s) AND ativo = 1 '
+QUERY_CURSO = ''''
+    SELECT * 
+    FROM projetos 
+    NATURAL JOIN cursos 
+    WHERE descricaoCurso LIKE (%s) OR abreviacao LIKE (%s) AND ativo = 1 and status = 1 
+'''
+QUERY_TITULO = '''
+    SELECT * 
+    FROM projetos 
+    WHERE tituloProjeto LIKE (%s) AND ativo = 1 and status = 1 '''
+QUERY_DESCRICAO = '''
+    SELECT * 
+    FROM projetos 
+    WHERE descricao LIKE (%s) AND ativo = 1 and status = 1 '''
 QUERY_ORIENTADOR = '''
-    SELECT codProjeto, tituloProjeto, descricao, nomeArquivo, likes, deslikes, 
-    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, ativo FROM proj_ic.projetos natural join projeto_orientador natural join orientadores where nomeOrientador like (%s);
+    SELECT codProjeto, tituloProjeto, descricao, nomeArquivo, 
+    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, ativo 
+    FROM proj_ic.projetos 
+    natural join projeto_orientador 
+    natural join orientadores 
+    where nomeOrientador like (%s) AND ativo = 1 and status = 1 
     '''
 QUERY_AUTOR = '''
     select distinct 
-    codProjeto, tituloProjeto, descricao, nomeArquivo, likes, deslikes, 
+    codProjeto, tituloProjeto, descricao, nomeArquivo,
     numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, ativo
-    from autores natural join projeto_autor natural join projetos pj where nomeAutor like (%s)
+    from autores natural 
+    join projeto_autor 
+    natural join projetos pj 
+    where nomeAutor like (%s) AND ativo = 1 and status = 1 
     '''
 QUERY_PALAVRAS_CHAVE = '''
     select distinct 
-    codProjeto, tituloProjeto, descricao, nomeArquivo, likes, deslikes, 
+    codProjeto, tituloProjeto, descricao, nomeArquivo,
     numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, ativo
-    from palavras_chave natural join projetos pj where palavraChave like (%s)
+    from palavras_chave natural 
+    join projetos pj 
+    where palavraChave like (%s) AND ativo = 1 and status = 1 
     '''
     
 def busca_projeto_tipo(tipo, query = '', ordem = 0, crescente = True):
@@ -121,7 +141,7 @@ def busca_projeto_tipo_pag(tipo, query = '', ordem = 0, crescente = True, pag = 
     return ret
 
 def busca_projeto():
-    query = 'select * from projetos where ativo = 1'
+    query = 'select * from projetos where ativo = 1 and status = 1 '
 
     ret = db.bd_busca(
         query,None
@@ -132,7 +152,7 @@ def busca_projeto():
     return ret
 
 def busca_projeto_pag(pag):
-    query = 'select * from projetos where ativo = 1' + __get_limit(pag)
+    query = 'select * from projetos where ativo = 1 and status = 1 ' + __get_limit(pag)
 
     ret = db.bd_busca(
         query,None
@@ -145,40 +165,45 @@ def busca_projeto_pag(pag):
 def busca_projeto_ranking(titulo, tipo, ordem):
     titulo = '%{}%'.format(titulo)
     
-    query = 'select * from projetos where tituloProjeto like (%s) and ativo = 1'
+    query = 'select * from projetos where tituloProjeto like (%s) and ativo = 1 and status = 1 '
     
-    if tipo == 'likes':
-        query += ' order by likes' + ordem
-    if tipo == 'deslikes':
-        query += ' order by deslikes' + ordem
-    elif tipo == 'numVisitas':
+    if tipo == 'numVisitas':
         query += 'order by numVisitas' + ordem
     elif tipo == 'numDownloads':
         query += 'order by numDownloads' + ordem
     else:
-        query += ' order by likes' + ordem
+        query += 'order by numVisitas' + ordem
 
     return __busca_projeto_full(query, (titulo,))
 
 def busca_projeto_ranking_pag(titulo, tipo, ordem, pag):
     titulo = '%{}%'.format(titulo)
 
-    query = 'select * from projetos where tituloProjeto like (%s) and ativo = 1'
+    query = 'select * from projetos where tituloProjeto like (%s) and ativo = 1 and status = 1 '
     
-    if tipo == 'likes':
-        query += ' order by likes' + ordem
-    if tipo == 'deslikes':
-        query += ' order by deslikes' + ordem
-    elif tipo == 'numVisitas':
+    if tipo == 'numVisitas':
         query += 'order by numVisitas' + ordem
     elif tipo == 'numDownloads':
         query += 'order by numDownloads' + ordem
-    else:
-        query += ' order by likes' + ordem
-
+    
     query += __get_limit(pag, 5)
 
     return __busca_projeto_full(query, (titulo,))
+
+def busca_projeto_orientador(codOrientador):
+    query = '''
+        select distinct codProjeto, tituloProjeto, descricao, nomeArquivo, 
+        numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, 
+        subTitulo, status 
+        from projetos as p
+        natural join projeto_orientador
+        where ativo = 1 and status = 0 and codOrientador = (%s)
+    '''
+    ret = db.bd_busca(query, (codOrientador,))
+
+    prenche_projetos(ret)
+
+    return ret
 
 def get_cod_projeto_titulo(titulo):
     query = 'SELECT codProjeto FROM projetos WHERE tituloProjeto = (%s) ORDER BY codProjeto DESC'
@@ -191,7 +216,7 @@ def get_cod_projeto_titulo(titulo):
     return val['codProjeto']
 
 def get_count():
-    query = 'select count(*) as projetos from projetos'
+    query = 'select count(*) as projetos from projetos where ativo = 1'
     ret = db.bd_busca_um(query, None)
     return ret['projetos']
 
@@ -202,12 +227,6 @@ def __ordena(ordem, crescente):
 
     if(ordem == 0):
         return ''
-    
-    elif(ordem == 1):
-        return 'ORDER BY likes  ' + cres
-    
-    elif(ordem == 2):
-        return 'ORDER BY deslikes  ' + cres
     
     elif(ordem == 3):
         return 'ORDER BY numVisitas  ' + cres
@@ -224,18 +243,31 @@ def __ordena(ordem, crescente):
         return ''
 
 
-def grava_projeto(projeto):
-    db.bd_gravar(
-        'insert into projetos'+
-        '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso)'+
-        'values(%s,%s,%s,%s,%s,%s)',
-        (projeto.tituloProjeto,
-        projeto.subTitulo,
-        projeto.descricao, 
-        projeto.nomeArquivo, 
-        projeto.dataAvaliacao,
-        projeto.curso.codCurso)
-    )
+def grava_projeto(projeto, is_secretaria=True):
+    if is_secretaria:
+        db.bd_gravar(
+            'insert into projetos'+
+            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, status)'+
+            'values(%s,%s,%s,%s,%s,%s, 1)',
+            (projeto.tituloProjeto,
+            projeto.subTitulo,
+            projeto.descricao, 
+            projeto.nomeArquivo, 
+            projeto.dataAvaliacao,
+            projeto.curso.codCurso)
+        )
+    else:
+        db.bd_gravar(
+            'insert into projetos'+
+            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso)'+
+            'values(%s,%s,%s,%s,%s,%s)',
+            (projeto.tituloProjeto,
+            projeto.subTitulo,
+            projeto.descricao, 
+            projeto.nomeArquivo, 
+            projeto.dataAvaliacao,
+            projeto.curso.codCurso)
+        )
 
     projeto.codProjeto = get_cod_projeto_titulo(projeto.tituloProjeto)
     
@@ -270,7 +302,7 @@ def projeto_existe(codProjeto):
     return None
 
 def get_projeto(codProjeto):
-    query = 'select * from projetos where codProjeto = (%s) and ativo = 1'
+    query = 'select * from projetos where codProjeto = (%s) and ativo = 1 and status = 1 '
     ret = db.bd_busca_um(query,(codProjeto,))
     if ret:
         return ret
@@ -302,13 +334,25 @@ def edita_subtitulo(codProjeto, subtitulo):
     db.bd_gravar(query, (subtitulo, codProjeto))
 
 def is_ativo_filename(filename):
-    query = 'select codProjeto from projetos where nomeArquivo = (%s) and ativo = 1'
+    query = 'select codProjeto from projetos where nomeArquivo = (%s) and ativo = 1 and not status = 2 '
 
     ret = db.bd_busca_um(query, (filename,))
 
     if ret:
         return ret['codProjeto']
     return None
+
+def is_valid_project(codAutor):
+    query = '''
+        select * from projeto_autor 
+        natural join projetos 
+        where codAutor = (%s) and status = 0
+    '''
+    res = db.bd_busca_um(query, (codAutor,))
+
+    if res:
+        return False
+    return True
 
 def download_file(codProjeto):
     query = 'UPDATE projetos SET numDownloads = numDownloads + 1 WHERE codProjeto = (%s)'
@@ -336,7 +380,7 @@ def prenche_projeto(ret):
     ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
     ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
     ret['curso'] = cursos_dao.busca_curso_cod(ret['codCurso'])
-    ret['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
+    ret['orientador'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
 
 def __grava_proj_ori(codProjeto, codOrientador):
     query = 'insert into projeto_orientador values(%s, %s)'
