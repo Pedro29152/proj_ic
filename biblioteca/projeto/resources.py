@@ -503,11 +503,17 @@ def __get_nome_arquivo_projeto(titulo_projeto, nome_arquivo, curso):
         for div in aux:
             titulo += div[0]
 
+    if descricaoCurso.upper() == "ADS":
+        descricaoCurso = 'SIST'
+
     filename = filename.replace(
         nfilename,
-        descricaoCurso.replace(' ', '-') + '-' +
-        titulo.replace(' ', '-') + '-' + 
-        str(data) + "-" + str(rand).replace('0X','')
+        '{}-{}-{}-{}'.format(
+            descricaoCurso.replace(' ', '-'), 
+            titulo.replace(' ', '-'), 
+            str(data), 
+            str(rand).upper().replace('0X','')
+        )
     )
     return filename.upper()
 
