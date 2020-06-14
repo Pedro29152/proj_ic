@@ -58,6 +58,15 @@ def busca_curso_cod(codCurso):
     )
 
     return val
+    
+def get_all_curso_cod(codCurso):
+
+    val = db.bd_busca_um(
+        'select descricaoCurso, abreviacao from cursos where codCurso = (%s)',
+        (codCurso,)
+    )
+
+    return val
 
 def get_codCurso(descricaoCurso):
 

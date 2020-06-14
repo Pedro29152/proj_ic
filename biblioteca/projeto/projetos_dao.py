@@ -404,7 +404,7 @@ def prenche_projetos(ret):
 def prenche_projeto(ret):
     ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
     ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
-    ret['curso'] = cursos_dao.busca_curso_cod(ret['codCurso'])
+    ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
     ret['orientador'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
 
 def __grava_proj_ori(codProjeto, codOrientador):
