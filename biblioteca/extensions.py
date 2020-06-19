@@ -17,7 +17,8 @@ class TiposUsuario(IntEnum):
     Aluno = 1
     Professor = 2
     Secretaria = 3
-    Administrador = 4
+    Coordenador = 4
+    Administrador = 5
 
 class StatusProjeto(IntEnum):
     Novo = 0
@@ -105,6 +106,18 @@ def aluno_token_required(f):
                 return get_unauthorized('Seu acesso está expirado')
             kwargs.update(data)
             return f(*args, **kwargs)            
+        return data
+    return decorated
+
+def coordenador_token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        success, data = check_tipo_usuario([
+            TiposUsuario.Coordenador.value
+        ], has_user_info=True)
+
+        if(success):
+            return f(*args, **kwargs)
         return data
     return decorated
 
