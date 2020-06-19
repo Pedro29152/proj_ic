@@ -106,6 +106,15 @@ def get_curso_codCurso(codCurso, is_instance=True):
         return curso
     return res
 
+def get_curso_codUsuario(codUsuario):
+    query = '''
+        select c.* from cursos as c 
+        natural join usuario_orientado as uo 
+        where uo.codUsuario = (%s)
+    '''
+    ret = db.bd_busca_um(query, (codUsuario,))
+    return ret
+
 def get_count():
     query = 'select count(*) as cursos from cursos where ativo = 1'
     ret = db.bd_busca_um(query, None)

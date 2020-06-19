@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 from biblioteca.orientador import orientadores_dao
 from biblioteca.autor import autores_dao
+from biblioteca.curso import cursos_dao
 from biblioteca.extensions import (
     secretaria_token_required,
     admin_token_required,
@@ -206,16 +207,21 @@ def cadastro_aluno(professor_user_info):
         nome = request.form['nome']
         email = request.form['email']
         ra = request.form['ra_aluno']
+        codCurso = request.form['codCurso']
     except BadRequestKeyError:
         return get_erro(
-            'A requisicao deve possuir os campos "username", "email", "nome", "ra_aluno" e "password" em seu corpo'
+            'A requisicao deve possuir os campos "username", "email", "nome", "ra_aluno", "codCurso" e "password" em seu corpo'
         ), 400
 
-    if not (user and senha and email and nome and ra):
+    if not (user and senha and email and nome and ra and codCurso):
         return get_falha('Os campos enviados nao podem estar vazios'), 400
     if not is_valid_email(email):
         return get_erro('O campo "email" dever ser um email valido'), 400
     
+    curso = cursos_dao.get_curso_codCurso(codCurso, False)
+    if not curso:
+        return get_falha('O código do curso enviado não é um codigo de curso válido'), 400
+
     autor = autores_dao.get_autor_ra(ra)
     if not autor:
         try:
@@ -228,7 +234,7 @@ def cadastro_aluno(professor_user_info):
     if not orientador:
         return get_erro('Você não pode efetuar esta ação pois não esta cadastrado como um orientador válido')
     
-    if usuario_dao.add_aluno(user, senha, nome, email, autor['codAutor'], orientador['codOrientador']):
+    if usuario_dao.add_aluno(user, senha, nome, email, autor['codAutor'], orientador['codOrientador'], codCurso):
         return get_ok(
             'Usuario cadastrado com sucesso'
         ), 201

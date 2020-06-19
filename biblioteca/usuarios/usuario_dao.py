@@ -116,7 +116,7 @@ def add_usr(usuario, senha, tipoUsuario, nome, email):
     except IntegrityError:
         return None
 
-def add_aluno(user, senha, nome, email, codAutor, codOrientador):
+def add_aluno(user, senha, nome, email, codAutor, codOrientador, codCurso):
     user = add_usr(user, senha, 1, nome, email)
     if not user:
         return False
@@ -124,8 +124,8 @@ def add_aluno(user, senha, nome, email, codAutor, codOrientador):
     now = datetime.now()
     dataValidade = now + timedelta(days=30)
     codUsuario = user['codUsuario']
-    query = 'insert into usuario_orientado(codOrientador, codAutor, codUsuario, dataValidade, dataCriacao) values (%s, %s, %s, %s, %s)'
-    db.bd_gravar(query, (codOrientador, codAutor, codUsuario, dataValidade.__str__(), now.__str__()))
+    query = 'insert into usuario_orientado(codOrientador, codAutor, codUsuario, dataValidade, dataCriacao, codCurso) values (%s, %s, %s, %s, %s, %s)'
+    db.bd_gravar(query, (codOrientador, codAutor, codUsuario, dataValidade.__str__(), now.__str__(), codCurso))
 
     desativa_anteriores(codAutor, codUsuario)
 

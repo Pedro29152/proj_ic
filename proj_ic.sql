@@ -31,7 +31,7 @@ CREATE TABLE `autores` (
   UNIQUE KEY `codAutor_UNIQUE` (`codAutor`),
   UNIQUE KEY `email_ra_UNIQUE` (`email`,`raAutor`) /*!80000 INVISIBLE */,
   UNIQUE KEY `raAutor_UNIQUE` (`raAutor`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,6 +40,7 @@ CREATE TABLE `autores` (
 
 LOCK TABLES `autores` WRITE;
 /*!40000 ALTER TABLE `autores` DISABLE KEYS */;
+INSERT INTO `autores` VALUES (112,'1234567890132','aluno2','aluno2@aluno.com'),(114,'1239011231231','autor-2','email@mail.com');
 /*!40000 ALTER TABLE `autores` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -58,7 +59,7 @@ CREATE TABLE `cursos` (
   PRIMARY KEY (`codCurso`),
   UNIQUE KEY `abreviacao_UNIQUE` (`abreviacao`),
   UNIQUE KEY `descricaoCurso_UNIQUE` (`descricaoCurso`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -91,7 +92,7 @@ CREATE TABLE `orientadores` (
   UNIQUE KEY `email_UNIQUE` (`email`),
   UNIQUE KEY `codUsuario_UNIQUE` (`codUsuario`),
   CONSTRAINT `FK_ORIENTADOR_USUARIO` FOREIGN KEY (`codUsuario`) REFERENCES `usuarios` (`codUsuario`) ON DELETE SET NULL ON UPDATE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -100,6 +101,7 @@ CREATE TABLE `orientadores` (
 
 LOCK TABLES `orientadores` WRITE;
 /*!40000 ALTER TABLE `orientadores` DISABLE KEYS */;
+INSERT INTO `orientadores` VALUES (16,'orientador','1234567890','http://lattes.cnpq.br/corucilo','orientador@orientador.com',1,69);
 /*!40000 ALTER TABLE `orientadores` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -117,7 +119,7 @@ CREATE TABLE `palavras_chave` (
   PRIMARY KEY (`codPalavra`),
   KEY `FK_PROJETO_idx` (`codProjeto`),
   CONSTRAINT `FK_PALAVRA_PROJETO` FOREIGN KEY (`codProjeto`) REFERENCES `projetos` (`codprojeto`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -126,6 +128,7 @@ CREATE TABLE `palavras_chave` (
 
 LOCK TABLES `palavras_chave` WRITE;
 /*!40000 ALTER TABLE `palavras_chave` DISABLE KEYS */;
+INSERT INTO `palavras_chave` VALUES (51,'palavra 1',109);
 /*!40000 ALTER TABLE `palavras_chave` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -152,6 +155,7 @@ CREATE TABLE `projeto_autor` (
 
 LOCK TABLES `projeto_autor` WRITE;
 /*!40000 ALTER TABLE `projeto_autor` DISABLE KEYS */;
+INSERT INTO `projeto_autor` VALUES (109,112),(109,114);
 /*!40000 ALTER TABLE `projeto_autor` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -178,6 +182,7 @@ CREATE TABLE `projeto_orientador` (
 
 LOCK TABLES `projeto_orientador` WRITE;
 /*!40000 ALTER TABLE `projeto_orientador` DISABLE KEYS */;
+INSERT INTO `projeto_orientador` VALUES (16,109);
 /*!40000 ALTER TABLE `projeto_orientador` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -206,7 +211,7 @@ CREATE TABLE `projetos` (
   UNIQUE KEY `codProjeto_UNIQUE` (`codProjeto`),
   KEY `FK_CURSO_idx` (`codCurso`),
   CONSTRAINT `FK_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codCurso`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -215,6 +220,7 @@ CREATE TABLE `projetos` (
 
 LOCK TABLES `projetos` WRITE;
 /*!40000 ALTER TABLE `projetos` DISABLE KEYS */;
+INSERT INTO `projetos` VALUES (109,'projeto aluno1','descricao\\resumo 1','JD-PROJETO-ALUNO1-2020-06-04-0X20C81A.PDF',0,0,'2020-06-02','2020-06-04 16:41:02',1,1,'sub titulo 1',1);
 /*!40000 ALTER TABLE `projetos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -231,10 +237,13 @@ CREATE TABLE `usuario_orientado` (
   `codUsuario` int(11) NOT NULL,
   `dataCriacao` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `dataValidade` datetime NOT NULL,
+  `codCurso` int(11) NOT NULL,
   PRIMARY KEY (`codOrientador`,`codAutor`,`codUsuario`),
   KEY `FK_AUTOR_USUARIO_ORIENTADO_idx` (`codAutor`),
   KEY `FK_USUARIO_USUARIO_ORIENTADO_idx` (`codUsuario`),
+  KEY `FK_CURSO_USUARIO_ORIENTADO_idx` (`codCurso`),
   CONSTRAINT `FK_AUTOR_USUARIO_ORIENTADO` FOREIGN KEY (`codAutor`) REFERENCES `autores` (`codAutor`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `FK_CURSO_USUARIO_ORIENTADO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codCurso`),
   CONSTRAINT `FK_ORIENTADOR_USUARIO_ORIENTADO` FOREIGN KEY (`codOrientador`) REFERENCES `orientadores` (`codOrientador`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `FK_USUARIO_USUARIO_ORIENTADO` FOREIGN KEY (`codUsuario`) REFERENCES `usuarios` (`codUsuario`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -246,6 +255,7 @@ CREATE TABLE `usuario_orientado` (
 
 LOCK TABLES `usuario_orientado` WRITE;
 /*!40000 ALTER TABLE `usuario_orientado` DISABLE KEYS */;
+INSERT INTO `usuario_orientado` VALUES (16,112,70,'2020-06-04 14:52:53','2020-07-04 14:52:53',1);
 /*!40000 ALTER TABLE `usuario_orientado` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -266,7 +276,7 @@ CREATE TABLE `usuarios` (
   `email` varchar(150) NOT NULL,
   PRIMARY KEY (`codUsuario`),
   UNIQUE KEY `nomeUsuario_UNIQUE` (`nomeUsuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -275,7 +285,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:150000$7rHphFnD$397c0a570ba3810f5d5f2fbaea54139512a6309e3757fa1ef730d5ca2d73c5b9',4,1,'admin','admin@admin.com');
+INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:150000$7rHphFnD$397c0a570ba3810f5d5f2fbaea54139512a6309e3757fa1ef730d5ca2d73c5b9',4,1,'admin','admin@admin.com'),(2,'professor','pbkdf2:sha256:150000$yQxXJyYU$6c850fd7b085cbf9789df6ba13e5e667add4829ac1c67a4dd52b40e3f9ea9d05',2,1,'professor','professor@professor.com'),(3,'aluno2','pbkdf2:sha256:150000$sDqv8KKk$9f3dc17c47e2161b1cd0bc9177e55f474e38fa05b7b33b2f31300b8ff155664a',1,0,'aluno2','aluno2@aluno.com'),(4,'secretaria','pbkdf2:sha256:150000$bZ1vLB3W$b574ea1aba7b87c722087e2d0a363883a939adbb947367238eb8a8f8cdc22292',3,1,'secretaria','secreataria@secreataria.com');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -288,4 +298,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-04 14:28:54
+-- Dump completed on 2020-06-19 16:25:01

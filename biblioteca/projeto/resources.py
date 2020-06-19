@@ -97,7 +97,6 @@ class UploadProjetoAlunoResource(Resource):
         data, cod = upload_projeto(user_info)
         return get_response_code(data, cod)
 
-
 class AlteraProjetoResource(Resource):
     @admin_token_required
     def put(self, id):
@@ -204,25 +203,27 @@ def upload_projeto(user_info=None):
         titulo = request.form['titulo']
         descricao = request.form['descricao']
         dataAvaliacao = request.form['dataAvaliacao']
-        codCurso = request.form['codCurso']
         subTitulo = request.form['subTitulo']
         if user_info == None:
             raOrientador = request.form['raOrientador']
+            codCurso = request.form['codCurso']
         else:
             orientador = orientadores_dao.get_orientador_orientando_codUsuario(user_info['codUsuario'])
-            if not orientador:
+            curso = cursos_dao.get_curso_codUsuario(user_info['codUsuario'])
+            if not (orientador and curso):
                 return get_erro('O usuario sendo utilizado nao possui um orientador relacionado consigo mesmo, contate a secretaria ou seu orientador para efetuar o cadastro'), 400
             raOrientador = orientador.raOrientador
+            codCurso = curso['codCurso']
             
         autores = request.form['autores']
         palavras = request.form['palavras_chave']
     except BadRequestKeyError:
-        return get_erro('A requisicao deve conter os campos "titulo", {}"descricao", "dataAvaliacao", "subTitulo", "autores", "palavras_chave" e "codCurso"'.format('"raOrientador", ' if user_info==None else '')), 400
+        return get_erro('A requisicao deve conter os campos "titulo", {}"descricao", "dataAvaliacao", "subTitulo", "autores" e "palavras_chave"'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
 
 
     if not(titulo and raOrientador and descricao and dataAvaliacao and 
             codCurso and subTitulo):
-        return get_erro('Os valores de "titulo", {}"descricao", "dataAvaliacao", "subTitulo" e "curso" nao podem ser nulos'.format('"raOrientador", ' if user_info==None else '')), 400
+        return get_erro('Os valores de "titulo", {}"descricao", "dataAvaliacao" e "subTitulo" nao podem ser nulos'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
 
     projeto = Projetos(
         tituloProjeto = titulo,
