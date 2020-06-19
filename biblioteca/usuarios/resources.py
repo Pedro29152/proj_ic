@@ -97,6 +97,12 @@ class BuscaUsuariosInativosResource(Resource):
         res, cod = busca_usuarios_inativos()
         return get_response_code(res, cod)
 
+class BuscaUsuariosOrientadosResource(Resource):
+    @professor_token_required
+    def get(self, user_info):
+        res, cod = buscar_usuarios_orientados(user_info)
+        return get_response_code(res, cod)
+
 class MudarSenhaUsuarioResource(Resource):
     @user_admin_token_required
     def put(self, id):
@@ -264,6 +270,22 @@ def busca_usuarios():
         ret = usuario_dao.busca_usuarios_nome_like(nome)
     else:
         ret = usuario_dao.busca_usuarios()
+    
+    if ret:
+        return get_data(ret), 200
+    return get_falha("Nenhum usuario retornado"), 204
+
+def buscar_usuarios_orientados(user_info):
+    orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+    if not orientador:
+        return get_erro('Você não pode efetuar esta ação pois não esta cadastrado como um orientador válido')
+
+    nome = request.args.get('nomeUsuario')
+
+    if nome:
+        ret = usuario_dao.busca_usuarios_orientados_nome_like(nome, orientador['codOrientador'])
+    else:
+        ret = usuario_dao.busca_usuarios_orientados(orientador['codOrientador'])
     
     if ret:
         return get_data(ret), 200

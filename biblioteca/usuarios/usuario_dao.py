@@ -76,6 +76,26 @@ def busca_usuarios_nome(nomeUsuario):
 
     return val
 
+def busca_usuarios_orientados_nome_like(nomeUsuario, codOrientador):
+    query = '''
+        select codUsuario, nomeUsuario, tipoUsuario, nome, email 
+        from usuarios as u 
+        natural join usuario_orientado as uo 
+        where uo.codOrientador = (%s) and nomeUsuario like (%s)
+    '''
+    ret = db.bd_busca(query,(codOrientador, nomeUsuario))
+    return ret
+
+def busca_usuarios_orientados(codOrientador):
+    query = '''
+        select codUsuario, nomeUsuario, tipoUsuario, nome, email 
+        from usuarios as u 
+        natural join usuario_orientado as uo 
+        where uo.codOrientador = (%s)
+    '''
+    ret = db.bd_busca(query,(codOrientador,))
+    return ret
+
 def busca_senha_nome(nomeUsuario):
     val = db.bd_busca_um(
         'select senha from usuarios where nomeUsuario = (%s) and ativo = 1',

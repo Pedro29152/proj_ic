@@ -3,6 +3,7 @@
 # Importamos as classes API e Resource
 from flask import jsonify
 from flask_restful import Api, Resource
+
 from biblioteca.curso.resources import (
     CursoResource, 
     AtivaCursoResource, 
@@ -45,7 +46,8 @@ from biblioteca.usuarios.resources import (
     MudarSenhaUsuarioResource,
     DesativaUsuarioResource,
     AtivaUsuarioResource,
-    BuscaUsuariosInativosResource
+    BuscaUsuariosInativosResource,
+    BuscaUsuariosOrientadosResource
 )
 from biblioteca.geral.resources import (
     AllCountsResource
@@ -106,6 +108,7 @@ def configure_api(app):
     #Rotas de usuario
     api.add_resource(BuscaUsuariosResource, '/api/usuarios/buscar')
     api.add_resource(BuscaUsuariosInativosResource, '/api/usuarios/buscar/inativos')
+    api.add_resource(BuscaUsuariosOrientadosResource, '/api/usuarios/buscar/orientador')
     api.add_resource(UsuarioIdResource, '/api/usuarios/<int:id>')
     api.add_resource(DesativaUsuarioResource, '/api/usuarios/desativar/<int:id>')
     api.add_resource(AtivaUsuarioResource, '/api/usuarios/ativar/<int:id>')

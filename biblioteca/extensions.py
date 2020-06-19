@@ -17,8 +17,8 @@ class TiposUsuario(IntEnum):
     Aluno = 1
     Professor = 2
     Secretaria = 3
-    Coordenador = 4
-    Administrador = 5
+    Coordenador = 5
+    Administrador = 4
 
 class StatusProjeto(IntEnum):
     Novo = 0
@@ -159,6 +159,7 @@ def user_admin_token_required(f):
         return data
     return decorated
 
+
 def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has_user_info=False, id=None, has_is_secretaria=False):
     is_user = False
     is_admin = False
@@ -209,8 +210,7 @@ def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has
     if has_user_info:
         res_data.update({ 'user_info': current_user })
 
-    return True, res_data
-    
+    return True, res_data   
 
 def get_token_data():
     auth_header = request.headers.get('AUTHORIZATION')
