@@ -14,7 +14,8 @@ from biblioteca.extensions import (
     professor_token_required,
     TiposUsuario,
     is_valid_email,
-    admin_is_user_token_required
+    admin_is_user_token_required,
+    secretaria_token_required_user_info
 )
 from biblioteca.responses import (
     get_falha,
@@ -43,7 +44,7 @@ class UsuarioIdResource(Resource):
         res, cod = deleta_usuario(id, is_user)
         return get_response_code(res, cod)
 
-    @user_admin_token_required
+    @secretaria_token_required_user_info
     def put(self, id, is_user, is_admin):
         res, cod = edita_usuario(id, is_admin, is_user)
         return get_response_code(res, cod)
@@ -63,7 +64,7 @@ class CadastroAlunoResource(Resource):
 class CadastroProfessorResource(Resource):
     @admin_token_required
     def post(self):
-        data, cod = cadastra_professor()
+        data, cod = cadastro_professor()
         return get_response_code(data, cod)
 
 class DesativaUsuarioResource(Resource):
@@ -167,7 +168,7 @@ def cadastro_usuario():
         ), 201
     return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
 
-def cadastra_professor():
+def cadastro_professor():
     try:
         user = request.form['username']
         senha = request.form['password']
@@ -191,26 +192,6 @@ def cadastra_professor():
             'Usuario cadastrado com sucesso'
         ), 201
     return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
-
-def desativa_usuario(codUsuario, is_user):
-    if is_user:
-        return get_erro('Voce não pode desativar o próprio usuário'), 400
-        
-    usr = usuario_dao.get_usuario(codUsuario)
-    if usr:
-        usuario_dao.desativa_usuario(codUsuario)
-        return get_ok('Usuario desativado com sucesso'), 200
-    return get_erro('O código de usuário enviado não existe'), 404
-
-def ativa_usuario(codUsuario, is_user):
-    if is_user:
-        return get_erro('Voce não pode ativar o próprio usuário'), 400
-
-    usr = usuario_dao.get_usuario_inativo(codUsuario)
-    if usr:
-        usuario_dao.ativa_usuario(codUsuario)
-        return get_ok('Usuario ativado com sucesso'), 200
-    return get_erro('O código de usuário enviado não existe'), 404
 
 def cadastro_aluno(professor_user_info):
     try:
@@ -246,6 +227,26 @@ def cadastro_aluno(professor_user_info):
             'Usuario cadastrado com sucesso'
         ), 201
     return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
+
+def desativa_usuario(codUsuario, is_user):
+    if is_user:
+        return get_erro('Voce não pode desativar o próprio usuário'), 400
+        
+    usr = usuario_dao.get_usuario(codUsuario)
+    if usr:
+        usuario_dao.desativa_usuario(codUsuario)
+        return get_ok('Usuario desativado com sucesso'), 200
+    return get_erro('O código de usuário enviado não existe'), 404
+
+def ativa_usuario(codUsuario, is_user):
+    if is_user:
+        return get_erro('Voce não pode ativar o próprio usuário'), 400
+
+    usr = usuario_dao.get_usuario_inativo(codUsuario)
+    if usr:
+        usuario_dao.ativa_usuario(codUsuario)
+        return get_ok('Usuario ativado com sucesso'), 200
+    return get_erro('O código de usuário enviado não existe'), 404
 
 def deleta_usuario(id, is_user):
     if is_user:
@@ -307,6 +308,10 @@ def edita_usuario(codUsuario, is_admin, is_user):
     usr = usuario_dao.get_usuario(codUsuario)
 
     if usr:
+        if not is_admin:
+            if usr['tipoUsuario'] == TiposUsuario.Administrador.value:
+                return get_erro('Voce nao pode alterar um administrador sem ser um administrador'), 400
+
         if nomeUsuario:
             usr['nomeUsuario'] = nomeUsuario
         if nome: 

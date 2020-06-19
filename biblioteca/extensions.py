@@ -37,6 +37,20 @@ def secretaria_token_required(f):
         return data
     return decorated
 
+def secretaria_token_required_user_info(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        success, data = check_tipo_usuario([
+            TiposUsuario.Administrador.value,
+            TiposUsuario.Secretaria.value
+        ], has_is_user=True, has_is_admin=True, id=kwargs['id'])
+
+        if(success):
+            kwargs.update(data)
+            return f(*args, **kwargs)
+        return data
+    return decorated
+
 def professor_admin_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
