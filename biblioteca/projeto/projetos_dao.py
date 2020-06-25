@@ -247,26 +247,28 @@ def grava_projeto(projeto, is_secretaria=True):
     if is_secretaria:
         db.bd_gravar(
             'insert into projetos'+
-            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, status)'+
-            'values(%s,%s,%s,%s,%s,%s, 1)',
+            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, status, linguagem)'+
+            'values(%s,%s,%s,%s,%s,%s,1,%s)',
             (projeto.tituloProjeto,
             projeto.subTitulo,
             projeto.descricao, 
             projeto.nomeArquivo, 
             projeto.dataAvaliacao,
-            projeto.curso.codCurso)
+            projeto.curso.codCurso,
+            projeto.linguagem)
         )
     else:
         db.bd_gravar(
             'insert into projetos'+
-            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso)'+
-            'values(%s,%s,%s,%s,%s,%s)',
+            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, linguagem)'+
+            'values(%s,%s,%s,%s,%s,%s,%s)',
             (projeto.tituloProjeto,
             projeto.subTitulo,
             projeto.descricao, 
             projeto.nomeArquivo, 
             projeto.dataAvaliacao,
-            projeto.curso.codCurso)
+            projeto.curso.codCurso,
+            projeto.linguagem)
         )
 
     projeto.codProjeto = get_cod_projeto_titulo(projeto.tituloProjeto)

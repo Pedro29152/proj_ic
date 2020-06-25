@@ -29,7 +29,8 @@ from biblioteca.extensions import(
     professor_token_required,
     professor_secretaria_token_required,
     is_valid_email,
-    TiposUsuario
+    TiposUsuario,
+    LinguagemProjeto
 )
 from . import projetos_dao
 from .schemas import Projetos, Autores, PalavrasChave
@@ -204,6 +205,7 @@ def upload_projeto(user_info=None):
         descricao = request.form['descricao']
         dataAvaliacao = request.form['dataAvaliacao']
         subTitulo = request.form['subTitulo']
+        linguagem = int(request.form['linguagem'])
         if user_info == None:
             raOrientador = request.form['raOrientador']
             codCurso = request.form['codCurso']
@@ -218,18 +220,24 @@ def upload_projeto(user_info=None):
         autores = request.form['autores']
         palavras = request.form['palavras_chave']
     except BadRequestKeyError:
-        return get_erro('A requisicao deve conter os campos "titulo", {}"descricao", "dataAvaliacao", "subTitulo", "autores" e "palavras_chave"'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
-
+        return get_erro('A requisicao deve conter os campos "titulo", {}"descricao", "dataAvaliacao", "subTitulo", "autores", "linguagem" e "palavras_chave"'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
+    except ValueError:
+        return get_erro(
+            'O campo "linguagem" deve ser do tipo inteiro entre 0 e 2'
+        ), 400
 
     if not(titulo and raOrientador and descricao and dataAvaliacao and 
             codCurso and subTitulo):
-        return get_erro('Os valores de "titulo", {}"descricao", "dataAvaliacao" e "subTitulo" nao podem ser nulos'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
+        return get_erro('Os valores de "titulo", {}"descricao", "dataAvaliacao", "linguagem" e "subTitulo" nao podem ser nulos'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
+    if not (linguagem - 1) in range(LinguagemProjeto.Espanhol.value):
+        return get_falha('O campo linguagem deve ser um campo com numeros entre 0 e 2'), 400
 
     projeto = Projetos(
         tituloProjeto = titulo,
         subTitulo = subTitulo,
         descricao = descricao,
         dataAvaliacao = dataAvaliacao,
+        linguagem = linguagem,
         autores = [], 
         palavrasChave = [],
         curso = cursos_dao.get_curso_codCurso(codCurso),

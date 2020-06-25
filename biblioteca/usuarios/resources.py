@@ -14,10 +14,10 @@ from biblioteca.extensions import (
     admin_token_required,
     user_admin_token_required,
     professor_token_required,
-    TiposUsuario,
     is_valid_email,
     admin_is_user_token_required,
-    secretaria_token_required_user_info
+    secretaria_token_required_user_info,
+    TiposUsuario
 )
 from biblioteca.responses import (
     get_falha,
@@ -169,7 +169,7 @@ def cadastro_usuario():
         return get_falha('Os campos enviados nao podem estar vazios'), 400
     if not is_valid_email(email):
         return get_erro('O campo "email" dever ser um email valido'), 400
-    if not (tipoUsuario - 1) in range(TiposUsuario.Administrador.value):
+    if not (tipoUsuario - 1) in range(TiposUsuario.Coordenador.value):
         return get_falha('O tipo de usuario enviado é invalido'), 400
     if tipoUsuario == TiposUsuario.Aluno.value:
         return get_falha('Para cadastrar um aluno utilize a rota "/api/usuarios/cadastro/aluno"'), 400

@@ -25,6 +25,11 @@ class StatusProjeto(IntEnum):
     Aceito = 1
     Recusado = 2
 
+class LinguagemProjeto(IntEnum):
+    Portugues = 0
+    Ingles = 1
+    Espanhol = 2
+
 def secretaria_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):

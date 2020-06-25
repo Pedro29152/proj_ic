@@ -7,7 +7,7 @@ class Projetos:
     def __init__(self, 
     codProjeto=0, 
     tituloProjeto='',
-    subTitulo='', 
+    subTitulo='',
     descricao='', 
     nomeArquivo='', 
     dataAvaliacao=None, 
@@ -16,7 +16,8 @@ class Projetos:
     curso=None, 
     autores=None,
     orientador=None, 
-    palavrasChave=None):
+    palavrasChave=None,
+    linguagem=None):
 
         self.codProjeto = codProjeto
         self.tituloProjeto = tituloProjeto
@@ -31,6 +32,7 @@ class Projetos:
         self.autores = autores
         self.orientador = orientador
         self.palavrasChave = palavrasChave
+        self.linguagem = linguagem
 
 class Avalicoes:
     def __init__(self, numVisitas, numDownloads):
