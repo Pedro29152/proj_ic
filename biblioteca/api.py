@@ -39,7 +39,8 @@ from biblioteca.usuarios.resources import (
     LoginResource,
     CadastroUsuarioResource,
     CadastroAlunoResource,
-    CadastroProfessorResource,
+    CadastroProfessorExistenteResource,
+    CadastroProfessorNovoResource,
     CountUsuariosResource,
     BuscaUsuariosResource,
     UsuarioIdResource,
@@ -92,6 +93,7 @@ def configure_api(app):
                                            '/api/projetos') #id: titulo, curso, descricao, orientador, autor e palavrasChave
     api.add_resource(BuscaRankingResource, '/api/projetos/ranking')
     api.add_resource(BuscarProjetosOrientador, '/api/projetos/orientador')
+    #api.add_resource(BuscarProjetosOrientador, '/api/projetos/orientador/<id>')#publico
     api.add_resource(AprovarProjetoResource, '/api/projetos/aprovar/<int:id>')
     api.add_resource(RecusarProjetoResource, '/api/projetos/recusar/<int:id>')
     api.add_resource(GetProjetoResource, '/api/projetos/get/<int:id>') #id: codigo do projeto a ser buscado
@@ -114,7 +116,8 @@ def configure_api(app):
     api.add_resource(AtivaUsuarioResource, '/api/usuarios/ativar/<int:id>')
     api.add_resource(CadastroUsuarioResource, '/api/usuarios/cadastro')
     api.add_resource(CadastroAlunoResource, '/api/usuarios/cadastro/aluno')
-    api.add_resource(CadastroProfessorResource, '/api/usuarios/cadastro/orientador')
+    api.add_resource(CadastroProfessorExistenteResource, '/api/usuarios/cadastro/orientador/existente')
+    api.add_resource(CadastroProfessorNovoResource, '/api/usuarios/cadastro/orientador/novo')
     api.add_resource(CountUsuariosResource, '/api/usuarios/count')
     api.add_resource(MudarSenhaUsuarioResource, '/api/usuarios/mudarsenha/<int:id>')
 

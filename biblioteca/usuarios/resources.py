@@ -5,6 +5,7 @@ from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import DataError
 from datetime import datetime, timedelta
 
+from biblioteca.orientador.schemas import Orientadores
 from biblioteca.orientador import orientadores_dao
 from biblioteca.autor import autores_dao
 from biblioteca.curso import cursos_dao
@@ -62,10 +63,16 @@ class CadastroAlunoResource(Resource):
         res, cod = cadastro_aluno(user_info)
         return get_response_code(res, cod)
 
-class CadastroProfessorResource(Resource):
+class CadastroProfessorExistenteResource(Resource):
     @admin_token_required
     def post(self):
-        data, cod = cadastro_professor()
+        data, cod = cadastro_professor(True)
+        return get_response_code(data, cod)
+
+class CadastroProfessorNovoResource(Resource):
+    @admin_token_required
+    def post(self):
+        data, cod = cadastro_professor(False)
         return get_response_code(data, cod)
 
 class DesativaUsuarioResource(Resource):
@@ -175,24 +182,48 @@ def cadastro_usuario():
         ), 201
     return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
 
-def cadastro_professor():
+def cadastro_professor(existente=True):
     try:
         user = request.form['username']
         senha = request.form['password']
         nome = request.form['nome']
         email = request.form['email']
-        codOrientador = request.form['cod_orientador']
+        if existente:
+            codOrientador = request.form['codOrientador']
+            if not (user and senha and email and nome and codOrientador):
+                return get_falha('Os campos enviados nao podem estar vazios'), 400
+        else:
+            currLattes = request.form['currLattes']
+            ra = request.form['ra']
+            if not (user and senha and email and nome and currLattes and ra):
+                return get_falha('Os campos enviados nao podem estar vazios'), 400
     except BadRequestKeyError:
         return get_erro(
-            'A requisicao deve possuir os campos "username", "email", "nome", "cod_orientador" e "password" em seu corpo'
+            'A requisicao deve possuir os campos {}"username", "password", "nome" e "email" em seu corpo'.format('"codOrientador", ' if existente else '"currLattes", "ra", ')
         ), 400
-        
-    if not (user and senha and email and nome and codOrientador):
-        return get_falha('Os campos enviados nao podem estar vazios'), 400
+    
+    
     if not is_valid_email(email):
         return get_erro('O campo "email" dever ser um email valido'), 400
-    if not orientadores_dao.exists(codOrientador):
-        return get_erro('O orientador enviado nao existe'), 400
+
+    if not existente:
+        try:
+            orientador = Orientadores(
+                nomeOrientador=nome,
+                raOrientador=ra,
+                email=email,
+                currLattes=currLattes
+            )
+            orientador.grava_orientador()
+
+            codOrientador = orientador.codOrientador
+        except AttributeError as ex:
+            return get_erro(ex.__str__()), 400
+        except DataError:
+            return get_erro('O campo "ra" deve conter no máximo 20 caracteres'), 400
+    else:
+        if not orientadores_dao.exists(codOrientador):
+            return get_erro('O orientador enviado nao existe'), 400
 
     if usuario_dao.add_orientador(user, senha, nome, email, codOrientador):
         return get_ok(
