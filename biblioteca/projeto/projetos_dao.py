@@ -11,7 +11,7 @@ from biblioteca.responses import (
     get_ok
 )
 
-QUERY_CURSO = ''''
+QUERY_CURSO = '''
     SELECT * 
     FROM projetos 
     NATURAL JOIN cursos 
