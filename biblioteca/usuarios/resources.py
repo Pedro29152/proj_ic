@@ -263,7 +263,7 @@ def cadastro_aluno(professor_user_info):
             return get_erro('O ra enviado deve ter no maximo 13 caracteres'), 400
     orientador = orientadores_dao.get_orientador_codUsuario(professor_user_info['codUsuario'])
     if not orientador:
-        return get_erro('Você não pode efetuar esta ação pois não esta cadastrado como um orientador válido')
+        return get_erro('Você não pode efetuar esta ação pois não esta cadastrado como um orientador válido'), 400
     
     if usuario_dao.add_aluno(user, senha, nome, email, autor['codAutor'], orientador['codOrientador'], codCurso):
         return get_ok(
@@ -315,7 +315,7 @@ def busca_usuarios():
 def buscar_usuarios_orientados(user_info):
     orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
     if not orientador:
-        return get_erro('Você não pode efetuar esta ação pois não esta cadastrado como um orientador válido')
+        return get_erro('Você não pode efetuar esta ação pois não esta cadastrado como um orientador válido'), 400
 
     nome = request.args.get('nomeUsuario')
 
