@@ -59,5 +59,3 @@ class AllCountsResource(Resource):
                 'orientadoresCount': orientadores_count,
                 'cursosCount': cursos_count,
             })
-        
-        

@@ -218,8 +218,7 @@ def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has
         if not authorized:
             raise Exception('Seu nível de acesso não lhe permite esta ação')
     except Exception as ex:
-        return False, get_unauthorized(
-            get_erro('Erro: ' + ex.__str__()))
+        return False, get_unauthorized('Erro: ' + ex.__str__())
 
     res_data = {}
     if has_is_user:

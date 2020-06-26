@@ -65,7 +65,20 @@ class BuscaRankingResource(Resource):
 class BuscarProjetosOrientador(Resource):
     @professor_token_required
     def get(self, user_info):
-        res, cod = busca_projetos_orientador(user_info)
+        orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+        if not orientador:
+            return get_bad_request('O usuario sendo utilizado nao possui um orientador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro')
+
+        res, cod = busca_projetos_orientador(orientador['codOrientador'])
+        return get_response_code(res, cod)
+
+class BuscarProjetosOrientadorId(Resource):
+    def get(self, id):
+        orientador = orientadores_dao.get_orientador_codigo(id, False)
+        if not orientador:
+            return get_bad_request('O usuario sendo utilizado nao possui um orientador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro')
+
+        res, cod = busca_projetos_orientador_publico(orientador['codOrientador'])
         return get_response_code(res, cod)
 
 class AprovarProjetoResource(Resource):
@@ -174,15 +187,17 @@ def busca_pag(tipo='', pag = 1):
     else:
         return get_falha('Nenhum projeto listado'), 204
 
-def busca_projetos_orientador(user_info):
-    orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
-    if not orientador:
-        return get_erro('O usuario sendo utilizado nao possui um orientador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro'), 400
-
-    res = projetos_dao.busca_projeto_orientador(orientador['codOrientador'])
+def busca_projetos_orientador(codOrientador):
+    res = projetos_dao.busca_projeto_orientador(codOrientador)
     if not res:
         return None, 204
-    return get_data(res), 200         
+    return get_data(res), 200
+    
+def busca_projetos_orientador_publico(codOrientador):
+    res = projetos_dao.busca_projeto_orientador_publico(codOrientador)
+    if not res:
+        return None, 204
+    return get_data(res), 200   
 
 def check_file():
     if 'file' not in request.files:
@@ -229,7 +244,7 @@ def upload_projeto(user_info=None):
     if not(titulo and raOrientador and descricao and dataAvaliacao and 
             codCurso and subTitulo):
         return get_erro('Os valores de "titulo", {}"descricao", "dataAvaliacao", "linguagem" e "subTitulo" nao podem ser nulos'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
-    if not (linguagem - 1) in range(LinguagemProjeto.Espanhol.value):
+    if not (linguagem) in range(LinguagemProjeto.Espanhol.value + 1):
         return get_falha('O campo linguagem deve ser um campo com numeros entre 0 e 2'), 400
 
     projeto = Projetos(

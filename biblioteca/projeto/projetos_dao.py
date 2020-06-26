@@ -205,6 +205,21 @@ def busca_projeto_orientador(codOrientador):
 
     return ret
 
+def busca_projeto_orientador_publico(codOrientador):
+    query = '''
+        select distinct codProjeto, tituloProjeto, descricao, nomeArquivo, 
+        numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, 
+        subTitulo, status 
+        from projetos as p
+        natural join projeto_orientador
+        where ativo = 1 and status = 1 and codOrientador = (%s)
+    '''
+    ret = db.bd_busca(query, (codOrientador,))
+
+    prenche_projetos(ret)
+
+    return ret
+
 def get_cod_projeto_titulo(titulo):
     query = 'SELECT codProjeto FROM projetos WHERE tituloProjeto = (%s) ORDER BY codProjeto DESC'
 
