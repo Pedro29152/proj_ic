@@ -30,6 +30,23 @@ class LinguagemProjeto(IntEnum):
     Ingles = 1
     Espanhol = 2
 
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        success, data = check_tipo_usuario([
+            TiposUsuario.Aluno.value,
+            TiposUsuario.Professor.value,
+            TiposUsuario.Secretaria.value,
+            TiposUsuario.Coordenador.value,
+            TiposUsuario.Administrador.value
+        ], has_user_info=True)
+
+        if(success):
+            kwargs.update(data)
+            return f(*args, **kwargs)
+        return data
+    return decorated
+
 def secretaria_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -201,9 +218,8 @@ def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has
         if not authorized:
             raise Exception('Seu nível de acesso não lhe permite esta ação')
     except Exception as ex:
-        return False, get_response_code(
-            get_erro('Erro: ' + ex.__str__()), 
-            401)
+        return False, get_unauthorized(
+            get_erro('Erro: ' + ex.__str__()))
 
     res_data = {}
     if has_is_user:

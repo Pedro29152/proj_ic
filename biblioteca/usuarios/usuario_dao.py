@@ -147,10 +147,16 @@ def add_orientador(user, senha, nome, email, codOrientador):
     db.bd_gravar(query, (codUser, codOrientador))
     return True
 
-def get_count():
+def get_count(codOrientador=None):
+    if codOrientador:
+        query = 'select count(*) as usuarios from usuarios natural join usuario_orientado where codOrientador = (%s)'
+        ret = db.bd_busca_um(query, (codOrientador,))
+        return ret['usuarios']
+
     query = 'select count(*) as usuarios from usuarios'
     ret = db.bd_busca_um(query, None)
     return ret['usuarios']
+    
 
 def get_usuario(codUsuario):
     query = 'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where codUsuario = (%s) and ativo = 1'

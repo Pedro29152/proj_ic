@@ -215,9 +215,13 @@ def get_cod_projeto_titulo(titulo):
 
     return val['codProjeto']
 
-def get_count():
-    query = 'select count(*) as projetos from projetos where ativo = 1'
-    ret = db.bd_busca_um(query, None)
+def get_count(codOrientador=None):
+    if codOrientador:
+        query = 'select count(*) as projetos from projetos natural join projeto_orientador where ativo = 1 and codOrientador = (%s)'
+        ret = db.bd_busca_um(query, (codOrientador,))
+    else:
+        query = 'select count(*) as projetos from projetos where ativo = 1'
+        ret = db.bd_busca_um(query, None)
     return ret['projetos']
 
 def __ordena(ordem, crescente):
