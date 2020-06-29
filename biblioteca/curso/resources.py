@@ -26,7 +26,7 @@ class CursoResource(Resource):
         return get_response_code(res, cod)
 
     @token_required
-    def get(self):
+    def get(self, user_info):
         res, cod = buscar_cursos()
         return get_response_code(res, cod)
 

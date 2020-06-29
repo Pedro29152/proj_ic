@@ -24,7 +24,7 @@ from . import orientadores_dao
 
 class OrientadorResource(Resource):
     @admin_token_required
-    def post(self):
+    def post(self, user_info):
         res, cod = cadastro_orientador()
         return get_response_code(res, cod)
 
