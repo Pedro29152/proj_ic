@@ -13,6 +13,7 @@ from biblioteca.responses import (
 )
 from biblioteca.extensions import (
     secretaria_token_required,
+    token_required,
     admin_token_required
 )
 from . import cursos_dao
@@ -24,7 +25,7 @@ class CursoResource(Resource):
         res, cod = cadastro_curso()
         return get_response_code(res, cod)
 
-    @secretaria_token_required
+    @token_required
     def get(self):
         res, cod = buscar_cursos()
         return get_response_code(res, cod)

@@ -16,6 +16,7 @@ from biblioteca.extensions import(
     admin_token_required,
     secretaria_token_required,
     professor_admin_token_required,
+    token_required,
     is_valid_email,
     is_valid_http_link
 )
@@ -27,7 +28,7 @@ class OrientadorResource(Resource):
         res, cod = cadastro_orientador()
         return get_response_code(res, cod)
 
-    @secretaria_token_required
+    @token_required
     def get(self):
         res, cod = busca_orientadores()
         return get_response_code(res, cod)
