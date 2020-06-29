@@ -24,12 +24,12 @@ from . import orientadores_dao
 
 class OrientadorResource(Resource):
     @admin_token_required
-    def post(self, user_info):
+    def post(self):
         res, cod = cadastro_orientador()
         return get_response_code(res, cod)
 
     @token_required
-    def get(self):
+    def get(self, user_info):
         res, cod = busca_orientadores()
         return get_response_code(res, cod)
 
