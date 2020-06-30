@@ -2,7 +2,7 @@ import jwt
 from flask import jsonify
 from flask_restful import Resource, request, current_app
 from werkzeug.exceptions import BadRequestKeyError
-from mysql.connector.errors import DataError
+from mysql.connector.errors import DataError, IntegrityError
 from datetime import datetime, timedelta
 
 from biblioteca.orientador.schemas import Orientadores
@@ -221,6 +221,8 @@ def cadastro_professor(existente=True):
             return get_erro(ex.__str__()), 400
         except DataError:
             return get_erro('O campo "ra" deve conter no máximo 20 caracteres'), 400
+        except IntegrityError:
+            return get_erro('O email cadastrado ja esta sendo utilizado por outro usuario'), 400
     else:
         if not orientadores_dao.exists(codOrientador):
             return get_erro('O orientador enviado nao existe'), 400
