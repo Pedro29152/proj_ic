@@ -72,6 +72,16 @@ class BuscarProjetosOrientador(Resource):
         res, cod = busca_projetos_orientador(orientador['codOrientador'])
         return get_response_code(res, cod)
 
+class GetProjetoOrientador(Resource):
+    @professor_token_required
+    def get(self, user_info, id):
+        orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+        if not orientador:
+            return get_bad_request('O usuario sendo utilizado nao possui um orientador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro')
+
+        res, cod = get_projeto_orientador(orientador['codOrientador'], id)
+        return get_response_code(res, cod)
+
 class BuscarProjetosOrientadorId(Resource):
     def get(self, id):
         orientador = orientadores_dao.get_orientador_codigo(id, False)
@@ -189,6 +199,12 @@ def busca_pag(tipo='', pag = 1):
 
 def busca_projetos_orientador(codOrientador):
     res = projetos_dao.busca_projeto_orientador(codOrientador)
+    if not res:
+        return None, 204
+    return get_data(res), 200
+
+def get_projeto_orientador(codOrientador, codProjeto):
+    res = projetos_dao.get_projeto_orientador(codOrientador, codProjeto)
     if not res:
         return None, 204
     return get_data(res), 200
