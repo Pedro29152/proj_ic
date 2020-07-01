@@ -203,12 +203,6 @@ def busca_projetos_orientador(codOrientador):
         return None, 204
     return get_data(res), 200
 
-def get_projeto_orientador(codOrientador, codProjeto):
-    res = projetos_dao.get_projeto_orientador(codOrientador, codProjeto)
-    if not res:
-        return None, 204
-    return get_data(res), 200
-    
 def busca_projetos_orientador_publico(codOrientador):
     res = projetos_dao.busca_projeto_orientador_publico(codOrientador)
     if not res:
@@ -447,6 +441,12 @@ def get_projeto(codProjeto):
         projetos_dao.add_view(codProjeto)
         return get_data(ret), 200
     return get_falha('Projeto requisitado nao existe'), 404
+
+def get_projeto_orientador(codOrientador, codProjeto):
+    res = projetos_dao.get_projeto_orientador(codOrientador, codProjeto)
+    if not res:
+        return None, 204
+    return get_data(res), 200
 
 def busca_ranking():
     query, tipo, ordem = __get_filtro_rank()

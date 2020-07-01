@@ -222,7 +222,7 @@ def cadastro_professor(existente=True):
         except DataError:
             return get_erro('O campo "ra" deve conter no máximo 20 caracteres'), 400
         except IntegrityError:
-            return get_erro('O email cadastrado ja esta sendo utilizado por outro usuario'), 400
+            return get_erro('O email enviado ja esta sendo utilizado por outro usuario'), 400
     else:
         if not orientadores_dao.exists(codOrientador):
             return get_erro('O orientador enviado nao existe'), 400
@@ -235,7 +235,6 @@ def cadastro_professor(existente=True):
 
 def cadastro_aluno(professor_user_info):
     try:
-        user = request.form['username']
         senha = request.form['password']
         nome = request.form['nome']
         email = request.form['email']
@@ -243,10 +242,10 @@ def cadastro_aluno(professor_user_info):
         codCurso = request.form['codCurso']
     except BadRequestKeyError:
         return get_erro(
-            'A requisicao deve possuir os campos "username", "email", "nome", "ra_aluno", "codCurso" e "password" em seu corpo'
+            'A requisicao deve possuir os campos "email", "nome", "ra_aluno", "codCurso" e "password" em seu corpo'
         ), 400
 
-    if not (user and senha and email and nome and ra and codCurso):
+    if not (senha and email and nome and ra and codCurso):
         return get_falha('Os campos enviados nao podem estar vazios'), 400
     if not is_valid_email(email):
         return get_erro('O campo "email" dever ser um email valido'), 400
@@ -267,11 +266,11 @@ def cadastro_aluno(professor_user_info):
     if not orientador:
         return get_erro('Você não pode efetuar esta ação pois não esta cadastrado como um orientador válido'), 400
     
-    if usuario_dao.add_aluno(user, senha, nome, email, autor['codAutor'], orientador['codOrientador'], codCurso):
+    if usuario_dao.add_aluno(ra, senha, nome, email, autor['codAutor'], orientador['codOrientador'], codCurso):
         return get_ok(
             'Usuario cadastrado com sucesso'
         ), 201
-    return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
+    return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(ra, email)), 400
 
 def desativa_usuario(codUsuario, is_user):
     if is_user:
