@@ -58,6 +58,9 @@ from biblioteca.usuarios.resources import (
 from biblioteca.geral.resources import (
     AllCountsResource
 )
+from biblioteca.autor.resources import (
+    BuscaAlunosResource
+)
 from .db import bd_busca   
 
 # Criamos uma classe que extende de Resource
@@ -129,6 +132,9 @@ def configure_api(app):
     api.add_resource(CadastroProfessorNovoResource, '/api/usuarios/cadastro/orientador/novo')
     api.add_resource(CountUsuariosResource, '/api/usuarios/count')
     api.add_resource(MudarSenhaUsuarioResource, '/api/usuarios/mudarsenha/<int:id>')
+
+    #Rotas de autor
+    api.add_resource(BuscaAlunosResource, '/api/autores')
 
     # inicializamos a api com as configurações do flask vinda por parâmetro
     api.init_app(app)

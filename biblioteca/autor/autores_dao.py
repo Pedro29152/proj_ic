@@ -1,6 +1,22 @@
 from mysql.connector.errors import IntegrityError
 from biblioteca import db
 
+def busca_autores(nomeAutor=''):
+    if not nomeAutor:
+        nomeAutor = ''
+    nomeAutor = '%{}%'.format(nomeAutor)
+    query = '''
+        SELECT *
+        FROM autores
+        WHERE nomeAutor like (%s)
+        '''
+    ret = db.bd_busca(
+        query,
+        (nomeAutor,)
+    )
+    return ret
+
+
 def busca_autores_proj(codProjeto):
     
     return db.bd_busca(
