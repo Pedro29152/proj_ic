@@ -403,7 +403,7 @@ def is_valid_project(codAutor):
     query = '''
         select * from projeto_autor 
         natural join projetos 
-        where codAutor = (%s) and (status = 0 or status = 1)
+        where codAutor = (%s) and (status = 0)
     '''
     res = db.bd_busca_um(query, (codAutor,))
 

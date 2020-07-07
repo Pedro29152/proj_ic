@@ -29,6 +29,7 @@ from biblioteca.projeto.resources import (
     DesativaProjetoResource,
     AtivaProjetoResource,
     AlteraProjetoResource,
+    AlteraProjetoAlunoResource,
     CountProjetosResource,
     UploadProjetoAlunoResource,
     BuscarProjetosOrientador,
@@ -106,6 +107,7 @@ def configure_api(app):
     api.add_resource(DesativaProjetoResource, '/api/projetos/desativar/<int:id>') #id: codigo do projeto a ser desativado
     api.add_resource(AtivaProjetoResource, '/api/projetos/ativar/<int:id>') #id: codigo do projeto a ser ativado
     api.add_resource(AlteraProjetoResource, '/api/projetos/editar/<int:id>')  #id: codigo do projeto a ser editado
+    api.add_resource(AlteraProjetoAlunoResource, '/api/projetos/editar/aluno/<int:id>')
     api.add_resource(CountProjetosResource, '/api/projetos/count')
 
     #Rotas de autorizacao

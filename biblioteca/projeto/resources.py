@@ -12,7 +12,7 @@ from mysql.connector.errors import IntegrityError
 
 from biblioteca.curso import cursos_dao
 from biblioteca.orientador import orientadores_dao
-from biblioteca.autor import autores_dao
+from biblioteca.autor import autores_dao, projeto_autor_dao
 from biblioteca.responses import (
     get_data,
     get_falha,
@@ -125,6 +125,16 @@ class AlteraProjetoResource(Resource):
     @admin_token_required
     def put(self, id):
         status, cod = edita_projeto(id)
+        return get_response_code(status, cod)
+
+class AlteraProjetoAlunoResource(Resource):
+    @aluno_token_required
+    def put(self, id, user_info):
+        has_file = False
+        r, code = check_file()
+        if not r:
+            has_file = True
+        status, cod = edita_projeto_aluno(id, user_info, has_file)
         return get_response_code(status, cod)
 
 class GetProjetoResource(Resource):
@@ -341,7 +351,7 @@ def upload_projeto(user_info=None):
         )
 
 
-    if cod == 200:
+    if cod >= 200 and cod < 300:
         filepath = os.path.join(
             app.config['UPLOAD_FOLDER'], 
             filename
@@ -431,6 +441,44 @@ def edita_projeto(codProjeto):
         if subtitulo:
             projetos_dao.edita_subtitulo(codProjeto, subtitulo)
         
+        return get_ok('Projeto editado com sucesso'), 200
+    return get_falha('Projeto requisitado nao existe'), 404
+
+def edita_projeto_aluno(codProjeto, user_info, has_file):
+    proj = projetos_dao.get_projeto_novo(codProjeto)
+    if proj:
+        autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+        if not autor:
+            return get_erro('O usuario utilizado não possui ligação com nenhum autor cadastrado'), 400
+        
+        if not projeto_autor_dao.is_valid_autor(proj['codProjeto'], autor['codAutor']):
+            return get_erro('Voce não pode editar este projeto'), 400
+        
+        try:
+            titulo = request.form['tituloProjeto']
+            descricao = request.form['descricao']
+            subtitulo = request.form['subTitulo']
+        except BadRequestKeyError:
+            return get_erro('A requsicao deve ter os campos "tituloProjeto","descricao" e "subTitulo" em seu corpo (deixe em branco para manter inalterado)'), 400
+
+        if titulo:
+            projetos_dao.edita_titulo(codProjeto, titulo)
+        if descricao:
+            projetos_dao.edita_descricao(codProjeto, descricao)
+        if subtitulo:
+            projetos_dao.edita_subtitulo(codProjeto, subtitulo)
+        
+        if has_file:
+            filepath = os.path.join(
+                app.config['UPLOAD_FOLDER'],
+                proj['nomeArquivo']
+            )
+
+            file = request.files['file']
+            file.save(filepath)
+            capa = os.path.join(app.static_folder, 'Capa.pdf')
+            __adicionar_cabecalio([capa, filepath], filepath)
+
         return get_ok('Projeto editado com sucesso'), 200
     return get_falha('Projeto requisitado nao existe'), 404
 
