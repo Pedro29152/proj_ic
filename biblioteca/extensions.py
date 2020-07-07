@@ -135,6 +135,7 @@ def coordenador_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         success, data = check_tipo_usuario([
+            TiposUsuario.Administrador.value,
             TiposUsuario.Coordenador.value
         ], has_user_info=True)
 

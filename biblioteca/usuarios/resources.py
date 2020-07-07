@@ -87,6 +87,12 @@ class AtivaUsuarioResource(Resource):
         res, cod = ativa_usuario(id, is_user)
         return get_response_code(res, cod)
 
+class AlterarOrientadorDoAlunoResource(Resource):
+    @secretaria_token_required
+    def put(self, id):
+        res, cod = altera_orientador_aluno(id)
+        return get_response_code(res, cod)
+
 class CountUsuariosResource(Resource):
     @secretaria_token_required
     def get(self):
@@ -295,8 +301,6 @@ def ativa_usuario(codUsuario, is_user):
 def deleta_usuario(id, is_user):
     if is_user:
         return get_falha('Voce nao pode deletar o proprio usuario'), 400
-    if not util.is_cod_valido(id):
-        return get_erro('O valor enviado deve ser do tipo inteiro'), 400
     id = int(id)
     usuario_dao.deleta_usuario(id)
     return get_ok('Usuario deletado com sucesso'), 200
@@ -342,8 +346,6 @@ def busca_usuarios_inativos():
     return get_falha("Nenhum usuario retornado"), 204
 
 def get_usuario(id):
-    if not util.is_cod_valido(id):
-        return get_erro('O valor enviado deve ser do tipo inteiro'), 400
     codUsuario = int(id)
 
     ret = usuario_dao.get_usuario(codUsuario)
@@ -352,9 +354,6 @@ def get_usuario(id):
     return get_falha('Usuario requisitado nao existe'), 404
 
 def edita_usuario(codUsuario, is_admin, is_user):
-    if not util.is_cod_valido(codUsuario):
-        return get_erro('O valor enviado deve ser do tipo inteiro'), 400
-
     try:
         nomeUsuario = request.form['nomeUsuario']
         nome = request.form['nome']
@@ -387,6 +386,32 @@ def edita_usuario(codUsuario, is_admin, is_user):
 
         return get_ok('Usuario editado com sucesso'), 200
     return get_falha('O codigo enviado nao esta relacionado a nenhum usuario'), 404
+
+def altera_orientador_aluno(codUsuario):
+    usr = usuario_dao.get_usuario(codUsuario)
+    if not usr:
+        return get_erro('O código de usuário enviado não esta ligado a nenhum usuario'), 400
+    if not usr['tipoUsuario'] == TiposUsuario.Aluno.value:
+        return get_erro('Voce só pode alterar usuários do tipo Aluno'), 400
+    
+    try:
+        codOrientador = request.form['codOrientador']
+    except BadRequestKeyError:
+        return get_erro('A requsicao deve conter o campo "codOrientador" em seu corpo'), 400
+
+    if not util.is_cod_valido(codOrientador):
+        return get_erro('O campo "codOrientador" deve ser um numero inteiro'), 400
+
+    orientador = orientadores_dao.get_orientador_codigo(codOrientador, False)
+    if not orientador:
+        return get_erro('O código de orientador enviado não esta ligado a nenhum orientador'), 400
+    if not orientador['codUsuario']:
+        return get_erro('O orientador enviado não possui um usuário cadastrado'), 400
+    if not usuario_dao.get_usuario(orientador['codUsuario']):
+        return get_erro('O orientador enviado não possui um usuário valido cadastrado'), 400
+    
+    usuario_dao.edita_orientador_aluno(codUsuario, orientador['codOrientador'])
+    return None, 204
 
 def mudar_senha(id):
     if not util.is_cod_valido(id):

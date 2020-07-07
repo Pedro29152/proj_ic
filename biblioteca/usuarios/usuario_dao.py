@@ -206,6 +206,10 @@ def ativa_usuario(codUsuario):
     query = 'update usuarios set ativo = 1 where codUsuario = (%s)'
     db.bd_gravar(query, (codUsuario,))
 
+def edita_orientador_aluno(codUsuario, codOrientador):
+    query = 'update usuario_orientado set codOrientador = (%s) where codUsuario = (%s)'
+    db.bd_gravar(query, (codOrientador, codUsuario))
+
 def edita_senha(codUsuario, novaSenha):
     query = 'update usuarios set senha = (%s) where codUsuario = (%s)'
     db.bd_gravar(query, (generate_password_hash(novaSenha), codUsuario))
