@@ -338,6 +338,13 @@ def get_projeto_novo(codProjeto, is_full=False):
         prenche_projeto(proj)
     return proj
 
+def get_projeto_novo_codAutor(codAutor, is_full=False):
+    query = 'select p.* from projetos as p natural join projeto_autor where codAutor = (%s) and status = 0'
+    proj = db.bd_busca_um(query,(codAutor,))
+    if is_full:
+        prenche_projeto(proj)
+    return proj
+
 def get_projeto(codProjeto, is_full=False):
     query = 'select * from projetos where codProjeto = (%s) and ativo = 1 and status = 1'
     proj = db.bd_busca_um(query,(codProjeto,))

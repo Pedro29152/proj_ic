@@ -24,8 +24,11 @@ from biblioteca.projeto.resources import (
     BuscaProjetoResource,
     BuscaRankingResource,
     GetProjetoResource,
+    GetProjetoOrientador,
+    GetProjetoAutorResource,
     UploadProjetoResource,
     DownloadArquivoProjetoResource,
+    DownloadArquivoProjetoNovoResource,
     DesativaProjetoResource,
     AtivaProjetoResource,
     AlteraProjetoResource,
@@ -33,7 +36,6 @@ from biblioteca.projeto.resources import (
     CountProjetosResource,
     UploadProjetoAlunoResource,
     BuscarProjetosOrientador,
-    GetProjetoOrientador,
     BuscarProjetosOrientadorId,
     AprovarProjetoResource,
     RecusarProjetoResource
@@ -97,6 +99,7 @@ def configure_api(app):
     api.add_resource(BuscaRankingResource, '/api/projetos/ranking')
     api.add_resource(BuscarProjetosOrientador, '/api/projetos/orientador')
     api.add_resource(GetProjetoOrientador, '/api/projetos/orientador/get/<int:id>')
+    api.add_resource(GetProjetoAutorResource, '/api/projetos/aluno/get')
     api.add_resource(BuscarProjetosOrientadorId, '/api/projetos/orientador/<int:id>')#publico
     api.add_resource(AprovarProjetoResource, '/api/projetos/aprovar/<int:id>')
     api.add_resource(RecusarProjetoResource, '/api/projetos/recusar/<int:id>')
@@ -104,6 +107,7 @@ def configure_api(app):
     api.add_resource(UploadProjetoResource, '/api/projetos/cadastrar')
     api.add_resource(UploadProjetoAlunoResource, '/api/projetos/cadastrar/aluno')
     api.add_resource(DownloadArquivoProjetoResource, '/api/projetos/download/<path:filename>') #filename: nome do arquivo a ser baixado
+    api.add_resource(DownloadArquivoProjetoNovoResource, '/api/projetos/download/novo/<path:filename>')
     api.add_resource(DesativaProjetoResource, '/api/projetos/desativar/<int:id>') #id: codigo do projeto a ser desativado
     api.add_resource(AtivaProjetoResource, '/api/projetos/ativar/<int:id>') #id: codigo do projeto a ser ativado
     api.add_resource(AlteraProjetoResource, '/api/projetos/editar/<int:id>')  #id: codigo do projeto a ser editado

@@ -47,6 +47,11 @@ def get_bad_request(data):
     res.status_code = 400
     return res
 
+def get_not_found(data):
+    res = jsonify(get_erro(data))
+    res.status_code = 404
+    return res
+
 def get_response_code(data, cod):
     res = jsonify(data)
     res.status_code = cod

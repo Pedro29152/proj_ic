@@ -20,7 +20,8 @@ from biblioteca.responses import (
     get_ok,
     get_count as get_res_count,
     get_bad_request,
-    get_response_code
+    get_response_code,
+    get_not_found
 )
 from biblioteca.extensions import(
     admin_token_required,
@@ -142,6 +143,12 @@ class GetProjetoResource(Resource):
         status, cod = get_projeto(id)
         return get_response_code(status, cod)
 
+class GetProjetoAutorResource(Resource):
+    @aluno_token_required
+    def get(self, user_info):
+        status, cod = get_projeto_autor(user_info)
+        return get_response_code(status, cod)
+
 class DownloadArquivoProjetoResource(Resource):
     def get(self, filename):
         attatch = False
@@ -156,8 +163,29 @@ class DownloadArquivoProjetoResource(Resource):
                 )
 
             return f
-        
-        abort(404)
+        return get_not_found('Arquivo não encontrado')
+
+class DownloadArquivoProjetoNovoResource(Resource):
+    @aluno_token_required
+    def get(self, filename, user_info):
+        attatch = False
+        if request.args.get('as_attachment'):
+            attatch = True if request.args.get('as_attachment').lower() == 'true' else False
+
+        autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+        if not autor:
+            return get_erro('O usuario utilizado não possui ligação com nenhum autor cadastrado'), 400
+        proj = projetos_dao.get_projeto_novo_codAutor(autor['codAutor'], True)
+        if filename == proj['nomeArquivo']:
+            if download_arquivo(filename):
+                f = send_from_directory(    
+                        app.config['UPLOAD_FOLDER'],
+                        filename, 
+                        as_attachment=attatch
+                    )
+
+                return f
+        return get_not_found('Arquivo não encontrado')
 
 class CountProjetosResource(Resource):
     def get(self):
@@ -485,7 +513,6 @@ def edita_projeto_aluno(codProjeto, user_info, has_file):
 def get_projeto(codProjeto):
     ret = projetos_dao.get_projeto(codProjeto, True)
     if ret:
-        projetos_dao.prenche_projeto(ret)
         projetos_dao.add_view(codProjeto)
         return get_data(ret), 200
     return get_falha('Projeto requisitado nao existe'), 404
@@ -493,8 +520,18 @@ def get_projeto(codProjeto):
 def get_projeto_orientador(codOrientador, codProjeto):
     res = projetos_dao.get_projeto_orientador(codOrientador, codProjeto)
     if not res:
-        return None, 204
+        return None, 404
     return get_data(res), 200
+
+def get_projeto_autor(user_info):
+    autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+    if not autor:
+        return get_erro('O usuario utilizado não possui ligação com nenhum autor cadastrado'), 400
+    
+    proj = projetos_dao.get_projeto_novo_codAutor(autor['codAutor'], True)
+    if not proj:
+        return None, 404
+    return get_data(proj), 200
 
 def busca_ranking():
     query, tipo, ordem = __get_filtro_rank()
