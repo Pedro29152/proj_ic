@@ -12,8 +12,8 @@ from biblioteca.responses import (
 )
 
 QUERY_CURSO = '''
-    SELECT * 
-    FROM projetos 
+    select distinct pj.* 
+    FROM projetos as pj
     NATURAL JOIN cursos 
     WHERE descricaoCurso LIKE (%s) OR abreviacao LIKE (%s) AND ativo = 1 and status = 1 '''
 QUERY_TITULO = '''
@@ -25,26 +25,21 @@ QUERY_DESCRICAO = '''
     FROM projetos 
     WHERE descricao LIKE (%s) AND ativo = 1 and status = 1 '''
 QUERY_ORIENTADOR = '''
-    SELECT codProjeto, tituloProjeto, descricao, nomeArquivo, 
-    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, ativo 
-    FROM proj_ic.projetos 
+    select distinct pj.*
+    FROM proj_ic.projetos as pj
     natural join projeto_orientador 
     natural join orientadores 
     where nomeOrientador like (%s) AND ativo = 1 and status = 1 
     '''
 QUERY_AUTOR = '''
-    select distinct 
-    codProjeto, tituloProjeto, descricao, nomeArquivo,
-    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, ativo
+    select distinct pj.*
     from autores natural 
     join projeto_autor 
     natural join projetos pj 
     where nomeAutor like (%s) AND ativo = 1 and status = 1 
     '''
 QUERY_PALAVRAS_CHAVE = '''
-    select distinct 
-    codProjeto, tituloProjeto, descricao, nomeArquivo,
-    numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, ativo
+    select distinct pj.*
     from palavras_chave natural 
     join projetos pj 
     where palavraChave like (%s) AND ativo = 1 and status = 1 
@@ -192,9 +187,7 @@ def busca_projeto_ranking_pag(titulo, tipo, ordem, pag):
 
 def busca_projeto_orientador(codOrientador):
     query = '''
-        select distinct codProjeto, tituloProjeto, descricao, nomeArquivo, 
-        numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, 
-        subTitulo, status 
+        select distinct p.*
         from projetos as p
         natural join projeto_orientador
         where ativo = 1 and status = 0 and codOrientador = (%s)
@@ -205,11 +198,22 @@ def busca_projeto_orientador(codOrientador):
 
     return ret
 
+def busca_projetos_coordenador(codCoordenador):
+    query = '''
+        select distinct p.* from projetos as p
+        natural join cursos as c
+        join coordenadores as co on co.codCurso = c.codCurso
+        where p.ativo = 1 and p.status = 0 and co.codCoordenador = (%s)
+    '''
+    ret = db.bd_busca(query, (codCoordenador,))
+
+    prenche_projetos(ret)
+
+    return ret
+
 def get_projeto_orientador(codOrientador, codProjeto):
     query = '''
-        select distinct codProjeto, tituloProjeto, descricao, nomeArquivo, 
-        numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, 
-        subTitulo, status 
+        select p.*
         from projetos as p
         natural join projeto_orientador
         where ativo = 1 and status = 0 and codOrientador = (%s) and codProjeto = (%s)
@@ -220,12 +224,9 @@ def get_projeto_orientador(codOrientador, codProjeto):
 
     return ret
 
-
 def busca_projeto_orientador_publico(codOrientador):
     query = '''
-        select distinct codProjeto, tituloProjeto, descricao, nomeArquivo, 
-        numVisitas, numDownloads, dataAvaliacao, dataEnvio, codCurso, 
-        subTitulo, status 
+        select p.*
         from projetos as p
         natural join projeto_orientador
         where ativo = 1 and status = 1 and codOrientador = (%s)

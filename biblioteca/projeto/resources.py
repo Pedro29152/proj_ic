@@ -12,6 +12,7 @@ from mysql.connector.errors import IntegrityError
 
 from biblioteca.curso import cursos_dao
 from biblioteca.orientador import orientadores_dao
+from biblioteca.coordenador import coordenador_dao
 from biblioteca.autor import autores_dao, projeto_autor_dao
 from biblioteca.responses import (
     get_data,
@@ -28,6 +29,8 @@ from biblioteca.extensions import(
     secretaria_token_required,
     aluno_token_required,
     professor_token_required,
+    coordenador_token_required,
+    coordenador_professor_token_required,
     professor_secretaria_token_required,
     is_valid_email,
     TiposUsuario,
@@ -71,6 +74,16 @@ class BuscarProjetosOrientador(Resource):
             return get_bad_request('O usuario sendo utilizado nao possui um orientador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro')
 
         res, cod = busca_projetos_orientador(orientador['codOrientador'])
+        return get_response_code(res, cod)
+
+class BuscarProjetosCoordenador(Resource):
+    @coordenador_token_required
+    def get(self, user_info):
+        coordenador = coordenador_dao.get_coordenador_codUsuario(user_info['codUsuario'])
+        if not coordenador:
+            return get_bad_request('O usuario sendo utilizado nao possui um coordenador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro')
+
+        res, cod = busca_projetos_coordenador(coordenador['codCoordenador'])
         return get_response_code(res, cod)
 
 class GetProjetoOrientador(Resource):
@@ -237,6 +250,12 @@ def busca_pag(tipo='', pag = 1):
 
 def busca_projetos_orientador(codOrientador):
     res = projetos_dao.busca_projeto_orientador(codOrientador)
+    if not res:
+        return None, 204
+    return get_data(res), 200
+
+def busca_projetos_coordenador(codCoordenador):
+    res = projetos_dao.busca_projetos_coordenador(codCoordenador)
     if not res:
         return None, 204
     return get_data(res), 200
