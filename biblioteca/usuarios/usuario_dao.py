@@ -3,6 +3,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from mysql.connector.errors import IntegrityError
 from datetime import datetime, timedelta
 from biblioteca import db
+from biblioteca.coordenador import coordenador_dao
+from biblioteca.orientador import orientadores_dao
+from biblioteca import extensions
 
 def verifica_usr(usuario, senha):
     
@@ -195,12 +198,26 @@ def edita_usuario(usuario):
     db.bd_gravar(query,(usuario['nomeUsuario'], usuario['nome'], usuario['email'], usuario['tipoUsuario'], usuario['codUsuario']))
 
 def deleta_usuario(codUsuario):
+    usr = get_usuario(codUsuario)
+
     query = 'delete from usuarios where codUsuario = (%s)'
     db.bd_gravar(query,(codUsuario,))
+    
+    if usr['tipoUsuario'] == extensions.TiposUsuario.Professor.value:
+        orientador = orientadores_dao.get_orientador_orientando_codUsuario(codUsuario)
+        if orientador:
+            orientadores_dao.desativa_orientador(orientador['codOrientador'])
 
 def desativa_usuario(codUsuario):
+    usr = get_usuario(codUsuario)
+
     query = 'update usuarios set ativo = 0 where codUsuario = (%s)'
     db.bd_gravar(query, (codUsuario,))
+
+    if usr['tipoUsuario'] == extensions.TiposUsuario.Professor.value:
+        orientador = orientadores_dao.get_orientador_codUsuario(codUsuario)
+        if orientador:
+            orientadores_dao.desativa_orientador(orientador['codOrientador'])
 
 def ativa_usuario(codUsuario):
     query = 'update usuarios set ativo = 1 where codUsuario = (%s)'
@@ -213,3 +230,21 @@ def edita_orientador_aluno(codUsuario, codOrientador):
 def edita_senha(codUsuario, novaSenha):
     query = 'update usuarios set senha = (%s) where codUsuario = (%s)'
     db.bd_gravar(query, (generate_password_hash(novaSenha), codUsuario))
+
+def remove_responsabilidade_orientador(codOrientador):
+    query = '''
+        select * from usuario_orientado
+        where codOrientador = (%s)
+    '''
+    us_ori = db.bd_busca(query, (codOrientador,))
+    for item in us_ori:
+        remove_responsabilidade_usuario(item)
+
+def remove_responsabilidade_usuario(usuario_orientado):
+    query_upd = '''
+        update usuario_orientado set codOrientador = null, codCoordenador = (%s) 
+        where codAutor = (%s) and codUsuario = (%s)
+    '''
+    
+    coord = coordenador_dao.get_coordenador_codCurso(usuario_orientado['codCurso'])
+    db.bd_gravar(query_upd, (coord['codCoordenador'], usuario_orientado['codAutor'], usuario_orientado['codUsuario']))

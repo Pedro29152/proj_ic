@@ -1,5 +1,6 @@
 from biblioteca import db
 from .schemas import Orientadores
+from biblioteca.usuarios import usuario_dao
 
 def get_orientador(raOrientador):
     query = 'select * from orientadores where raOrientador = (%s) and ativo = 1'
@@ -99,9 +100,18 @@ def ativa_orientador(codOrientador):
     db.bd_gravar(query, (codOrientador,))
 
 def desativa_orientador(codOrientador):
-    query = 'update orientadores set ativo = 0 where codOrientador = (%s)'
+    ori = get_orientador_codigo(codOrientador, False)
+    if ori['codUsuario']:
+        query = '''
+            update usuarios set ativo = 0 where codUsuario = (%s)
+        '''
+        db.bd_gravar(query, (ori['codUsuario'],))
+
+    query = 'update orientadores set ativo = 0, codUsuario = null where codOrientador = (%s)'
 
     db.bd_gravar(query, (codOrientador,))
+    usuario_dao.remove_responsabilidade_orientador(codOrientador)
+
 
 def exists(codOrientador):
     query = 'select codOrientador from orientadores where codOrientador = (%s)'

@@ -1,5 +1,5 @@
 from biblioteca import db
-from biblioteca.extensions import is_valid_email, is_valid_http_link
+from biblioteca import extensions
 
 class Orientadores:
     def __init__(self, codOrientador=None, nomeOrientador=None, raOrientador=None, email=None, currLattes=None):
@@ -9,9 +9,9 @@ class Orientadores:
         self.email = email
         self.currLattes = currLattes
 
-        if not is_valid_email(self.email):
+        if not extensions.is_valid_email(self.email):
             raise AttributeError('O campo "email" deve ser um email valido')
-        if not is_valid_http_link(self.currLattes):
+        if not extensions.is_valid_http_link(self.currLattes):
             raise AttributeError('O campo "currLattes" deve ser um link http/https valido valido')
     
     def grava_orientador(self):
