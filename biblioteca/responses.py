@@ -52,6 +52,11 @@ def get_not_found(data):
     res.status_code = 404
     return res
 
+def get_no_content():
+    res = jsonify(None)
+    res.status_code = 204
+    return res
+
 def get_response_code(data, cod):
     res = jsonify(data)
     res.status_code = cod

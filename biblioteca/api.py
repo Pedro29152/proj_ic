@@ -63,6 +63,11 @@ from biblioteca.geral.resources import (
 from biblioteca.autor.resources import (
     BuscaAlunosResource
 )
+from biblioteca.coordenador.resources import (
+    CoordenadorResource,
+    GetCoordenadorResource,
+    CountCoordenadoresResource
+)
 from .db import bd_busca   
 
 # Criamos uma classe que extende de Resource
@@ -139,6 +144,11 @@ def configure_api(app):
 
     #Rotas de autor
     api.add_resource(BuscaAlunosResource, '/api/autores')
+
+    #Rotas de coordenador
+    api.add_resource(CoordenadorResource, '/api/coordenadores')
+    api.add_resource(GetCoordenadorResource, '/api/coordenadores/<int:id>')
+    api.add_resource(CountCoordenadoresResource, '/api/coordenadores/count')
 
     # inicializamos a api com as configurações do flask vinda por parâmetro
     api.init_app(app)

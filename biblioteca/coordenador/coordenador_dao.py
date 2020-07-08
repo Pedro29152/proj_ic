@@ -1,5 +1,27 @@
 from biblioteca import db
 
+def buscar_coordenadores(nomeCoordenador=''):
+    nomeCoordenador = '%{}%'.format(nomeCoordenador)
+    query = '''
+        select * from coordenadores where nomeCoordenador like (%s)
+    '''
+    ret = db.bd_busca(query, (nomeCoordenador,)) 
+    return ret
+
+def get_coordenador(codCoordenador):
+    query = '''
+        select * from coordenadores where codCoordenador = (%s)
+    '''
+    coord = db.bd_busca_um(query, (codCoordenador,))
+    return coord
+
+def get_count():
+    query = '''
+        select count(*) as coord from coordenadores
+    '''
+    coord = db.bd_busca_um(query, None)
+    return coord['coord']
+
 def get_coordenador_codCurso(codCurso):
     query = '''
         select * from coordenadores where codCurso = (%s)

@@ -144,6 +144,21 @@ def coordenador_token_required(f):
         return data
     return decorated
 
+def coordenador_secretaria_token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        success, data = check_tipo_usuario([
+            TiposUsuario.Coordenador.value,
+            TiposUsuario.Secretaria.value,
+            TiposUsuario.Administrador.value
+        ])
+
+        if(success):
+            kwargs.update(data)
+            return f(*args, **kwargs)
+        return data
+    return decorated
+
 def coordenador_professor_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
