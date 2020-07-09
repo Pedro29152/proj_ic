@@ -63,10 +63,10 @@ CREATE TABLE `coordenadores` (
   UNIQUE KEY `email_UNIQUE` (`email`),
   UNIQUE KEY `codUsuario_UNIQUE` (`codUsuario`),
   KEY `FK_COORDENADOR_USUARIO_idx` (`codUsuario`) /*!80000 INVISIBLE */,
-  KEY `FK_COORDENADOR_CURSO_idx` (`codCurso`),
-  CONSTRAINT `FK_COORDENADOR_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codCurso`),
-  CONSTRAINT `FK_COORDENADOR_USUARIO` FOREIGN KEY (`codUsuario`) REFERENCES `usuarios` (`codUsuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `FK_COORDENADOR_CURSO_idx` (`codCurso`,`ativo`),
+  CONSTRAINT `FK_COORDENADOR_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codCurso`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `FK_COORDENADOR_USUARIO` FOREIGN KEY (`codUsuario`) REFERENCES `usuarios` (`codUsuario`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -316,7 +316,7 @@ CREATE TABLE `usuarios` (
   `email` varchar(150) NOT NULL,
   PRIMARY KEY (`codUsuario`),
   UNIQUE KEY `nomeUsuario_UNIQUE` (`nomeUsuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=88 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=95 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -325,7 +325,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:150000$7rHphFnD$397c0a570ba3810f5d5f2fbaea54139512a6309e3757fa1ef730d5ca2d73c5b9',4,1,'admin','admin@admin.com'),(69,'professor','pbkdf2:sha256:150000$yQxXJyYU$6c850fd7b085cbf9789df6ba13e5e667add4829ac1c67a4dd52b40e3f9ea9d05',2,1,'professor','professor@professor.com'),(70,'aluno2','pbkdf2:sha256:150000$sDqv8KKk$9f3dc17c47e2161b1cd0bc9177e55f474e38fa05b7b33b2f31300b8ff155664a',1,0,'aluno2','aluno2@aluno.com'),(71,'secretaria','pbkdf2:sha256:150000$bZ1vLB3W$b574ea1aba7b87c722087e2d0a363883a939adbb947367238eb8a8f8cdc22292',3,1,'secretaria','secreataria@secreataria.com'),(72,'aluno','pbkdf2:sha256:150000$xWk5qTpT$9218f17dbcec9b77b5ef5e9086fe1ac8a04176a33f7c79d37e9feb57cef874ea',1,0,'aluno','aluno@aluno.com'),(73,'professor2','pbkdf2:sha256:150000$Qgnz6KCU$53aa6239150f4a11da759507f1f7f9a007b2b9ee10501194d2e5e4bdcf45e16f',2,1,'professor dois','professor2@professor2.com'),(75,'oriteste','pbkdf2:sha256:150000$C4QStF00$ff1748045c247504d6922bcd0f84b39fe08ea780de2ca4edc78d530f22072132',2,0,'Oirentador JOJOFEG','ojoaoksj@teste.ca'),(79,'alunoteste','pbkdf2:sha256:150000$uTslCKC3$04c0fd67c240f8afda647a321d3fadc12ef8125816da1d4c0de79e37e4e8013a',1,0,'aluno','aluno2joj@aluno2.com'),(80,'22222222','pbkdf2:sha256:150000$if6wsAEX$84fb67bfe001ca1712d0ccb3351431dcfc01dd8a0668983ed64f2a631c41828f',1,0,'alune','alune@lll.com.br'),(82,'1234567890123','pbkdf2:sha256:150000$besorDjv$1d733f6feaa1d9c33fa014c7e0bd168c2f555a33825ad33fde2ce0081095082a',1,1,'alunaae','alune@llla.com.br'),(84,'1234567890124','pbkdf2:sha256:150000$ReWHEIcq$8db2653de9ac6f5ef0e493b544561900507ba8d494e3d62293966fdab32cd7b3',1,1,'aluuuuuuu','aluno@teste.com'),(85,'oritesteJOJO','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',2,0,'oritesteJOJO','oritestejojo@professor2.com'),(86,'coordenadorjd','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',5,1,'coordteste','coorde@teste.com'),(87,'coordenadorads','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',5,1,'coorde','coordeteste@teste.com');
+INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:150000$7rHphFnD$397c0a570ba3810f5d5f2fbaea54139512a6309e3757fa1ef730d5ca2d73c5b9',4,1,'admin','admin@admin.com'),(69,'professor','pbkdf2:sha256:150000$OVCxAVvj$8201f99b0f6e3999ded3dfbaa802b35f81ebd18e3e16e4c4f91b0903882327ea',2,1,'professor','professor@professor.com'),(70,'aluno2','pbkdf2:sha256:150000$twwOG5FU$41f8acdbf92eb1cd65539866cafbb2515984d2a0186bedc0b7d7983805fd9bd9',1,0,'aluno2','aluno2@aluno.com'),(71,'secretaria','pbkdf2:sha256:150000$bZ1vLB3W$b574ea1aba7b87c722087e2d0a363883a939adbb947367238eb8a8f8cdc22292',3,1,'secretaria','secreataria@secreataria.com'),(72,'aluno','pbkdf2:sha256:150000$xWk5qTpT$9218f17dbcec9b77b5ef5e9086fe1ac8a04176a33f7c79d37e9feb57cef874ea',1,0,'aluno','aluno@aluno.com'),(73,'professor2','pbkdf2:sha256:150000$Qgnz6KCU$53aa6239150f4a11da759507f1f7f9a007b2b9ee10501194d2e5e4bdcf45e16f',2,1,'professor dois','professor2@professor2.com'),(75,'oriteste','pbkdf2:sha256:150000$LXLhOqiB$0a1324bf8add3978af777d181d83fdad6d52a9800ce08e6e507af425600b0b0e',2,0,'Oirentador JOJOFEG','pedro.joao.pl@gmail.com'),(79,'alunoteste','pbkdf2:sha256:150000$uTslCKC3$04c0fd67c240f8afda647a321d3fadc12ef8125816da1d4c0de79e37e4e8013a',1,0,'aluno','aluno2joj@aluno2.com'),(80,'22222222','pbkdf2:sha256:150000$if6wsAEX$84fb67bfe001ca1712d0ccb3351431dcfc01dd8a0668983ed64f2a631c41828f',1,0,'alune','alune@lll.com.br'),(82,'1234567890123','pbkdf2:sha256:150000$692p6DOi$90be0728146fcab8d8dc639ec90de61aa9c6659a3c82fb46492a55c7ef31c591',1,1,'alunaae','pedro-vitorio@hotmail.com'),(84,'1234567890124','pbkdf2:sha256:150000$ReWHEIcq$8db2653de9ac6f5ef0e493b544561900507ba8d494e3d62293966fdab32cd7b3',1,1,'aluuuuuuu','aluno@teste.com'),(85,'oritesteJOJO','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',2,0,'oritesteJOJO','oritestejojo@professor2.com'),(86,'coordenadorjd','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',5,1,'coordteste','coorde@teste.com'),(87,'coordenadorads','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',5,1,'coorde','coordeteste@teste.com'),(88,'coordteste','pbkdf2:sha256:150000$fgaufQie$93ae638c9966548cb20d59a6954cdb6ce6c99b1ca53d2bf2f92828682bdda1c9',5,1,'JOsefa','teste@teste.com');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -338,4 +338,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-08 16:53:37
+-- Dump completed on 2020-07-09  2:01:29
