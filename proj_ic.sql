@@ -261,6 +261,34 @@ INSERT INTO `projetos` VALUES (109,'projeto aluno1','descricao\\resumo 1','JD-PR
 UNLOCK TABLES;
 
 --
+-- Table structure for table `solicitacoes_revisao`
+--
+
+DROP TABLE IF EXISTS `solicitacoes_revisao`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `solicitacoes_revisao` (
+  `codSolicitacao` int(11) NOT NULL AUTO_INCREMENT,
+  `mensagem` varchar(200) DEFAULT NULL,
+  `dataSolicitacao` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `codUsuarioOrientado` int(11) NOT NULL,
+  PRIMARY KEY (`codSolicitacao`),
+  KEY `FK_SOLICITACAO_USUARIO_ORIENTADO` (`codUsuarioOrientado`),
+  CONSTRAINT `FK_SOLICITACAO_USUARIO_ORIENTADO` FOREIGN KEY (`codUsuarioOrientado`) REFERENCES `usuario_orientado` (`codUsuarioOrientado`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `solicitacoes_revisao`
+--
+
+LOCK TABLES `solicitacoes_revisao` WRITE;
+/*!40000 ALTER TABLE `solicitacoes_revisao` DISABLE KEYS */;
+INSERT INTO `solicitacoes_revisao` VALUES (1,'','2020-07-09 03:52:22',3),(2,'','2020-07-09 19:22:51',6),(3,'Corrigir erro blablabal','2020-07-09 19:23:52',6);
+/*!40000 ALTER TABLE `solicitacoes_revisao` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `usuario_orientado`
 --
 
@@ -268,6 +296,7 @@ DROP TABLE IF EXISTS `usuario_orientado`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
  SET character_set_client = utf8mb4 ;
 CREATE TABLE `usuario_orientado` (
+  `codUsuarioOrientado` int(11) NOT NULL AUTO_INCREMENT,
   `codOrientador` int(11) DEFAULT NULL,
   `codCoordenador` int(11) DEFAULT NULL,
   `codAutor` int(11) NOT NULL,
@@ -275,7 +304,8 @@ CREATE TABLE `usuario_orientado` (
   `dataCriacao` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `dataValidade` datetime NOT NULL,
   `codCurso` int(11) NOT NULL,
-  PRIMARY KEY (`codAutor`,`codUsuario`),
+  PRIMARY KEY (`codUsuarioOrientado`),
+  UNIQUE KEY `codAutor_UNIQUE` (`codAutor`,`codUsuario`) /*!80000 INVISIBLE */,
   KEY `FK_AUTOR_USUARIO_ORIENTADO_idx` (`codAutor`),
   KEY `FK_USUARIO_USUARIO_ORIENTADO_idx` (`codUsuario`),
   KEY `FK_CURSO_USUARIO_ORIENTADO_idx` (`codCurso`),
@@ -286,7 +316,7 @@ CREATE TABLE `usuario_orientado` (
   CONSTRAINT `FK_CURSO_USUARIO_ORIENTADO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codCurso`),
   CONSTRAINT `FK_ORIENTADOR_USUARIO_ORIENTADO` FOREIGN KEY (`codOrientador`) REFERENCES `orientadores` (`codOrientador`) ON DELETE SET NULL ON UPDATE SET NULL,
   CONSTRAINT `FK_USUARIO_USUARIO_ORIENTADO` FOREIGN KEY (`codUsuario`) REFERENCES `usuarios` (`codUsuario`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -295,7 +325,7 @@ CREATE TABLE `usuario_orientado` (
 
 LOCK TABLES `usuario_orientado` WRITE;
 /*!40000 ALTER TABLE `usuario_orientado` DISABLE KEYS */;
-INSERT INTO `usuario_orientado` VALUES (16,NULL,112,70,'2020-06-04 14:52:53','2020-07-04 14:52:53',1),(16,NULL,119,72,'2020-06-19 17:00:34','2020-07-19 17:00:34',1),(17,NULL,119,79,'2020-06-26 15:52:36','2020-07-26 15:52:36',1),(NULL,3,119,80,'2020-07-01 21:48:22','2020-07-31 21:48:22',1),(NULL,3,119,82,'2020-07-01 21:49:47','2020-07-31 21:49:47',1),(17,NULL,136,84,'2020-07-07 16:29:56','2020-08-06 16:29:56',2);
+INSERT INTO `usuario_orientado` VALUES (1,16,NULL,112,70,'2020-06-04 14:52:53','2020-07-04 14:52:53',1),(2,16,NULL,119,72,'2020-06-19 17:00:34','2020-07-19 17:00:34',1),(3,17,NULL,119,79,'2020-06-26 15:52:36','2020-07-26 15:52:36',1),(4,NULL,3,119,80,'2020-07-01 21:48:22','2020-07-31 21:48:22',1),(5,NULL,3,119,82,'2020-07-01 21:49:47','2020-07-31 21:49:47',1),(6,17,NULL,136,84,'2020-07-07 16:29:56','2020-08-06 16:29:56',2);
 /*!40000 ALTER TABLE `usuario_orientado` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -325,7 +355,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:150000$7rHphFnD$397c0a570ba3810f5d5f2fbaea54139512a6309e3757fa1ef730d5ca2d73c5b9',4,1,'admin','admin@admin.com'),(69,'professor','pbkdf2:sha256:150000$OVCxAVvj$8201f99b0f6e3999ded3dfbaa802b35f81ebd18e3e16e4c4f91b0903882327ea',2,1,'professor','professor@professor.com'),(70,'aluno2','pbkdf2:sha256:150000$twwOG5FU$41f8acdbf92eb1cd65539866cafbb2515984d2a0186bedc0b7d7983805fd9bd9',1,0,'aluno2','aluno2@aluno.com'),(71,'secretaria','pbkdf2:sha256:150000$bZ1vLB3W$b574ea1aba7b87c722087e2d0a363883a939adbb947367238eb8a8f8cdc22292',3,1,'secretaria','secreataria@secreataria.com'),(72,'aluno','pbkdf2:sha256:150000$xWk5qTpT$9218f17dbcec9b77b5ef5e9086fe1ac8a04176a33f7c79d37e9feb57cef874ea',1,0,'aluno','aluno@aluno.com'),(73,'professor2','pbkdf2:sha256:150000$Qgnz6KCU$53aa6239150f4a11da759507f1f7f9a007b2b9ee10501194d2e5e4bdcf45e16f',2,1,'professor dois','professor2@professor2.com'),(75,'oriteste','pbkdf2:sha256:150000$LXLhOqiB$0a1324bf8add3978af777d181d83fdad6d52a9800ce08e6e507af425600b0b0e',2,0,'Oirentador JOJOFEG','pedro.joao.pl@gmail.com'),(79,'alunoteste','pbkdf2:sha256:150000$uTslCKC3$04c0fd67c240f8afda647a321d3fadc12ef8125816da1d4c0de79e37e4e8013a',1,0,'aluno','aluno2joj@aluno2.com'),(80,'22222222','pbkdf2:sha256:150000$if6wsAEX$84fb67bfe001ca1712d0ccb3351431dcfc01dd8a0668983ed64f2a631c41828f',1,0,'alune','alune@lll.com.br'),(82,'1234567890123','pbkdf2:sha256:150000$692p6DOi$90be0728146fcab8d8dc639ec90de61aa9c6659a3c82fb46492a55c7ef31c591',1,1,'alunaae','pedro-vitorio@hotmail.com'),(84,'1234567890124','pbkdf2:sha256:150000$ReWHEIcq$8db2653de9ac6f5ef0e493b544561900507ba8d494e3d62293966fdab32cd7b3',1,1,'aluuuuuuu','aluno@teste.com'),(85,'oritesteJOJO','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',2,0,'oritesteJOJO','oritestejojo@professor2.com'),(86,'coordenadorjd','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',5,1,'coordteste','coorde@teste.com'),(87,'coordenadorads','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',5,1,'coorde','coordeteste@teste.com'),(88,'coordteste','pbkdf2:sha256:150000$fgaufQie$93ae638c9966548cb20d59a6954cdb6ce6c99b1ca53d2bf2f92828682bdda1c9',5,1,'JOsefa','teste@teste.com');
+INSERT INTO `usuarios` VALUES (1,'admin','pbkdf2:sha256:150000$7rHphFnD$397c0a570ba3810f5d5f2fbaea54139512a6309e3757fa1ef730d5ca2d73c5b9',4,1,'admin','admin@admin.com'),(69,'professor','pbkdf2:sha256:150000$OVCxAVvj$8201f99b0f6e3999ded3dfbaa802b35f81ebd18e3e16e4c4f91b0903882327ea',2,1,'professor','professor@professor.com'),(70,'aluno2','pbkdf2:sha256:150000$twwOG5FU$41f8acdbf92eb1cd65539866cafbb2515984d2a0186bedc0b7d7983805fd9bd9',1,0,'aluno2','aluno2@aluno.com'),(71,'secretaria','pbkdf2:sha256:150000$bZ1vLB3W$b574ea1aba7b87c722087e2d0a363883a939adbb947367238eb8a8f8cdc22292',3,1,'secretaria','secreataria@secreataria.com'),(72,'aluno','pbkdf2:sha256:150000$xWk5qTpT$9218f17dbcec9b77b5ef5e9086fe1ac8a04176a33f7c79d37e9feb57cef874ea',1,0,'aluno','aluno@aluno.com'),(73,'professor2','pbkdf2:sha256:150000$Qgnz6KCU$53aa6239150f4a11da759507f1f7f9a007b2b9ee10501194d2e5e4bdcf45e16f',2,1,'professor dois','professor2@professor2.com'),(75,'oriteste','pbkdf2:sha256:150000$LXLhOqiB$0a1324bf8add3978af777d181d83fdad6d52a9800ce08e6e507af425600b0b0e',2,0,'Oirentador JOJOFEG','pedro.joao.pl@gmail.com'),(79,'alunoteste','pbkdf2:sha256:150000$1ifioFwq$10960f10bd4e5ec2a86245894cef5a3fd1c890ad131e37643b902fb31d3f6ce4',1,0,'aluno','aluno2joj@aluno2.com'),(80,'22222222','pbkdf2:sha256:150000$if6wsAEX$84fb67bfe001ca1712d0ccb3351431dcfc01dd8a0668983ed64f2a631c41828f',1,0,'alune','alune@lll.com.br'),(82,'1234567890123','pbkdf2:sha256:150000$692p6DOi$90be0728146fcab8d8dc639ec90de61aa9c6659a3c82fb46492a55c7ef31c591',1,1,'alunaae','pedro-vitorio@hotmail.com'),(84,'1234567890124','pbkdf2:sha256:150000$ReWHEIcq$8db2653de9ac6f5ef0e493b544561900507ba8d494e3d62293966fdab32cd7b3',1,1,'aluuuuuuu','aluno@teste.com'),(85,'oritesteJOJO','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',2,0,'oritesteJOJO','oritestejojo@professor2.com'),(86,'coordenadorjd','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',5,1,'coordteste','coorde@teste.com'),(87,'coordenadorads','pbkdf2:sha256:150000$5YA3Kbw2$08669015163055a4381e0d33c57fb8962e301d4872fa401a3abc3d2263b34f47',5,1,'coorde','coordeteste@teste.com'),(88,'coordteste','pbkdf2:sha256:150000$fgaufQie$93ae638c9966548cb20d59a6954cdb6ce6c99b1ca53d2bf2f92828682bdda1c9',5,1,'JOsefa','teste@teste.com');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -338,4 +368,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-09  2:01:29
+-- Dump completed on 2020-07-09 19:27:31
