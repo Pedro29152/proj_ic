@@ -17,6 +17,7 @@ from biblioteca.extensions import (
     user_admin_token_required,
     professor_token_required,
     is_valid_email,
+    is_valid_username,
     admin_is_user_token_required,
     secretaria_token_required_user_info,
     generate_random_password,
@@ -188,6 +189,8 @@ def cadastro_usuario():
         return get_falha('Os campos enviados nao podem estar vazios'), 400
     if not is_valid_email(email):
         return get_erro('O campo "email" dever ser um email valido'), 400
+    if not is_valid_username(user):
+        return get_erro('O campo "username" dever ser um nome de usuario valido'), 400
     if not (tipoUsuario - 1) in range(TiposUsuario.Coordenador.value):
         return get_falha('O tipo de usuario enviado é invalido'), 400
     if tipoUsuario == TiposUsuario.Aluno.value:
@@ -224,6 +227,8 @@ def cadastro_professor(existente=True):
     
     if not is_valid_email(email):
         return get_erro('O campo "email" dever ser um email valido'), 400
+    if not is_valid_username(user):
+        return get_erro('O campo "username" dever ser um nome de usuario valido'), 400
 
     if not existente:
         try:
@@ -268,6 +273,8 @@ def cadastro_coordenador():
         return get_falha('Os campos enviados nao podem estar vazios'), 400
     if not is_valid_email(email):
         return get_erro('O campo "email" dever ser um email valido'), 400
+    if not is_valid_username(user):
+        return get_erro('O campo "username" dever ser um nome de usuario valido'), 400
         
     curso = cursos_dao.get_curso_codCurso(codCurso, False)
     if not curso:
@@ -417,6 +424,8 @@ def edita_usuario(codUsuario, is_admin, is_user):
                 return get_erro('Voce nao pode alterar um administrador sem ser um administrador'), 400
 
         if nomeUsuario:
+            if not is_valid_username:
+                return get_erro('O campo "nomeUsuario" deve ser um nome de usuario valido')
             usr['nomeUsuario'] = nomeUsuario
         if nome: 
             usr['nome'] = nome
