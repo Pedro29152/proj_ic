@@ -4,6 +4,8 @@ from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import DataError, IntegrityError
 
 from .schemas import Orientadores
+from biblioteca.usuarios import usuario_dao
+from biblioteca.autor import autores_dao
 from biblioteca.responses import (
     get_erro,
     get_ok,
@@ -15,7 +17,9 @@ from biblioteca.responses import (
 from biblioteca.extensions import(
     admin_token_required,
     secretaria_token_required,
+    professor_token_required,
     professor_admin_token_required,
+    aluno_token_required,
     token_required,
     is_valid_email,
     is_valid_http_link
@@ -67,6 +71,17 @@ class CountOrientadoresResource(Resource):
         count = orientadores_dao.get_count()
         return get_count(count)
 
+class SolicitarRevisaoResource(Resource):
+    @professor_token_required
+    def post(self, id, user_info):
+        data, cod = solicitar_revisao(id, user_info)
+        return get_response_code(data, cod)
+
+class VerificarRevisoesResource(Resource):
+    @aluno_token_required
+    def get(self, user_info):
+        ret, cod = verificar_revisoes(user_info)
+        return get_response_code(ret, cod)
 
 def cadastro_orientador():
     try:
@@ -171,3 +186,27 @@ def desativa_orientador(id):
     else:
         return get_erro('Codigo do orientador enviado não esta cadastrado no sistema'), 404
     return get_ok('Orientador desativado com sucesso'), 200
+
+def solicitar_revisao(codUsuario, professor_user_info):
+    orientador = orientadores_dao.get_orientador_codUsuario(professor_user_info['codUsuario'])
+    if not orientador:
+        return get_erro('O usuario utilizado não está ligado a nenhum orientador'), 400
+    
+    try:
+        mensagem = request.form['mensagem']
+    except BadRequestKeyError:
+        return get_erro('O campo "mensagem" devem ser enviados no corpo da requisicao'), 400
+
+
+    usuarioOrientado = usuario_dao.get_usuario_orientado(orientador['codOrientador'], codUsuario)
+    if usuarioOrientado:
+        usuario_dao.gerar_solitacao(usuarioOrientado['codUsuarioOrientado'], mensagem)
+        return get_ok('Solicitação de revisao enviada'), 200
+    return get_erro('Você não esta orientando este usuário'), 400
+
+def verificar_revisoes(user_info):
+    usuarioOrientado = usuario_dao.get_usuario_orientado_aluno(user_info['codUsuario'])
+    revisao = usuario_dao.verificar_revisao(usuarioOrientado['codUsuarioOrientado'])
+    if revisao:
+        return get_data(revisao), 200
+    return None, 204

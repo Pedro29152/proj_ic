@@ -18,7 +18,9 @@ from biblioteca.orientador.resources import (
     AtivaOrientadorResource,
     DesativaOrientadorResource,
     TodosOrientadoresResource, 
-    OrientadorIdResource
+    OrientadorIdResource,
+    SolicitarRevisaoResource,
+    VerificarRevisoesResource
 )
 from biblioteca.projeto.resources import (
     BuscaProjetoResource,
@@ -104,6 +106,8 @@ def configure_api(app):
     api.add_resource(AtivaOrientadorResource, '/api/orientadores/ativar/<int:id>')
     api.add_resource(DesativaOrientadorResource, '/api/orientadores/desativar/<int:id>')
     api.add_resource(CountOrientadoresResource, '/api/orientadores/count')
+    api.add_resource(SolicitarRevisaoResource, '/api/orientadores/selicitarrevisao/<int:id>')
+    api.add_resource(VerificarRevisoesResource, '/api/orientadores/verificarrevisao')
 
     #Rotas de projetos
     api.add_resource(BuscaProjetoResource, '/api/projetos/<string:id>', 

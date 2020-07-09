@@ -159,7 +159,6 @@ def get_count(codOrientador=None):
     query = 'select count(*) as usuarios from usuarios'
     ret = db.bd_busca_um(query, None)
     return ret['usuarios']
-    
 
 def get_usuario(codUsuario):
     query = 'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where codUsuario = (%s) and ativo = 1'
@@ -192,6 +191,14 @@ def get_usuario_codProjeto(codProjeto):
     order by p.dataEnvio
     '''
     return db.bd_busca_um(query, (codProjeto,))
+
+def get_usuario_orientado(codOrientador, codUsuario):
+    query = '''
+        select * from usuario_orientado 
+        where codOrientador = (%s) and codUsuario = (%s)
+    '''
+    ret = db.bd_busca_um(query, (codOrientador, codUsuario))
+    return ret
 
 def edita_usuario(usuario):
     query = 'update usuarios set nomeUsuario = (%s), nome = (%s), email = (%s), tipoUsuario = (%s) where codUsuario = (%s)'
@@ -248,3 +255,23 @@ def remove_responsabilidade_usuario(usuario_orientado):
     
     coord = coordenador_dao.get_coordenador_codCurso(usuario_orientado['codCurso'])
     db.bd_gravar(query_upd, (coord['codCoordenador'], usuario_orientado['codAutor'], usuario_orientado['codUsuario']))
+
+def gerar_solitacao(codUsuarioOrientado, mensagem):
+    query = '''
+        insert into solicitacoes_revisao(codUsuarioOrientado, mensagem) values(%s,%s)
+    '''
+    db.bd_gravar(query, (codUsuarioOrientado, mensagem))
+
+def get_usuario_orientado_aluno(codUsuario):
+    query = '''
+        select * from usuario_orientado where codUsuario = (%s)
+    '''
+    return db.bd_busca_um(query, (codUsuario,))
+
+def verificar_revisao(codUsuarioOrientado):
+    query = '''
+        select * from solicitacoes_revisao 
+        where codUsuarioOrientado = (%s)
+    '''
+    ret = db.bd_busca(query, (codUsuarioOrientado,))
+    return ret
