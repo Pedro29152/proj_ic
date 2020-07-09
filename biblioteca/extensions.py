@@ -1,4 +1,4 @@
-import jwt, re
+import jwt, re, string, random, os
 from enum import IntEnum
 from functools import wraps
 from flask import request, jsonify, current_app as app
@@ -299,3 +299,13 @@ def is_valid_http_link(link):
             r'(?::\d+)?' # optional port
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
     return re.match(regex, link)
+
+def generate_random_password():
+    length = 13
+    chars = string.ascii_letters + string.digits + '!@#$%^&*()'
+    random.seed = (os.urandom(1024))
+    a = '' 
+    for i in range(length):
+        a = a + a.join(random.choice(chars))
+    return str(a)
+

@@ -5,6 +5,7 @@ from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import DataError, IntegrityError
 from datetime import datetime, timedelta
 
+from biblioteca import mailer
 from biblioteca.orientador.schemas import Orientadores
 from biblioteca.orientador import orientadores_dao
 from biblioteca.autor import autores_dao
@@ -18,6 +19,7 @@ from biblioteca.extensions import (
     is_valid_email,
     admin_is_user_token_required,
     secretaria_token_required_user_info,
+    generate_random_password,
     TiposUsuario
 )
 from biblioteca.responses import (
@@ -126,10 +128,14 @@ class BuscaUsuariosOrientadosResource(Resource):
 
 class MudarSenhaUsuarioResource(Resource):
     @user_admin_token_required
-    def put(self, id):
+    def put(self, id, is_user, is_admin):
         res, cod = mudar_senha(id)
         return get_response_code(res, cod)
 
+class RecuperaraSenha(Resource):
+    def post(self):
+        data, cod = recuperar_senha()
+        return get_response_code(data, cod)
 
 def login():
     user  = ''
@@ -277,7 +283,6 @@ def cadastro_coordenador():
             return get_erro('Já existe um coordenador do curso enviado'), 400
     else:
         return get_erro('O nome de usuário enviado ja esta sendo utilizado por outro usuario'), 400
-
 
 def cadastro_aluno(professor_user_info):
     try:
@@ -454,14 +459,53 @@ def altera_orientador_aluno(codUsuario):
     return None, 204
 
 def mudar_senha(id):
-    if not util.is_cod_valido(id):
-        return get_erro('O valor enviado deve ser do tipo inteiro'), 400
-    codUsuario = int(id)
-
     try:
         senha = request.form['senha']
     except BadRequestKeyError:
         return get_erro('A requisicao deve possuir o campo "senha" em seu corpo'), 400
 
-    usuario_dao.edita_senha(codUsuario, senha)
+    usuario_dao.edita_senha(id, senha)
     return get_ok('A senha foi alterada com sucesso'), 200
+
+def recuperar_senha():
+    try:
+        username = request.form['username']
+    except BadRequestKeyError: 
+        return get_erro('A requsicao deve conter o campo "username" em seu corpo'), 400
+
+    if not username:
+        return get_erro('Os campos enviados devem ser preenchidos'), 400
+    
+    usuario = usuario_dao.get_usuario_username(username)
+    if not usuario:
+        return get_erro('O nome de usuario enviado não existe'), 400
+
+    novaSenha = generate_random_password()
+    codUsuario = int(usuario['codUsuario'])
+    usuario_dao.edita_senha(codUsuario, novaSenha)
+
+    mailer.send_email(
+        usuario['email'],
+        mailer.generate_message(
+            'Recuperacao de senha - BTA',
+            usuario['email'], 
+            '''
+            <html>
+                <head></head>
+                <body>
+                    <h2>Sua senha foi redefinida.</h2>
+
+                    <p>Ola, {0}.</p>
+
+                    <p>A senha abaixo sera sua nova senha</p>
+
+                    <h3><b>{1}</b></h3>
+
+                    <p>Sistema de gerenciamento de usuarios BTA.</p>
+                </body>
+            </html>
+            '''.format(usuario['nome'], novaSenha)
+        )
+    )
+
+    return get_ok('Um email foi enviado para você sobre sua nova senha'), 200
