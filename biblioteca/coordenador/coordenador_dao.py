@@ -36,3 +36,10 @@ def get_coordenador_codUsuario(codUsuario):
     '''
     coord = db.bd_busca_um(query, (codUsuario,))
     return coord
+
+def cadastro_coordenador(nome, email, codCurso, codUsuario):
+    query = '''
+        insert into coordenadores(nomeCoordenador, email, codCurso, codUsuario) 
+        values(%s, %s, %s, %s)
+    '''
+    db.bd_gravar(query, (nome, email, codCurso, codUsuario))
