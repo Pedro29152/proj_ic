@@ -1,4 +1,5 @@
 from biblioteca import db
+from biblioteca.curso import cursos_dao
 
 def buscar_coordenadores(nomeCoordenador=''):
     nomeCoordenador = '%{}%'.format(nomeCoordenador)
@@ -6,6 +7,9 @@ def buscar_coordenadores(nomeCoordenador=''):
         select * from coordenadores where nomeCoordenador like (%s)
     '''
     ret = db.bd_busca(query, (nomeCoordenador,)) 
+
+    preenche_coordenadores(ret)
+
     return ret
 
 def get_coordenador(codCoordenador):
@@ -13,6 +17,9 @@ def get_coordenador(codCoordenador):
         select * from coordenadores where codCoordenador = (%s)
     '''
     coord = db.bd_busca_um(query, (codCoordenador,))
+    
+    preenche_coordenador(coord)
+
     return coord
 
 def get_count():
@@ -43,3 +50,12 @@ def cadastro_coordenador(nome, email, codCurso, codUsuario):
         values(%s, %s, %s, %s)
     '''
     db.bd_gravar(query, (nome, email, codCurso, codUsuario))
+
+def preenche_coordenadores(coordenadores):
+    for item in coordenadores:
+        preenche_coordenador(item)
+
+def preenche_coordenador(coordenador):
+    curso = cursos_dao.get_all_curso_cod(coordenador['codCurso'])
+    if curso:
+        coordenador['curso'] = curso
