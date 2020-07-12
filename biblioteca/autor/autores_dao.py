@@ -16,6 +16,10 @@ def busca_autores(nomeAutor=''):
     )
     return ret
 
+def get_autor(codAluno):
+    query = 'select * from autores where codAutor = (%s)'
+    ret = db.bd_busca_um(query, (codAluno,))
+    return ret
 
 def busca_autores_proj(codProjeto):
     

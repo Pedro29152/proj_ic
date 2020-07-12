@@ -4,13 +4,26 @@ from flask_restful import Resource, request
 from . import autores_dao 
 from biblioteca.responses import (
     get_data,
-    get_response_code
+    get_response_code,
+    get_not_found
+)
+from biblioteca.extensions import (
+    token_required
 )
 
 class BuscaAlunosResource(Resource):
-    def get(self):
+    @token_required
+    def get(self, user_info):
         nomeAutor = request.args.get('nomeAutor')
         ret = autores_dao.busca_autores(nomeAutor)
         if ret:
             return get_data(ret)
         return get_response_code(None, 204)
+
+class GetAlunoResource(Resource):
+    @token_required
+    def get(self, id, user_info):
+        ret = autores_dao.get_autor(id)
+        if ret:
+            return get_data(ret)
+        return get_not_found('Autor não encontrado')
