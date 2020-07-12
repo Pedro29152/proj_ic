@@ -237,6 +237,17 @@ def busca_projeto_orientador_publico(codOrientador):
 
     return ret
 
+def busca_projeto_inativo():
+    query = '''
+        select * from projetos where ativo = 0 and status = 1
+    '''
+    ret = db.bd_busca(query, None)
+
+    if ret:
+        prenche_projetos(ret)
+
+    return ret
+
 def get_cod_projeto_titulo(titulo):
     query = 'SELECT codProjeto FROM projetos WHERE tituloProjeto = (%s) ORDER BY codProjeto DESC'
 
@@ -353,6 +364,17 @@ def get_projeto(codProjeto, is_full=False):
         prenche_projeto(proj)
     return proj
 
+def get_projeto_inativo(codProjeto):
+    query = '''
+        select * from projetos where codProjeto = (%s) and ativo = 0 and status = 1
+    '''
+    ret = db.bd_busca_um(query, (codProjeto,))
+
+    if ret:
+        prenche_projeto(ret)
+
+    return ret
+
 def desativa_projeto(codProjeto):
     query = 'update projetos set ativo = 0 where codProjeto = (%s)'
 
@@ -468,4 +490,4 @@ def __busca_projeto_full(query, *args):
 
     prenche_projetos(ret)
     
-    return ret 
+    return ret

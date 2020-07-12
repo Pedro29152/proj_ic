@@ -96,6 +96,18 @@ class GetProjetoOrientador(Resource):
         res, cod = get_projeto_orientador(orientador['codOrientador'], id)
         return get_response_code(res, cod)
 
+class BuscarProjetosInativosResource(Resource):
+    @secretaria_token_required
+    def get(self):
+        ret, cod = busca_projeto_inativo()
+        return get_response_code(ret, cod)
+
+class GetProjetoInativoResource(Resource):
+    @secretaria_token_required
+    def get(self, id):
+        ret, cod = get_projeto_inativo(id)
+        return get_response_code(ret, cod)
+
 class BuscarProjetosOrientadorId(Resource):
     def get(self, id):
         orientador = orientadores_dao.get_orientador_codigo(id, False)
@@ -265,6 +277,18 @@ def busca_projetos_orientador_publico(codOrientador):
     if not res:
         return None, 204
     return get_data(res), 200   
+
+def busca_projeto_inativo():
+    res = projetos_dao.busca_projeto_inativo()
+    if res:
+        return get_data(res), 200
+    return None, 204
+
+def get_projeto_inativo(id):
+    res = projetos_dao.get_projeto_inativo(id)
+    if res:
+        return get_data(res), 200
+    return get_erro('Projeto não encontrado'), 404
 
 def check_file():
     if 'file' not in request.files:

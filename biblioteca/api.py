@@ -28,9 +28,11 @@ from biblioteca.projeto.resources import (
     BuscarProjetosOrientador,
     BuscarProjetosOrientadorId,
     BuscarProjetosCoordenador,
+    BuscarProjetosInativosResource,
     GetProjetoResource,
     GetProjetoOrientador,
     GetProjetoAutorResource,
+    GetProjetoInativoResource,
     UploadProjetoResource,
     DownloadArquivoProjetoResource,
     DownloadArquivoProjetoNovoResource,
@@ -118,9 +120,11 @@ def configure_api(app):
     api.add_resource(BuscaRankingResource, '/api/projetos/ranking')
     api.add_resource(BuscarProjetosOrientador, '/api/projetos/orientador')
     api.add_resource(BuscarProjetosCoordenador, '/api/projetos/coordenador')
+    api.add_resource(BuscarProjetosOrientadorId, '/api/projetos/orientador/<int:id>')#publico
+    api.add_resource(BuscarProjetosInativosResource, '/api/pojetos/inativos')
+    api.add_resource(GetProjetoInativoResource, '/api/pojetos/inativos/<int:id>')
     api.add_resource(GetProjetoOrientador, '/api/projetos/orientador/get/<int:id>')
     api.add_resource(GetProjetoAutorResource, '/api/projetos/aluno/get')
-    api.add_resource(BuscarProjetosOrientadorId, '/api/projetos/orientador/<int:id>')#publico
     api.add_resource(AprovarProjetoResource, '/api/projetos/aprovar/<int:id>')
     api.add_resource(RecusarProjetoResource, '/api/projetos/recusar/<int:id>')
     api.add_resource(GetProjetoResource, '/api/projetos/get/<int:id>') #id: codigo do projeto a ser buscado
