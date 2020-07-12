@@ -291,7 +291,7 @@ def is_valid_email(email):
     return re.search(email_regex, email)
 
 def is_valid_username(username):
-    username_regex = '^(?=[a-zA-Z0-9._]{5,20}$)(?!.*[_.]{2})[^_.].*[^_.]$'
+    username_regex = '^(?=[a-zA-Z0-9._]{5,50}$)(?!.*[_.]{2})[^_.].*[^_.]$'
     return re.search(username_regex, username)
 
 def is_valid_http_link(link):
