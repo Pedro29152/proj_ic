@@ -106,7 +106,9 @@ def configure_api(app):
     api.add_resource(AtivaOrientadorResource, '/api/orientadores/ativar/<int:id>')
     api.add_resource(DesativaOrientadorResource, '/api/orientadores/desativar/<int:id>')
     api.add_resource(CountOrientadoresResource, '/api/orientadores/count')
-    api.add_resource(SolicitarRevisaoResource, '/api/orientadores/selicitarrevisao/<int:id>')
+
+    #Rotas de revisao
+    api.add_resource(SolicitarRevisaoResource, '/api/orientadores/solicitarrevisao/<int:id>')
     api.add_resource(VerificarRevisoesResource, '/api/orientadores/verificarrevisao')
 
     #Rotas de projetos
