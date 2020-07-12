@@ -28,7 +28,7 @@ class CoordenadorResource(Resource):
 
 class GetCoordenadorResource(Resource):
     @coordenador_secretaria_token_required
-    def get(self, id):
+    def get(self, id, user_info):
         coord = coordenador_dao.get_coordenador(id)
         if coord:
             return get_response_code(get_data(coord), 200)

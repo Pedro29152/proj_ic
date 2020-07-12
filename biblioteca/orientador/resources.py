@@ -4,7 +4,7 @@ from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import DataError, IntegrityError
 
 from .schemas import Orientadores
-from biblioteca.usuarios import usuario_dao
+from biblioteca.usuarios import usuario_dao, usuario_orientado_dao
 from biblioteca.autor import autores_dao
 from biblioteca.responses import (
     get_erro,
@@ -94,7 +94,7 @@ def cadastro_orientador():
         try:
             orientadores.grava_orientador()
         except DataError:
-            return get_erro('O codigo do orientador deve ter no maximo 20 caracteres e seu nome no maximo 200'), 400
+            return get_erro('O codigo do orientador deve ter no maximo 13 caracteres e seu nome no maximo 200'), 400
 
         return get_ok('Orientador gravado com sucesso'), 201
     except AttributeError as ex:
@@ -139,7 +139,7 @@ def edita_orientador(codOrientador):
     except IntegrityError:
         return get_erro('Os campos "email" e "raAutor" devem ser unicos'), 400
     except DataError:
-        return get_erro('O codigo do orientador deve ter no maximo 20 caracteres e seu nome no maximo 200'), 400
+        return get_erro('O codigo do orientador deve ter no maximo 13 caracteres e seu nome no maximo 200'), 400
 
 def get_orientador(codOrientador):
     ori = orientadores_dao.get_orientador_codigo(codOrientador, False)
@@ -198,14 +198,14 @@ def solicitar_revisao(codUsuario, professor_user_info):
         return get_erro('O campo "mensagem" devem ser enviados no corpo da requisicao'), 400
 
 
-    usuarioOrientado = usuario_dao.get_usuario_orientado(orientador['codOrientador'], codUsuario)
+    usuarioOrientado = usuario_orientado_dao.get_usuario_orientado(orientador['codOrientador'], codUsuario)
     if usuarioOrientado:
         usuario_dao.gerar_solitacao(usuarioOrientado['codUsuarioOrientado'], mensagem)
         return get_ok('Solicitação de revisao enviada'), 200
     return get_erro('Você não esta orientando este usuário'), 400
 
 def verificar_revisoes(user_info):
-    usuarioOrientado = usuario_dao.get_usuario_orientado_aluno(user_info['codUsuario'])
+    usuarioOrientado = usuario_orientado_dao.get_usuario_orientado_aluno(user_info['codUsuario'])
     revisao = usuario_dao.verificar_revisao(usuarioOrientado['codUsuarioOrientado'])
     if revisao:
         return get_data(revisao), 200

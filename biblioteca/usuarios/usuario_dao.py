@@ -192,14 +192,6 @@ def get_usuario_codProjeto(codProjeto):
     '''
     return db.bd_busca_um(query, (codProjeto,))
 
-def get_usuario_orientado(codOrientador, codUsuario):
-    query = '''
-        select * from usuario_orientado 
-        where codOrientador = (%s) and codUsuario = (%s)
-    '''
-    ret = db.bd_busca_um(query, (codOrientador, codUsuario))
-    return ret
-
 def edita_usuario(usuario):
     query = 'update usuarios set nomeUsuario = (%s), nome = (%s), email = (%s), tipoUsuario = (%s) where codUsuario = (%s)'
     db.bd_gravar(query,(usuario['nomeUsuario'], usuario['nome'], usuario['email'], usuario['tipoUsuario'], usuario['codUsuario']))
@@ -230,10 +222,6 @@ def ativa_usuario(codUsuario):
     query = 'update usuarios set ativo = 1 where codUsuario = (%s)'
     db.bd_gravar(query, (codUsuario,))
 
-def edita_orientador_aluno(codUsuario, codOrientador):
-    query = 'update usuario_orientado set codOrientador = (%s) where codUsuario = (%s)'
-    db.bd_gravar(query, (codOrientador, codUsuario))
-
 def edita_senha(codUsuario, novaSenha):
     query = 'update usuarios set senha = (%s) where codUsuario = (%s)'
     db.bd_gravar(query, (generate_password_hash(novaSenha), codUsuario))
@@ -261,12 +249,6 @@ def gerar_solitacao(codUsuarioOrientado, mensagem):
         insert into solicitacoes_revisao(codUsuarioOrientado, mensagem) values(%s,%s)
     '''
     db.bd_gravar(query, (codUsuarioOrientado, mensagem))
-
-def get_usuario_orientado_aluno(codUsuario):
-    query = '''
-        select * from usuario_orientado where codUsuario = (%s)
-    '''
-    return db.bd_busca_um(query, (codUsuario,))
 
 def verificar_revisao(codUsuarioOrientado):
     query = '''

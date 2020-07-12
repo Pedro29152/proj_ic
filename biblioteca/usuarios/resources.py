@@ -20,6 +20,7 @@ from biblioteca.extensions import (
     is_valid_username,
     admin_is_user_token_required,
     secretaria_token_required_user_info,
+    coordenador_secretaria_token_required,
     generate_random_password,
     TiposUsuario
 )
@@ -31,7 +32,7 @@ from biblioteca.responses import (
     get_count,
     get_response_code
 )
-from . import usuario_dao
+from . import usuario_dao, usuario_orientado_dao
 from . import util
 
 class LoginResource(Resource):
@@ -98,9 +99,9 @@ class AtivaUsuarioResource(Resource):
         return get_response_code(res, cod)
 
 class AlterarOrientadorDoAlunoResource(Resource):
-    @secretaria_token_required
-    def put(self, id):
-        res, cod = altera_orientador_aluno(id)
+    @coordenador_secretaria_token_required
+    def put(self, id, user_info):
+        res, cod = altera_orientador_aluno(id, user_info)
         return get_response_code(res, cod)
 
 class CountUsuariosResource(Resource):
@@ -244,7 +245,7 @@ def cadastro_professor(existente=True):
         except AttributeError as ex:
             return get_erro(ex.__str__()), 400
         except DataError:
-            return get_erro('O campo "ra" deve conter no máximo 20 caracteres'), 400
+            return get_erro('O campo "ra" deve conter no máximo 13 caracteres'), 400
         except IntegrityError:
             return get_erro('O email enviado ja esta sendo utilizado por outro usuario'), 400
     else:
@@ -441,10 +442,10 @@ def edita_usuario(codUsuario, is_admin, is_user):
         return get_ok('Usuario editado com sucesso'), 200
     return get_falha('O codigo enviado nao esta relacionado a nenhum usuario'), 404
 
-def altera_orientador_aluno(codUsuario):
+def altera_orientador_aluno(codUsuario, user_info):
     usr = usuario_dao.get_usuario(codUsuario)
     if not usr:
-        return get_erro('O código de usuário enviado não esta ligado a nenhum usuario'), 400
+        return get_erro('O código de usuário enviado não esta ligado a nenhum usuario'), 404
     if not usr['tipoUsuario'] == TiposUsuario.Aluno.value:
         return get_erro('Voce só pode alterar usuários do tipo Aluno'), 400
     
@@ -464,7 +465,7 @@ def altera_orientador_aluno(codUsuario):
     if not usuario_dao.get_usuario(orientador['codUsuario']):
         return get_erro('O orientador enviado não possui um usuário valido cadastrado'), 400
     
-    usuario_dao.edita_orientador_aluno(codUsuario, orientador['codOrientador'])
+    usuario_orientado_dao.edita_orientador_aluno(codUsuario, orientador['codOrientador'])
     return None, 204
 
 def mudar_senha(id):
