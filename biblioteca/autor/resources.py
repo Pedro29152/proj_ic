@@ -5,10 +5,12 @@ from . import autores_dao
 from biblioteca.responses import (
     get_data,
     get_response_code,
-    get_not_found
+    get_not_found,
+    get_success
 )
 from biblioteca.extensions import (
-    token_required
+    token_required,
+    aluno_token_required
 )
 
 class BuscaAlunosResource(Resource):
@@ -27,3 +29,12 @@ class GetAlunoResource(Resource):
         if ret:
             return get_data(ret)
         return get_not_found('Autor não encontrado')
+
+class GetSelfAlunoResource(Resource):
+    @aluno_token_required
+    def get(self, user_info):
+        autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+        if autor:
+            return get_success(autor)
+        return get_not_found('Voce não possui um autor relacionado')
+

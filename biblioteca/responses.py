@@ -36,6 +36,10 @@ def get_count(count):
         'count': count
     }
 
+def get_success(data):
+    res = jsonify(get_data(data))
+    res.status_code = 200
+    return res
 
 def get_unauthorized(data):
     res = jsonify(get_erro(data))

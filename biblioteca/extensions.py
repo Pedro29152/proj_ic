@@ -151,7 +151,7 @@ def coordenador_secretaria_token_required(f):
             TiposUsuario.Coordenador.value,
             TiposUsuario.Secretaria.value,
             TiposUsuario.Administrador.value
-        ])
+        ], has_user_info=True)
 
         if(success):
             kwargs.update(data)

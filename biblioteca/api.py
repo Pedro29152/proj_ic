@@ -68,7 +68,8 @@ from biblioteca.geral.resources import (
 )
 from biblioteca.autor.resources import (
     BuscaAlunosResource,
-    GetAlunoResource
+    GetAlunoResource,
+    GetSelfAlunoResource
 )
 from biblioteca.coordenador.resources import (
     CoordenadorResource,
@@ -160,6 +161,7 @@ def configure_api(app):
     #Rotas de autor
     api.add_resource(BuscaAlunosResource, '/api/autores')
     api.add_resource(GetAlunoResource, '/api/autores/<int:id>')
+    api.add_resource(GetSelfAlunoResource, '/api/autores/get')
 
     #Rotas de coordenador
     api.add_resource(CoordenadorResource, '/api/coordenadores')
