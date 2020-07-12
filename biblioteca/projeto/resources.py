@@ -10,6 +10,7 @@ from random import randint
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from mysql.connector.errors import IntegrityError
 
+from biblioteca.usuarios import usuario_orientado_dao
 from biblioteca.curso import cursos_dao
 from biblioteca.orientador import orientadores_dao
 from biblioteca.coordenador import coordenador_dao
@@ -412,29 +413,32 @@ def upload_projeto(user_info=None):
     filename = __get_nome_arquivo_projeto(titulo, file.filename, projeto.curso.abreviacao)
     
     projeto.nomeArquivo = filename
-    if user_info:
-        ret, cod = projetos_dao.grava_projeto(
-            projeto, is_secretaria=False
-        )
-    else:
-        ret, cod = projetos_dao.grava_projeto(
-            projeto, is_secretaria=True
-        )
+    try:
+        if user_info:
+            proj = projetos_dao.grava_projeto(
+                projeto, is_secretaria=False
+            )
 
+            usuario_orientado_dao.add_projeto(user_info['codUsuario'], projeto.codProjeto)
+        else:
+            proj = projetos_dao.grava_projeto(
+                projeto, is_secretaria=True
+            )
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
 
-    if cod >= 200 and cod < 300:
-        filepath = os.path.join(
-            app.config['UPLOAD_FOLDER'], 
-            filename
-        )
-        file.save(
-            filepath
-        )
+    filepath = os.path.join(
+        app.config['UPLOAD_FOLDER'], 
+        filename
+    )
+    file.save(
+        filepath
+    )
 
-        capa = os.path.join(app.static_folder, 'Capa.pdf')
-        __adicionar_cabecalio([capa, filepath], filepath)
+    capa = os.path.join(app.static_folder, 'Capa.pdf')
+    __adicionar_cabecalio([capa, filepath], filepath)
 
-    return ret, cod
+    return get_ok('Projeto cadastrado com sucesso'), 200
 
 def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
     proj = projetos_dao.get_projeto_novo(codProjeto)

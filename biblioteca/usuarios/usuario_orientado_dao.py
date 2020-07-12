@@ -18,5 +18,11 @@ def get_usuario_orientado_aluno(codUsuario):
     '''
     return db.bd_busca_um(query, (codUsuario,))
 
+def add_projeto(codUsuario, codProjeto):
+    query = '''
+        update usuario_orientado set codProjeto = (%s) where codUsuario = (%s)
+    '''
+    db.bd_gravar(query, (codProjeto, codUsuario))
+
 def is_valid_coordenador(codCoordenador):
     pass
