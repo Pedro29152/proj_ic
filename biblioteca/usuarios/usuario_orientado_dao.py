@@ -30,6 +30,3 @@ def add_projeto(codUsuario, codProjeto):
         update usuario_orientado set codProjeto = (%s) where codUsuario = (%s)
     '''
     db.bd_gravar(query, (codProjeto, codUsuario))
-
-def is_valid_coordenador(codCoordenador):
-    pass

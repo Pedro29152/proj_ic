@@ -198,14 +198,13 @@ def busca_projeto_orientador(codOrientador):
 
     return ret
 
-def busca_projetos_coordenador(codCoordenador):
+def busca_projetos_codCurso(codCurso):
     query = '''
-        select distinct p.* from projetos as p
-        natural join cursos as c
-        join coordenadores as co on co.codCurso = c.codCurso
-        where p.ativo = 1 and p.status = 0 and co.codCoordenador = (%s)
+        select p.* from projetos as p
+        natural join cursos as c 
+        where p.ativo = 1 and p.status = 1 and p.codCurso = (%s)
     '''
-    ret = db.bd_busca(query, (codCoordenador,))
+    ret = db.bd_busca(query, (codCurso,))
 
     prenche_projetos(ret)
 

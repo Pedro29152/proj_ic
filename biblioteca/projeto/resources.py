@@ -14,7 +14,6 @@ from biblioteca import mailer
 from biblioteca.usuarios import usuario_orientado_dao
 from biblioteca.curso import cursos_dao
 from biblioteca.orientador import orientadores_dao
-from biblioteca.coordenador import coordenador_dao
 from biblioteca.autor import autores_dao, projeto_autor_dao
 from biblioteca.responses import (
     get_data,
@@ -32,7 +31,6 @@ from biblioteca.extensions import(
     aluno_token_required,
     professor_token_required,
     coordenador_token_required,
-    coordenador_professor_token_required,
     professor_secretaria_token_required,
     is_valid_email,
     TiposUsuario,
@@ -78,14 +76,14 @@ class BuscarProjetosOrientador(Resource):
         res, cod = busca_projetos_orientador(orientador['codOrientador'])
         return get_response_code(res, cod)
 
-class BuscarProjetosCoordenador(Resource):
+class BuscarProjetosCurso(Resource):
     @coordenador_token_required
     def get(self, user_info):
-        coordenador = coordenador_dao.get_coordenador_codUsuario(user_info['codUsuario'])
-        if not coordenador:
-            return get_bad_request('O usuario sendo utilizado nao possui um coordenador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro')
+        curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+        if not curso:
+            return get_bad_request('O usuario sendo utilizado nao possui um curso relacionado consigo mesmo, contate a secretaria para efetuar o cadastro')
 
-        res, cod = busca_projetos_coordenador(coordenador['codCoordenador'])
+        res, cod = busca_projetos_curso(curso['codCurso'])
         return get_response_code(res, cod)
 
 class GetProjetoOrientador(Resource):
@@ -268,8 +266,8 @@ def busca_projetos_orientador(codOrientador):
         return None, 204
     return get_data(res), 200
 
-def busca_projetos_coordenador(codCoordenador):
-    res = projetos_dao.busca_projetos_coordenador(codCoordenador)
+def busca_projetos_curso(codCurso):
+    res = projetos_dao.busca_projetos_codCurso(codCurso)
     if not res:
         return None, 204
     return get_data(res), 200

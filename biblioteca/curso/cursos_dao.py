@@ -30,9 +30,9 @@ def is_ativo(curso):
     return False
 
 def reativa_curso(curso):
-    query = 'update cursos set descricaoCurso = (%s), abreviacao = (%s), ativo = 1 where abreviacao = (%s) or descricaoCurso = (%s)'
+    query = 'update cursos set descricaoCurso = (%s), abreviacao = (%s), ativo = 1, codUsuario = (%s) where abreviacao = (%s) or descricaoCurso = (%s)'
 
-    db.bd_gravar(query, (curso.descricaoCurso, curso.abreviacao, curso.abreviacao, curso.descricaoCurso))
+    db.bd_gravar(query, (curso.descricaoCurso, curso.abreviacao, curso.codUsuario, curso.abreviacao, curso.descricaoCurso))
 
 def busca_cursos():
     val = db.bd_busca(
@@ -119,3 +119,10 @@ def get_count():
     query = 'select count(*) as cursos from cursos where ativo = 1'
     ret = db.bd_busca_um(query, None)
     return ret['cursos']
+
+def get_curso_codUsuario_coordenador(codUsuario):
+    query = '''
+        select * from cursos where codUsuario = (%s)
+    '''
+    ret = db.bd_busca_um(query, (codUsuario,))
+    return ret

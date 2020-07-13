@@ -3,7 +3,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from mysql.connector.errors import IntegrityError
 from datetime import datetime, timedelta
 from biblioteca import db
-from biblioteca.coordenador import coordenador_dao
 from biblioteca.orientador import orientadores_dao
 from biblioteca import extensions
 
@@ -237,12 +236,11 @@ def remove_responsabilidade_orientador(codOrientador):
 
 def remove_responsabilidade_usuario(usuario_orientado):
     query_upd = '''
-        update usuario_orientado set codOrientador = null, codCoordenador = (%s) 
+        update usuario_orientado set codOrientador = null
         where codAutor = (%s) and codUsuario = (%s)
     '''
     
-    coord = coordenador_dao.get_coordenador_codCurso(usuario_orientado['codCurso'])
-    db.bd_gravar(query_upd, (coord['codCoordenador'], usuario_orientado['codAutor'], usuario_orientado['codUsuario']))
+    db.bd_gravar(query_upd, (usuario_orientado['codAutor'], usuario_orientado['codUsuario']))
 
 def gerar_solitacao(codUsuarioOrientado, mensagem):
     query = '''

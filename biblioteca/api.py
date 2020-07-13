@@ -27,7 +27,7 @@ from biblioteca.projeto.resources import (
     BuscaRankingResource,
     BuscarProjetosOrientador,
     BuscarProjetosOrientadorId,
-    BuscarProjetosCoordenador,
+    BuscarProjetosCurso,
     BuscarProjetosInativosResource,
     GetProjetoResource,
     GetProjetoOrientador,
@@ -51,7 +51,6 @@ from biblioteca.usuarios.resources import (
     CadastroAlunoResource,
     CadastroProfessorExistenteResource,
     CadastroProfessorNovoResource,
-    CadastroCoordenadorResource,
     CountUsuariosResource,
     UsuarioIdResource,
     MudarSenhaUsuarioResource,
@@ -71,11 +70,6 @@ from biblioteca.autor.resources import (
     BuscaAlunosResource,
     GetAlunoResource,
     GetSelfAlunoResource
-)
-from biblioteca.coordenador.resources import (
-    CoordenadorResource,
-    GetCoordenadorResource,
-    CountCoordenadoresResource
 )
 from .db import bd_busca   
 
@@ -121,7 +115,7 @@ def configure_api(app):
                                            '/api/projetos') #id: titulo, curso, descricao, orientador, autor e palavrasChave
     api.add_resource(BuscaRankingResource, '/api/projetos/ranking')
     api.add_resource(BuscarProjetosOrientador, '/api/projetos/orientador')
-    api.add_resource(BuscarProjetosCoordenador, '/api/projetos/coordenador')
+    api.add_resource(BuscarProjetosCurso, '/api/projetos/coordenador')
     api.add_resource(BuscarProjetosOrientadorId, '/api/projetos/orientador/<int:id>')#publico
     api.add_resource(BuscarProjetosInativosResource, '/api/pojetos/inativos')
     api.add_resource(GetProjetoInativoResource, '/api/pojetos/inativos/<int:id>')
@@ -153,7 +147,6 @@ def configure_api(app):
     api.add_resource(CadastroAlunoResource, '/api/usuarios/cadastro/aluno')
     api.add_resource(CadastroProfessorExistenteResource, '/api/usuarios/cadastro/orientador/existente')
     api.add_resource(CadastroProfessorNovoResource, '/api/usuarios/cadastro/orientador/novo')
-    api.add_resource(CadastroCoordenadorResource, '/api/usuarios/cadastro/coordenador')
     api.add_resource(CountUsuariosResource, '/api/usuarios/count')
     api.add_resource(AlterarOrientadorDoAlunoResource, '/api/usuarios/editaorientadoraluno/<int:id>')
     api.add_resource(MudarSenhaResource, '/api/usuarios/mudarsenha')
@@ -164,11 +157,6 @@ def configure_api(app):
     api.add_resource(BuscaAlunosResource, '/api/autores')
     api.add_resource(GetAlunoResource, '/api/autores/<int:id>')
     api.add_resource(GetSelfAlunoResource, '/api/autores/get')
-
-    #Rotas de coordenador
-    api.add_resource(CoordenadorResource, '/api/coordenadores')
-    api.add_resource(GetCoordenadorResource, '/api/coordenadores/<int:id>')
-    api.add_resource(CountCoordenadoresResource, '/api/coordenadores/count')
 
     # inicializamos a api com as configurações do flask vinda por parâmetro
     api.init_app(app)

@@ -10,7 +10,6 @@ from biblioteca.orientador.schemas import Orientadores
 from biblioteca.orientador import orientadores_dao
 from biblioteca.autor import autores_dao
 from biblioteca.curso import cursos_dao
-from biblioteca.coordenador import coordenador_dao
 from biblioteca.extensions import (
     secretaria_token_required,
     admin_token_required,
@@ -79,12 +78,6 @@ class CadastroProfessorNovoResource(Resource):
     @secretaria_token_required
     def post(self):
         data, cod = cadastro_professor(False)
-        return get_response_code(data, cod)
-
-class CadastroCoordenadorResource(Resource):
-    @admin_token_required
-    def post(self):
-        data, cod = cadastro_coordenador()
         return get_response_code(data, cod)
 
 class DesativaUsuarioResource(Resource):
@@ -175,7 +168,7 @@ def login():
         ret['token'] = token.decode('utf-8')
         ret['data'] = token_data
         return ret, 200
-    return get_erro('Ususario ou senha incorretos, tente novamente'), 401
+    return get_erro('Usuario ou senha incorretos, tente novamente'), 401
 
 def cadastro_usuario():
     try:
@@ -267,40 +260,6 @@ def cadastro_professor(existente=True):
         ), 201
     return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
 
-def cadastro_coordenador():
-    try:
-        senha = request.form['password']
-        user = request.form['username']
-        nome = request.form['nome']
-        email = request.form['email']
-        codCurso = request.form['codCurso']
-    except BadRequestKeyError:
-        return get_erro(
-            'A requisicao deve possuir os campos "email", "nome", "username", "codCurso" e "password" em seu corpo'
-        ), 400
-
-    if not (senha and user and nome and email and codCurso):
-        return get_falha('Os campos enviados nao podem estar vazios'), 400
-    if not is_valid_email(email):
-        return get_erro('O campo "email" dever ser um email valido'), 400
-    if not is_valid_username(user):
-        return get_erro('O campo "username" dever ser um nome de usuario valido'), 400
-        
-    curso = cursos_dao.get_curso_codCurso(codCurso, False)
-    if not curso:
-        return get_falha('O código do curso enviado não é um codigo de curso válido'), 400
-
-    user = usuario_dao.add_usr(user, senha, TiposUsuario.Coordenador.value, nome, email)
-    if user:
-        try: 
-            coordenador_dao.cadastro_coordenador(nome, email, codCurso, user['codUsuario'])
-            return get_ok('Coordenador cadastrado com sucesso'), 200
-        except IntegrityError:
-            usuario_dao.deleta_usuario(user['codUsuario'])
-            return get_erro('Já existe um coordenador do curso enviado'), 400
-    else:
-        return get_erro('O nome de usuário enviado ja esta sendo utilizado por outro usuario'), 400
-
 def cadastro_aluno(professor_user_info):
     try:
         senha = request.form['password']
@@ -346,6 +305,8 @@ def desativa_usuario(codUsuario, is_user):
         
     usr = usuario_dao.get_usuario(codUsuario)
     if usr:
+        if usr['tipoUsuario'] == TiposUsuario.Coordenador.value:
+            return get_erro('Você não pode apagar um usuario do tipo Coordenador'), 400
         usuario_dao.desativa_usuario(codUsuario)
         return get_ok('Usuario desativado com sucesso'), 200
     return get_erro('O código de usuário enviado não existe'), 404
@@ -360,12 +321,17 @@ def ativa_usuario(codUsuario, is_user):
         return get_ok('Usuario ativado com sucesso'), 200
     return get_erro('O código de usuário enviado não existe'), 404
 
-def deleta_usuario(id, is_user):
+def deleta_usuario(codUsuario, is_user):
     if is_user:
         return get_falha('Voce nao pode deletar o proprio usuario'), 400
-    id = int(id)
-    usuario_dao.deleta_usuario(id)
-    return get_ok('Usuario deletado com sucesso'), 200
+    
+    usr = usuario_dao.get_usuario(codUsuario)
+    if usr:
+        if usr['tipoUsuario'] == TiposUsuario.Coordenador.value:
+            return get_erro('Você não pode apagar um usuario do tipo Coordenador'), 400
+        usuario_dao.deleta_usuario(codUsuario)
+        return get_ok('Usuario deletado com sucesso'), 200
+    return get_erro('O código de usuário enviado não existe'), 404
 
 def busca_usuarios():
     nome = request.args.get('nomeUsuario')

@@ -38,7 +38,7 @@ def get_autor_ra(ra):
 
 def get_autor_codUsuario(codUsuario):
     query = '''
-        select distinct a.codAutor, a.nomeAutor, a.raAutor, a.email 
+        select distinct a.*
         from autores as a 
         join usuario_orientado as uo 
         on uo.codAutor = a.codAutor 

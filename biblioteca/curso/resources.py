@@ -3,6 +3,7 @@ from flask_restful import Resource, request
 from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import IntegrityError
 
+from biblioteca.usuarios import usuario_dao
 from biblioteca.responses import (
     get_erro,
     get_falha,
@@ -14,7 +15,8 @@ from biblioteca.responses import (
 from biblioteca.extensions import (
     secretaria_token_required,
     token_required,
-    admin_token_required
+    admin_token_required,
+    TiposUsuario
 )
 from . import cursos_dao
 from .schemas import Cursos
@@ -72,15 +74,23 @@ def cadastro_curso():
     try:
         nomeCurso = request.form['nomeCurso'] 
         abreviacao = request.form['abreviacao']
+        nome = request.form['nome']
+        email = request.form['email']
+        senha = request.form['password']
     except BadRequestKeyError:
-        return get_erro('A requisicao deve conter os campos "nomeCurso" e "abreviacao" em seu corpo'), 400
+        return get_erro('A requisicao deve conter os campos "nome", "email", "password", "nomeCurso" e "abreviacao" em seu corpo'), 400
 
-    if not (nomeCurso and abreviacao):
+    if not (nomeCurso and abreviacao and nome and email and senha):
         return get_falha('Os campos enviados devem sem preenchidos'), 400
+    if len(abreviacao) > 3:
+        return get_erro('A abreviação deve ter no máximo 3 caracteres')
+
+    user = usuario_dao.add_usr('coordenador_{}'.format(abreviacao.lower()), senha, TiposUsuario.Coordenador.value, nome, email)
 
     curso = Cursos(
         nomeCurso, 
-        abreviacao
+        abreviacao,
+        user['codUsuario']
     )
     try:
         curso.grava_curso()
