@@ -204,7 +204,7 @@ def solicitar_revisao(codProjeto, professor_user_info):
         return get_erro('O campo "mensagem" devem ser enviados no corpo da requisicao'), 400
 
 
-    usuarioOrientado = usuario_orientado_dao.get_usuario_orientado_codProjeto(codProjeto)
+    usuarioOrientado = usuario_orientado_dao.get_usuario_orientado_codProjeto_codOrientador(codProjeto, orientador['codOrientador'])
     if usuarioOrientado:
         usuario_dao.gerar_solitacao(usuarioOrientado['codUsuarioOrientado'], mensagem)
 
@@ -212,7 +212,7 @@ def solicitar_revisao(codProjeto, professor_user_info):
             enviar_email_revisao(autor, proj['tituloProjeto'], mensagem)
 
         return get_ok('Solicitação de revisao enviada'), 200
-    return get_erro('Você não esta orientando este usuário'), 400
+    return get_erro('Você não esta orientando este projeto'), 400
 
 def verificar_revisoes(user_info):
     usuarioOrientado = usuario_orientado_dao.get_usuario_orientado_aluno(user_info['codUsuario'])

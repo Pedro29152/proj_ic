@@ -18,11 +18,11 @@ def get_usuario_orientado_aluno(codUsuario):
     '''
     return db.bd_busca_um(query, (codUsuario,))
 
-def get_usuario_orientado_codProjeto(codProjeto):
+def get_usuario_orientado_codProjeto_codOrientador(codProjeto, codOrientador):
     query = '''
-        select * from usuario_orientado where codProjeto = (%s)
+        select * from usuario_orientado where codProjeto = (%s) and codOrientador = (%s)
     '''
-    ret = db.bd_busca_um(query, (codProjeto,))
+    ret = db.bd_busca_um(query, (codProjeto, codOrientador))
     return ret
 
 def add_projeto(codUsuario, codProjeto):

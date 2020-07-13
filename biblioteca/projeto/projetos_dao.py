@@ -346,7 +346,7 @@ def deleta_projeto(codProjeto):
 def get_projeto_novo(codProjeto, is_full=False):
     query = 'select * from projetos where codProjeto = (%s) and status = 0'
     proj = db.bd_busca_um(query,(codProjeto,))
-    if is_full:
+    if is_full and proj:
         prenche_projeto(proj)
     return proj
 
