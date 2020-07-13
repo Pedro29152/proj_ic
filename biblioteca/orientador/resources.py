@@ -4,6 +4,8 @@ from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import DataError, IntegrityError
 
 from .schemas import Orientadores
+from biblioteca import mailer
+from biblioteca.projeto import projetos_dao
 from biblioteca.usuarios import usuario_dao, usuario_orientado_dao
 from biblioteca.autor import autores_dao
 from biblioteca.responses import (
@@ -187,20 +189,28 @@ def desativa_orientador(id):
         return get_erro('Codigo do orientador enviado não esta cadastrado no sistema'), 404
     return get_ok('Orientador desativado com sucesso'), 200
 
-def solicitar_revisao(codUsuario, professor_user_info):
+def solicitar_revisao(codProjeto, professor_user_info):
     orientador = orientadores_dao.get_orientador_codUsuario(professor_user_info['codUsuario'])
     if not orientador:
         return get_erro('O usuario utilizado não está ligado a nenhum orientador'), 400
     
+    proj = projetos_dao.get_projeto_novo(codProjeto, True)
+    if not proj:
+        return get_erro('O projeto enviado não existe'), 400
+
     try:
         mensagem = request.form['mensagem']
     except BadRequestKeyError:
         return get_erro('O campo "mensagem" devem ser enviados no corpo da requisicao'), 400
 
 
-    usuarioOrientado = usuario_orientado_dao.get_usuario_orientado(orientador['codOrientador'], codUsuario)
+    usuarioOrientado = usuario_orientado_dao.get_usuario_orientado_codProjeto(codProjeto)
     if usuarioOrientado:
         usuario_dao.gerar_solitacao(usuarioOrientado['codUsuarioOrientado'], mensagem)
+
+        for autor in proj['autores']:
+            enviar_email_revisao(autor, proj['tituloProjeto'], mensagem)
+
         return get_ok('Solicitação de revisao enviada'), 200
     return get_erro('Você não esta orientando este usuário'), 400
 
@@ -210,3 +220,29 @@ def verificar_revisoes(user_info):
     if revisao:
         return get_data(revisao), 200
     return None, 204
+
+def enviar_email_revisao(autor, titulo_projeto, mensagem):
+    msg = mailer.generate_message(
+        'BTA - Solicitacao de Revisao',
+        autor['email'],
+        '''
+        <html>
+            <head></head>
+            <body>
+                <h2>Houve uma solicitacao de revisao.</h2>
+
+                <p>Ola, {0}.</p>
+
+                <p>O seu projeto: <b>{1}</b>, recebeu uma solicitacao de revisao pelo orientador com a segunte mensagem:</p>
+
+                <q>{2}</q>
+
+                <p>Sistema de gerenciamento de trabalhos acadêmicos BTA.</p>
+            </body>
+        </html>
+        '''.format(autor['nomeAutor'], titulo_projeto, mensagem)
+    )
+    mailer.send_email(autor['email'], msg)
+
+
+

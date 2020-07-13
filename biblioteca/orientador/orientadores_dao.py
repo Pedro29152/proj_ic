@@ -50,6 +50,15 @@ def get_orientador_codUsuario(codUsuario):
     '''
     return db.bd_busca_um(query, (codUsuario,))
 
+def get_orientador_codProjeto(codProjeto):
+    query = '''
+        select o.* from orientadores as o
+        join usuario_orientado as uo on uo.codOrientador = o.codOrientador
+        where uo.codProjeto = (%s)
+    '''
+    ret = db.bd_busca_um(query, (codProjeto,))
+    return ret
+
 def busca_orientadores_codProjeto(codProjeto):
     val = db.bd_busca_um(
         'select codOrientador, nomeOrientador, raOrientador, email, currLattes from orientadores natural join projeto_orientador where codProjeto = (%s)',

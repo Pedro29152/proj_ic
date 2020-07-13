@@ -22,16 +22,14 @@ def get_autor(codAluno):
     return ret
 
 def busca_autores_proj(codProjeto):
-    
-    return db.bd_busca(
-        '''
+    query = '''
         SELECT autores.nomeAutor, autores.raAutor, autores.email
         FROM autores 
         NATURAL JOIN projeto_autor pa 
-        WHERE pa.codProjeto = %s
-        ''',
-        (codProjeto,)
-    )
+        WHERE pa.codProjeto = (%s)
+    '''
+    ret = db.bd_busca(query, (codProjeto,))
+    return ret
 
 def get_autor_ra(ra):
     query = 'select * from autores where raAutor = (%s)'
@@ -58,17 +56,15 @@ def cadastra_autor(nome, email, ra):
     except IntegrityError:
         return None
 
-
-GET_ALUNO_QUERY = '''
-    select distinct u.codUsuario
-    from usuarios as u 
-    join usuario_orientado as uo 
-    on u.codUsuario = uo.codUsuario 
-    join autores as a 
-    on a.codAutor = uo.codAutor 
-    where uo.dataValidade > now() and u.codUsuario = (%s) 
-'''
-
 def is_aluno_valido(codUsuario):
-    query = GET_ALUNO_QUERY
-    return db.bd_busca_um(query, (codUsuario,))
+    query = '''
+        select distinct u.codUsuario
+        from usuarios as u 
+        join usuario_orientado as uo 
+        on u.codUsuario = uo.codUsuario 
+        join autores as a 
+        on a.codAutor = uo.codAutor 
+        where uo.dataValidade > now() and u.codUsuario = (%s) 
+    '''
+    ret = db.bd_busca_um(query, (codUsuario,))
+    return ret

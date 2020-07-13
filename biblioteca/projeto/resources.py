@@ -10,6 +10,7 @@ from random import randint
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from mysql.connector.errors import IntegrityError
 
+from biblioteca import mailer
 from biblioteca.usuarios import usuario_orientado_dao
 from biblioteca.curso import cursos_dao
 from biblioteca.orientador import orientadores_dao
@@ -441,7 +442,7 @@ def upload_projeto(user_info=None):
     return get_ok('Projeto cadastrado com sucesso'), 200
 
 def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
-    proj = projetos_dao.get_projeto_novo(codProjeto)
+    proj = projetos_dao.get_projeto_novo(codProjeto, True)
     if not proj:
         return get_erro('Nenhum projeto (não aprovado) com o código de projeto enviado foi encontrado'), 404
     
@@ -455,11 +456,15 @@ def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
 
         if projetos_dao.is_orientador_projeto_novo(proj['codProjeto'], orientador['codOrientador']):
             projetos_dao.aprovar_projeto(proj['codProjeto'])
+
+            for autor in proj['autores']:
+                enviar_email_aprovacao(autor, proj['tituloProjeto'])
+
             return get_ok('Projeto aprovado com sucesso'), 200
         return get_erro('Você não pode aprovar este projeto pois você nâo está o orientando'), 400
 
 def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
-    proj = projetos_dao.get_projeto_novo(codProjeto)
+    proj = projetos_dao.get_projeto_novo(codProjeto, True)
     if not proj:
         return get_erro('Nenhum projeto (não aprovado) com o código de projeto enviado foi encontrado'), 404
     
@@ -475,6 +480,10 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
         if projetos_dao.is_orientador_projeto_novo(proj['codProjeto'], orientador['codOrientador']):
             projetos_dao.recusar_projeto(proj['codProjeto'])
             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
+            
+            for autor in proj['autores']:
+                enviar_email_reprovacao(autor, proj['tituloProjeto'])
+
             return get_ok('Projeto recusado com sucesso'), 200
         return get_erro('Você não pode aprovar este projeto pois você nâo está o orientando'), 400
 
@@ -606,6 +615,48 @@ def busca_ranking_pag(page = 1):
 def get_count():
     count = projetos_dao.get_count()
     return get_res_count(count), 200
+
+def enviar_email_aprovacao(autor, titulo_projeto):
+    msg = mailer.generate_message(
+        'BTA - Projeto Aceito',
+        autor['email'],
+        '''
+        <html>
+            <head></head>
+            <body>
+                <h2>Seu projeto foi aceito.</h2>
+
+                <p>Ola, {0}.</p>
+
+                <p>O seu projeto: <b>{1}</b>, foi aceito na Biblioteca de Trabalhos Academicos e, a partir de agora estará visivel para todos.</p>
+
+                <p>Sistema de gerenciamento de trabalhos acadêmicos BTA.</p>
+            </body>
+        </html>
+        '''.format(autor['nomeAutor'], titulo_projeto)
+    )
+    mailer.send_email(autor['email'], msg)
+
+def enviar_email_reprovacao(autor, titulo_projeto):
+    msg = mailer.generate_message(
+        'BTA - Projeto Recusado',
+        autor['email'],
+        '''
+        <html>
+            <head></head>
+            <body>
+                <h2>Seu projeto foi recusado.</h2>
+
+                <p>Ola, {0}.</p>
+
+                <p>O seu projeto: <b>{1}</b>, foi recusado e não será exposto publicamente na Biblioteca de Trabalhos Academicos.</p>
+
+                <p>Sistema de gerenciamento de trabalhos acadêmicos BTA.</p>
+            </body>
+        </html>
+        '''.format(autor['nomeAutor'], titulo_projeto)
+    )
+    mailer.send_email(autor['email'], msg)
 
 def __allowed_file(filename):
     return '.' in filename and \

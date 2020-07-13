@@ -360,7 +360,7 @@ def get_projeto_novo_codAutor(codAutor, is_full=False):
 def get_projeto(codProjeto, is_full=False):
     query = 'select * from projetos where codProjeto = (%s) and ativo = 1 and status = 1'
     proj = db.bd_busca_um(query,(codProjeto,))
-    if is_full:
+    if is_full and proj:
         prenche_projeto(proj)
     return proj
 
