@@ -250,6 +250,16 @@ def busca_projeto_inativo():
 
     return ret
 
+def buscar_projetos_codCurso_novo(codCurso, is_full=False):
+    query = '''
+        select * from projetos 
+        where codCurso = (%s) and ativo = 1 and status = 0
+    ''' 
+    ret = db.bd_busca(query, (codCurso,))
+    if is_full and ret:
+        prenche_projetos(ret)
+    return ret
+
 def get_cod_projeto_titulo(titulo):
     query = 'SELECT codProjeto FROM projetos WHERE tituloProjeto = (%s) ORDER BY codProjeto DESC'
 

@@ -23,7 +23,8 @@ from biblioteca.responses import (
     get_count as get_res_count,
     get_bad_request,
     get_response_code,
-    get_not_found
+    get_not_found,
+    get_no_content
 )
 from biblioteca.extensions import(
     admin_token_required,
@@ -267,7 +268,7 @@ def busca_projetos_orientador(codOrientador):
     return get_data(res), 200
 
 def busca_projetos_curso(codCurso):
-    res = projetos_dao.busca_projetos_codCurso(codCurso)
+    res = projetos_dao.buscar_projetos_codCurso_novo(codCurso, True)
     if not res:
         return None, 204
     return get_data(res), 200
