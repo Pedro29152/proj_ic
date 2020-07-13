@@ -197,7 +197,9 @@ def cadastro_usuario():
     if tipoUsuario == TiposUsuario.Aluno.value:
         return get_falha('Para cadastrar um aluno utilize a rota "/api/usuarios/cadastro/aluno"'), 400
     if tipoUsuario == TiposUsuario.Professor.value:
-        return get_falha('Para cadastrar um orientador utilize a rota "/api/usuarios/cadastro/orientador"'), 400
+        return get_falha('Para cadastrar um orientador utilize a rota "/api/usuarios/cadastro/orientador/novo"'), 400
+    if tipoUsuario == TiposUsuario.Coordenador.value:
+        return get_falha('Para cadastrar um coordenador utilize a rota "/api/usuarios/cadastro/coordenador"'), 400
 
     if usuario_dao.add_usr(user, senha, tipoUsuario, nome, email):
         return get_ok(

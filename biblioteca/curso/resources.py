@@ -20,7 +20,7 @@ from . import cursos_dao
 from .schemas import Cursos
 
 class CursoResource(Resource):
-    @admin_token_required
+    @secretaria_token_required
     def post(self):
         res, cod = cadastro_curso()
         return get_response_code(res, cod)
@@ -35,27 +35,27 @@ class CursoIdResource(Resource):
         res, cod = get_curso(id)
         return get_response_code(res, cod)
 
-    @admin_token_required
+    @secretaria_token_required
     def put(self, id):
         res, cod = edita_curso(id)
         return get_response_code(res, cod)
 
 class AtivaCursoResource(Resource):
-    @admin_token_required
+    @secretaria_token_required
     def post(self, id):    
         cursos_dao.ativa_curso(id)
 
         return get_ok('Curso ativado com sucesso')
 
 class DesativaCursoResource(Resource):
-    @admin_token_required
+    @secretaria_token_required
     def post(self, id):    
         cursos_dao.desativa_curso(id)
 
         return get_ok('Curso desativado com sucesso')
 
 class TodosCursosResource(Resource):
-    @admin_token_required
+    @secretaria_token_required
     def get(self):
         res, cod = buscar_todos_cursos()
         return get_response_code(res, cod)
