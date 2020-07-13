@@ -21,6 +21,7 @@ from biblioteca.extensions import (
     admin_is_user_token_required,
     secretaria_token_required_user_info,
     coordenador_secretaria_token_required,
+    token_required,
     generate_random_password,
     TiposUsuario
 )
@@ -133,6 +134,12 @@ class MudarSenhaUsuarioResource(Resource):
     def put(self, id, is_user, is_admin):
         res, cod = mudar_senha(id)
         return get_response_code(res, cod)
+
+class MudarSenhaResource(Resource):
+    @token_required
+    def put(self, user_info):
+        ret, cod = mudar_senha(user_info['codUsuario'])
+        return get_response_code(ret, cod)
 
 class RecuperaraSenha(Resource):
     def post(self):

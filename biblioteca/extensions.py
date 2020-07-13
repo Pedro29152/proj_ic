@@ -225,7 +225,7 @@ def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has
 
         if has_is_user:
             if not id:
-                raise AttributeError('A propriedade id deve ser enviada')
+                raise AttributeError('O parametro id deve ser enviado')
             if id == current_user['codUsuario']:
                 authorized = True 
                 is_user = True

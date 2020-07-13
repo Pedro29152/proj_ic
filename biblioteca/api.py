@@ -55,6 +55,7 @@ from biblioteca.usuarios.resources import (
     CountUsuariosResource,
     UsuarioIdResource,
     MudarSenhaUsuarioResource,
+    MudarSenhaResource,
     DesativaUsuarioResource,
     AtivaUsuarioResource,
     BuscaUsuariosResource,
@@ -155,6 +156,7 @@ def configure_api(app):
     api.add_resource(CadastroCoordenadorResource, '/api/usuarios/cadastro/coordenador')
     api.add_resource(CountUsuariosResource, '/api/usuarios/count')
     api.add_resource(AlterarOrientadorDoAlunoResource, '/api/usuarios/editaorientadoraluno/<int:id>')
+    api.add_resource(MudarSenhaResource, '/api/usuarios/mudarsenha')
     api.add_resource(MudarSenhaUsuarioResource, '/api/usuarios/mudarsenha/<int:id>')
     api.add_resource(RecuperaraSenha, '/api/usuarios/recuperarsenha')
 
