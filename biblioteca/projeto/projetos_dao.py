@@ -4,11 +4,14 @@ from biblioteca import db
 from biblioteca.ext_dao import palavras_chave_dao
 from biblioteca.autor import autores_dao, projeto_autor_dao
 from biblioteca.curso import cursos_dao
-from biblioteca.usuarios import usuario_dao
+from biblioteca.usuarios import usuario_dao, usuario_orientado_dao
 from biblioteca.orientador import orientadores_dao
 from biblioteca.responses import (
     get_erro,
     get_ok
+)
+from biblioteca.extensions import (
+    TiposUsuario
 )
 
 QUERY_CURSO = '''
@@ -390,9 +393,12 @@ def aprovar_projeto(codProjeto):
     '''
     db.bd_gravar(query, (codProjeto,))
 
-    user = usuario_dao.get_usuario_codProjeto(codProjeto)
-    if user:    
-        usuario_dao.desativa_usuario(user['codUsuario'])
+    user = usuario_orientado_dao.get_usuario_codProjeto(codProjeto)
+    if user:
+        if user['tipoUsuario'] == TiposUsuario.Aluno.value:
+            usuario_dao.desativar_aluno(user['codUsuario'])
+        else:
+            usuario_dao.desativa_usuario(user['codUsuario'])
 
 def recusar_projeto(codProjeto):
     query = '''
@@ -400,9 +406,12 @@ def recusar_projeto(codProjeto):
     '''
     db.bd_gravar(query, (codProjeto,))
     
-    user = usuario_dao.get_usuario_codProjeto(codProjeto)
+    user = usuario_orientado_dao.get_usuario_codProjeto(codProjeto)
     if user:    
-        usuario_dao.desativa_usuario(user['codUsuario'])
+        if user['tipoUsuario'] == TiposUsuario.Aluno.value:
+            usuario_dao.desativar_aluno(user['codUsuario'])
+        else:
+            usuario_dao.desativa_usuario(user['codUsuario'])
 
 def edita_titulo(codProjeto, titulo):
     query = 'update projetos set tituloProjeto = (%s) where codProjeto = (%s)'

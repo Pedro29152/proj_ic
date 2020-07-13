@@ -206,6 +206,10 @@ def deleta_usuario(codUsuario):
         if orientador:
             orientadores_dao.desativa_orientador(orientador['codOrientador'])
 
+def desativar_aluno(codUsuario):
+    query = 'update usuarios set ativo = 0, email = null where codUsuario = (%s)'
+    db.bd_gravar(query, (codUsuario,))
+
 def desativa_usuario(codUsuario):
     usr = get_usuario(codUsuario)
 

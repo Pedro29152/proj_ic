@@ -25,6 +25,15 @@ def get_usuario_orientado_codProjeto_codOrientador(codProjeto, codOrientador):
     ret = db.bd_busca_um(query, (codProjeto, codOrientador))
     return ret
 
+def get_usuario_codProjeto(codProjeto):
+    query = '''
+        select u.* from usuarios as u 
+        natural join usuario_orientado as uo 
+        where uo.codProjeto = (%s)
+    '''
+    ret = db.bd_busca_um(query, (codProjeto,))
+    return ret
+
 def add_projeto(codUsuario, codProjeto):
     query = '''
         update usuario_orientado set codProjeto = (%s) where codUsuario = (%s)

@@ -478,7 +478,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
         if projetos_dao.is_orientador_projeto_novo(proj['codProjeto'], orientador['codOrientador']):
             projetos_dao.recusar_projeto(proj['codProjeto'])
             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
-            
+
             for autor in proj['autores']:
                 enviar_email_reprovacao(autor, proj['tituloProjeto'])
 
