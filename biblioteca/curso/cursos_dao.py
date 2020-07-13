@@ -60,12 +60,11 @@ def busca_curso_cod(codCurso):
     return val
     
 def get_all_curso_cod(codCurso):
-
-    val = db.bd_busca_um(
-        'select descricaoCurso, abreviacao from cursos where codCurso = (%s)',
-        (codCurso,)
-    )
-
+    query = '''
+        select descricaoCurso, abreviacao from cursos 
+        where codCurso = (%s)
+    '''
+    val = db.bd_busca_um(query,(codCurso,))
     return val
 
 def get_codCurso(descricaoCurso):
@@ -102,14 +101,15 @@ def get_curso_codCurso(codCurso, is_instance=True):
         return None
     
     if is_instance:
-        curso = Cursos(res['descricaoCurso'], res['abreviacao'], res['codCurso'])
+        curso = Cursos(res['descricaoCurso'], res['abreviacao'], res['codUsuario'], res['codCurso'])
         return curso
     return res
 
 def get_curso_codUsuario(codUsuario):
     query = '''
         select c.* from cursos as c 
-        natural join usuario_orientado as uo 
+        join usuario_orientado as uo 
+        on uo.codCurso = c.codCurso
         where uo.codUsuario = (%s)
     '''
     ret = db.bd_busca_um(query, (codUsuario,))

@@ -100,13 +100,14 @@ def professor_token_required(f):
         return data
     return decorated
 
-def professor_secretaria_token_required(f):
+def professor_coordenador_secretaria_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         success, data = check_tipo_usuario([
             TiposUsuario.Administrador.value,
             TiposUsuario.Professor.value,
-            TiposUsuario.Secretaria.value
+            TiposUsuario.Secretaria.value,
+            TiposUsuario.Coordenador.value
         ], has_user_info=True, has_is_admin=True, has_is_secretaria=True)
 
         if(success):

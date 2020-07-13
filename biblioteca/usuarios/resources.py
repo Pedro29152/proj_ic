@@ -249,7 +249,7 @@ def cadastro_professor(existente=True):
         except DataError:
             return get_erro('O campo "ra" deve conter no máximo 13 caracteres'), 400
         except IntegrityError:
-            return get_erro('O email enviado ja esta sendo utilizado por outro usuario'), 400
+            return get_erro('O email ou ra enviado ja esta sendo utilizado por outro usuario'), 400
     else:
         if not orientadores_dao.exists(codOrientador):
             return get_erro('O orientador enviado nao existe'), 400

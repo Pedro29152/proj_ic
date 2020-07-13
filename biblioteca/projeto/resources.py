@@ -31,7 +31,7 @@ from biblioteca.extensions import(
     aluno_token_required,
     professor_token_required,
     coordenador_token_required,
-    professor_secretaria_token_required,
+    professor_coordenador_secretaria_token_required,
     is_valid_email,
     TiposUsuario,
     LinguagemProjeto
@@ -118,13 +118,13 @@ class BuscarProjetosOrientadorId(Resource):
         return get_response_code(res, cod)
 
 class AprovarProjetoResource(Resource):
-    @professor_secretaria_token_required
+    @professor_coordenador_secretaria_token_required
     def post(self, id, user_info, is_admin, is_secretaria):
         res, cod = aprovar_projeto(id, user_info, is_admin, is_secretaria)
         return get_response_code(res, cod)
 
 class RecusarProjetoResource(Resource):
-    @professor_secretaria_token_required
+    @professor_coordenador_secretaria_token_required
     def post(self, id, user_info, is_admin, is_secretaria):
         res, cod = recusar_projeto(id, user_info, is_admin, is_secretaria)
         return get_response_code(res, cod)
@@ -447,6 +447,12 @@ def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
     if is_admin or is_secretaria:
         projetos_dao.aprovar_projeto(proj['codProjeto'])
         return get_ok('Projeto aprovado com sucesso'), 200
+    elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
+        curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+        if curso['abreviacao'] == proj['curso']['abreviacao']:
+            projetos_dao.aprovar_projeto(proj['codProjeto'])
+            return get_ok('Projeto aprovado com sucesso'), 200
+        return get_erro('Você não pode aprovar este projeto')
     else:
         orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
         if not orientador:
@@ -470,6 +476,13 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
         projetos_dao.recusar_projeto(proj['codProjeto'])
         os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
         return get_ok('Projeto recusado com sucesso'), 200
+    elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
+        curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+        if curso['abreviacao'] == proj['curso']['abreviacao']:
+            projetos_dao.recusar_projeto(proj['codProjeto'])
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
+            return get_ok('Projeto reprovado com sucesso'), 200
+        return get_erro('Você não pode reprovar este projeto')
     else:
         orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
         if not orientador:

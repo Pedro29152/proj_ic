@@ -18,7 +18,7 @@ QUERY_CURSO = '''
     select distinct pj.* 
     FROM projetos as pj
     NATURAL JOIN cursos 
-    WHERE descricaoCurso LIKE (%s) OR abreviacao LIKE (%s) AND ativo = 1 and status = 1 '''
+    WHERE (descricaoCurso LIKE (%s) OR abreviacao LIKE (%s)) AND ativo = 1 and status = 1 '''
 QUERY_TITULO = '''
     SELECT * 
     FROM projetos 
