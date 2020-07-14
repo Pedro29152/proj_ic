@@ -103,6 +103,12 @@ class BuscarProjetosInativosResource(Resource):
         ret, cod = busca_projeto_inativo()
         return get_response_code(ret, cod)
 
+class BuscaTodosProjetosResource(Resource):
+    @secretaria_token_required
+    def get(self):
+        ret, cod = busca_todos_projetos()
+        return get_response_code(ret, cod)
+
 class GetProjetoInativoResource(Resource):
     @secretaria_token_required
     def get(self, id):
@@ -281,6 +287,12 @@ def busca_projetos_orientador_publico(codOrientador):
 
 def busca_projeto_inativo():
     res = projetos_dao.busca_projeto_inativo()
+    if res:
+        return get_data(res), 200
+    return None, 204
+
+def busca_todos_projetos():
+    res = projetos_dao.busca_todos_projetos()
     if res:
         return get_data(res), 200
     return None, 204

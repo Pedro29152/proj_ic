@@ -250,6 +250,18 @@ def busca_projeto_inativo():
 
     return ret
 
+def busca_todos_projetos():
+    query = '''
+        select * from projetos where status = 1
+    '''
+    ret = db.bd_busca(query, None)
+
+    if ret:
+        prenche_projetos(ret)
+
+    return ret
+
+
 def buscar_projetos_codCurso_novo(codCurso, is_full=False):
     query = '''
         select * from projetos 
