@@ -261,7 +261,6 @@ def busca_todos_projetos():
 
     return ret
 
-
 def buscar_projetos_codCurso_novo(codCurso, is_full=False):
     query = '''
         select * from projetos 
@@ -397,6 +396,20 @@ def get_projeto_inativo(codProjeto):
     if ret:
         prenche_projeto(ret)
 
+    return ret
+
+def get_projeto_codUsuarioOrientado(codUsuarioOrientado):
+    query = '''
+        select * from projetos as p
+        join usuario_orientado as uo
+        on uo.codProjeto = p.codProjeto
+        where codUsuarioOrientado = (%s)
+    '''
+    ret = db.bd_busca_um(query, (codUsuarioOrientado,))
+
+    if ret:
+        prenche_projeto(ret)
+    
     return ret
 
 def desativa_projeto(codProjeto):

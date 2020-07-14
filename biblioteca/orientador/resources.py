@@ -14,7 +14,8 @@ from biblioteca.responses import (
     get_data,
     get_falha,
     get_count,
-    get_response_code
+    get_response_code,
+    get_no_content
 )
 from biblioteca.extensions import(
     admin_token_required,
@@ -84,6 +85,22 @@ class VerificarRevisoesResource(Resource):
     def get(self, user_info):
         ret, cod = verificar_revisoes(user_info)
         return get_response_code(ret, cod)
+
+class BuscarRevisoesResource(Resource):
+    @secretaria_token_required
+    def get(self):
+        ret = orientadores_dao.buscar_revisoes()
+        if ret:
+            return get_response_code(ret, 200)
+        return get_no_content()
+
+class GetRevisaoResource(Resource):
+    @secretaria_token_required
+    def get(self, id):
+        ret = orientadores_dao.get_revisao(id)
+        if ret:
+            return get_response_code(ret, 200)
+        return get_no_content()
 
 def cadastro_orientador():
     try:

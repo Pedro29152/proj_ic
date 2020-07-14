@@ -1,5 +1,6 @@
 from biblioteca import db
 from .schemas import Orientadores
+from biblioteca.projeto import projetos_dao
 from biblioteca.usuarios import usuario_dao
 
 def get_orientador(raOrientador):
@@ -103,6 +104,28 @@ def busca_orientadores_nome(nome):
 
     return val
 
+def buscar_revisoes():
+    query = '''
+        select * from solicitacoes_revisao
+    '''
+    ret = db.bd_busca(query, None)
+
+    for revisao in ret:
+        revisao['projeto'] = projetos_dao.get_projeto_codUsuarioOrientado(revisao['codUsuarioOrientado'])
+
+    return ret
+
+def get_revisao(codSolicitacao):
+    query = '''
+        select * from solicitacoes_revisao 
+        where codSolicitacao = (%s)
+    '''
+    ret = db.bd_busca_um(query, (codSolicitacao,))
+    if ret:
+        ret['projeto'] = projetos_dao.get_projeto_codUsuarioOrientado(ret['codUsuarioOrientado'])
+
+    return ret
+
 def ativa_orientador(codOrientador):
     query = 'update orientadores set ativo = 1 where codOrientador = (%s)'
 
@@ -120,7 +143,6 @@ def desativa_orientador(codOrientador):
 
     db.bd_gravar(query, (codOrientador,))
     usuario_dao.remove_responsabilidade_orientador(codOrientador)
-
 
 def exists(codOrientador):
     query = 'select codOrientador from orientadores where codOrientador = (%s)'
