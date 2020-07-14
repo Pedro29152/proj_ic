@@ -63,6 +63,7 @@ from biblioteca.usuarios.resources import (
     BuscaUsuariosResource,
     BuscaUsuariosInativosResource,
     BuscaUsuariosOrientadosResource,
+    BuscarUsuariosSecretariaAdmResource,
     AlterarOrientadorDoAlunoResource,
     RecuperaraSenha
 )
@@ -146,6 +147,7 @@ def configure_api(app):
     api.add_resource(BuscaUsuariosResource, '/api/usuarios/buscar')
     api.add_resource(BuscaUsuariosInativosResource, '/api/usuarios/buscar/inativos')
     api.add_resource(BuscaUsuariosOrientadosResource, '/api/usuarios/buscar/orientador')
+    api.add_resource(BuscarUsuariosSecretariaAdmResource, '/api/usuarios/buscar/secadm')
     api.add_resource(UsuarioIdResource, '/api/usuarios/<int:id>')
     api.add_resource(DesativaUsuarioResource, '/api/usuarios/desativar/<int:id>')
     api.add_resource(AtivaUsuarioResource, '/api/usuarios/ativar/<int:id>')

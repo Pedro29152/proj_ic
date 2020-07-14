@@ -107,6 +107,28 @@ def busca_senha_nome(nomeUsuario):
         return val['senha']
     return None
 
+def buscar_usuarios_secretaria(nomeUsuario=None):
+    if nomeUsuario == None:
+        nomeUsuario = ''
+    nomeUsuario = '%{}%'.format(nomeUsuario) 
+    query = '''
+        select codUsuario, nomeUsuario, tipoUsuario, nome, email, ativo from usuarios 
+        where nomeUsuario like (%s) and tipoUsuario = {}
+    '''.format(extensions.TiposUsuario.Secretaria.value)
+    ret = db.bd_busca(query, (nomeUsuario,))
+    return ret
+
+def buscar_usuarios_admin(nomeUsuario=None):
+    if nomeUsuario == None:
+        nomeUsuario = ''
+    nomeUsuario = '%{}%'.format(nomeUsuario)
+    query = '''
+        select codUsuario, nomeUsuario, tipoUsuario, nome, email, ativo from usuarios 
+        where nomeUsuario like (%s) and tipoUsuario = {} or tipoUsuario = {}
+    '''.format(extensions.TiposUsuario.Secretaria.value, extensions.TiposUsuario.Administrador.value)
+    ret = db.bd_busca(query, (nomeUsuario,))
+    return ret
+
 def add_usr(usuario, senha, tipoUsuario, nome, email):
     try:
         db.bd_gravar(

@@ -19,6 +19,7 @@ from biblioteca.extensions import (
     is_valid_username,
     admin_is_user_token_required,
     secretaria_token_required_user_info,
+    secretaria_token_required_is_user,
     coordenador_secretaria_token_required,
     token_required,
     generate_random_password,
@@ -51,7 +52,7 @@ class UsuarioIdResource(Resource):
         res, cod = deleta_usuario(id, is_user)
         return get_response_code(res, cod)
 
-    @secretaria_token_required_user_info
+    @secretaria_token_required_is_user
     def put(self, id, is_user, is_admin):
         res, cod = edita_usuario(id, is_admin, is_user)
         return get_response_code(res, cod)
@@ -121,6 +122,12 @@ class BuscaUsuariosOrientadosResource(Resource):
     def get(self, user_info):
         res, cod = buscar_usuarios_orientados(user_info)
         return get_response_code(res, cod)
+
+class BuscarUsuariosSecretariaAdmResource(Resource):
+    @secretaria_token_required_user_info
+    def get(self, user_info):
+        ret, cod = busca_usuarios_secretaria_adm(user_info)
+        return get_response_code(ret, cod)
 
 class MudarSenhaUsuarioResource(Resource):
     @user_admin_token_required
@@ -372,6 +379,21 @@ def busca_usuarios_inativos():
     if ret:
         return get_data(ret), 200
     return get_falha("Nenhum usuario retornado"), 204
+
+def busca_usuarios_secretaria_adm(user_info):
+    nome = request.args.get('nomeUsuario')
+
+    if user_info['tipoUsuario'] == TiposUsuario.Secretaria.value:
+        usuarios = usuario_dao.buscar_usuarios_secretaria(nome)
+        if usuarios:
+            return get_data(usuarios), 200
+        return None, 204
+        
+    if user_info['tipoUsuario'] == TiposUsuario.Administrador.value:
+        usuarios = usuario_dao.buscar_usuarios_admin(nome)
+        if usuarios:
+            return get_data(usuarios), 200
+        return None, 204
 
 def get_usuario(id):
     codUsuario = int(id)
