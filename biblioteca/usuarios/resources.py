@@ -454,16 +454,17 @@ def mudar_senha(id):
 
 def recuperar_senha():
     try:
-        username = request.form['username']
+        email = request.form['email']
+        email = email.lower()
     except BadRequestKeyError: 
-        return get_erro('A requsicao deve conter o campo "username" em seu corpo'), 400
+        return get_erro('A requsicao deve conter o campo "email" em seu corpo'), 400
 
-    if not username:
+    if not email:
         return get_erro('Os campos enviados devem ser preenchidos'), 400
     
-    usuario = usuario_dao.get_usuario_username(username)
+    usuario = usuario_dao.get_usuario_email(email)
     if not usuario:
-        return get_erro('O nome de usuario enviado não existe'), 400
+        return get_erro('O email enviado não existe'), 400
 
     novaSenha = generate_random_password()
     codUsuario = int(usuario['codUsuario'])
@@ -482,14 +483,14 @@ def recuperar_senha():
 
                     <p>Ola, {0}.</p>
 
-                    <p>A senha abaixo sera sua nova senha</p>
+                    <p>A senha abaixo sera sua nova senha para o usuario <b>{1}</b></p>
 
-                    <h3><b>{1}</b></h3>
+                    <h3><b>{2}</b></h3>
 
                     <p>Sistema de gerenciamento de usuarios BTA.</p>
                 </body>
             </html>
-            '''.format(usuario['nome'], novaSenha)
+            '''.format(usuario['nome'], usuario['nomeUsuario'], novaSenha)
         )
     )
 

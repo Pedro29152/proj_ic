@@ -2,11 +2,11 @@ from biblioteca import db
 from biblioteca import extensions
 
 class Orientadores:
-    def __init__(self, codOrientador=None, nomeOrientador=None, raOrientador=None, email=None, currLattes=None):
+    def __init__(self, codOrientador=None, nomeOrientador='', raOrientador='', email='', currLattes=None):
         self.codOrientador = codOrientador
         self.nomeOrientador = nomeOrientador
         self.raOrientador = raOrientador
-        self.email = email
+        self.email = email.lower()
         self.currLattes = currLattes
 
         if not extensions.is_valid_email(self.email):

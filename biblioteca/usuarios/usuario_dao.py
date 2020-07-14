@@ -112,7 +112,7 @@ def add_usr(usuario, senha, tipoUsuario, nome, email):
         db.bd_gravar(
             'insert into usuarios(nomeUsuario, senha, tipoUsuario, ativo, nome, email) '+ 
             'values(%s, %s, %s, 1, %s, %s)',
-            (usuario, generate_password_hash(senha),tipoUsuario, nome, email)
+            (usuario, generate_password_hash(senha),tipoUsuario, nome, email.lower())
         )
         return get_usuario_username(usuario)
     except IntegrityError:
@@ -170,8 +170,17 @@ def get_usuario_inativo(codUsuario):
     return ret
 
 def get_usuario_username(username):
-    query = 'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where nomeUsuario = (%s)'
+    query = '''
+        select codUsuario, nomeUsuario, tipoUsuario, nome, email 
+        from usuarios 
+        where nomeUsuario = (%s)
+    '''
     ret = db.bd_busca_um(query,(username,))
+    return ret
+
+def get_usuario_email(email):
+    query = 'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where email = (%s)'
+    ret = db.bd_busca_um(query,(email,))
     return ret
 
 def get_usuario_codProjeto(codProjeto):
@@ -193,7 +202,7 @@ def get_usuario_codProjeto(codProjeto):
 
 def edita_usuario(usuario):
     query = 'update usuarios set nomeUsuario = (%s), nome = (%s), email = (%s), tipoUsuario = (%s) where codUsuario = (%s)'
-    db.bd_gravar(query,(usuario['nomeUsuario'], usuario['nome'], usuario['email'], usuario['tipoUsuario'], usuario['codUsuario']))
+    db.bd_gravar(query,(usuario['nomeUsuario'], usuario['nome'], usuario['email'].lower(), usuario['tipoUsuario'], usuario['codUsuario']))
 
 def deleta_usuario(codUsuario):
     usr = get_usuario(codUsuario)

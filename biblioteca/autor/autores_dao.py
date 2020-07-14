@@ -51,7 +51,7 @@ def get_autor_codUsuario(codUsuario):
 def cadastra_autor(nome, email, ra):
     query = 'insert into autores(nomeAutor, email, raAutor) values (%s, %s, %s)'
     try:
-        db.bd_gravar(query, (nome, email, ra))
+        db.bd_gravar(query, (nome, email.lower(), ra))
         return get_autor_ra(ra)
     except IntegrityError:
         return None

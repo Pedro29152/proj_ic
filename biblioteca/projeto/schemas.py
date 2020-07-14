@@ -53,10 +53,10 @@ class PalavrasChave:
         return True
 
 class Autores:
-    def __init__(self, raAutor=None, nomeAutor=None, email=None):        
+    def __init__(self, raAutor='', nomeAutor='', email=''):        
         self.raAutor = raAutor
         self.nomeAutor = nomeAutor
-        self.email = email
+        self.email = email.lower()
 
         if not is_valid_email(self.email):
             raise AttributeError('O campo "email" dever ser um email valido')
