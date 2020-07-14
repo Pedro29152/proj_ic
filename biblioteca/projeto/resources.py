@@ -88,7 +88,7 @@ class BuscarProjetosCurso(Resource):
         res, cod = busca_projetos_curso(curso['codCurso'])
         return get_response_code(res, cod)
 
-class GetProjetoOrientador(Resource):
+class GetProjetoNovo(Resource):
     @aluno_professor_coordenador_token_required
     def get(self, user_info, id):
         if user_info['tipoUsuario'] == TiposUsuario.Professor.value:

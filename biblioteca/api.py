@@ -33,7 +33,7 @@ from biblioteca.projeto.resources import (
     BuscarProjetosInativosResource,
     BuscaTodosProjetosResource,
     GetProjetoResource,
-    GetProjetoOrientador,
+    GetProjetoNovo,
     GetProjetoAutorResource,
     GetProjetoInativoResource,
     UploadProjetoResource,
@@ -126,7 +126,7 @@ def configure_api(app):
     api.add_resource(BuscarProjetosInativosResource, '/api/projetos/inativos')
     api.add_resource(BuscaTodosProjetosResource, '/api/projetos/todos')
     api.add_resource(GetProjetoInativoResource, '/api/projetos/inativos/<int:id>')
-    api.add_resource(GetProjetoOrientador, '/api/projetos/orientador/get/<int:id>')
+    api.add_resource(GetProjetoNovo, '/api/projetos/novo/get/<int:id>')
     api.add_resource(GetProjetoAutorResource, '/api/projetos/aluno/get')
     api.add_resource(AprovarProjetoResource, '/api/projetos/aprovar/<int:id>')
     api.add_resource(RecusarProjetoResource, '/api/projetos/recusar/<int:id>')
