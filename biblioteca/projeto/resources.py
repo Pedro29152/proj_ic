@@ -181,7 +181,11 @@ class UploadProjetoAlunoResource(Resource):
 class AlteraProjetoResource(Resource):
     @admin_token_required
     def put(self, id):
-        status, cod = edita_projeto(id)
+        has_file = False
+        r, code = check_file()
+        if not r:
+            has_file = True
+        status, cod = edita_projeto(id, has_file)
         return get_response_code(status, cod)
 
 class AlteraProjetoAlunoResource(Resource):
@@ -593,8 +597,9 @@ def ativa_projeto(codProjeto):
         return get_ok('Projeto ativado com sucesso'), 200
     return get_falha('Projeto requisitado nao existe'), 404
 
-def edita_projeto(codProjeto):
-    if projetos_dao.get_projeto(codProjeto):
+def edita_projeto(codProjeto, has_file):
+    proj = projetos_dao.get_projeto(codProjeto)
+    if proj:
         try:
             titulo = request.form['tituloProjeto']
             descricao = request.form['descricao']
@@ -608,6 +613,17 @@ def edita_projeto(codProjeto):
             projetos_dao.edita_descricao(codProjeto, descricao)
         if subtitulo:
             projetos_dao.edita_subtitulo(codProjeto, subtitulo)
+        
+        if has_file:
+            filepath = os.path.join(
+                app.config['UPLOAD_FOLDER'],
+                proj['nomeArquivo']
+            )
+
+            file = request.files['file']
+            file.save(filepath)
+            capa = os.path.join(app.static_folder, 'Capa.pdf')
+            __adicionar_cabecalio([capa, filepath], filepath)
         
         return get_ok('Projeto editado com sucesso'), 200
     return get_falha('Projeto requisitado nao existe'), 404

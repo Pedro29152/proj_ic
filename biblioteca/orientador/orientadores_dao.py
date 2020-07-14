@@ -112,7 +112,6 @@ def buscar_revisoes():
 
     for revisao in ret:
         revisao['projeto'] = projetos_dao.get_projeto_codUsuarioOrientado(revisao['codUsuarioOrientado'])
-
     return ret
 
 def get_revisao(codSolicitacao):
