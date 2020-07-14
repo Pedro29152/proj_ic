@@ -192,8 +192,9 @@ def busca_projeto_orientador(codOrientador):
     query = '''
         select distinct p.*
         from projetos as p
-        natural join projeto_orientador
-        where ativo = 1 and status = 0 and codOrientador = (%s)
+        natural join projeto_orientador as po
+        natural join usuario_orientado as uo
+        where p.ativo = 1 and p.status = 0 and po.codOrientador = (%s) and uo.dataValidade >= current_timestamp()
     '''
     ret = db.bd_busca(query, (codOrientador,))
 
@@ -374,9 +375,34 @@ def get_projeto_novo(codProjeto, is_full=False):
     return proj
 
 def get_projeto_novo_codAutor(codAutor, is_full=False):
-    query = 'select p.* from projetos as p natural join projeto_autor where codAutor = (%s) and status = 0'
+    query = '''
+        select p.* from projetos as p 
+        natural join projeto_autor 
+        where codAutor = (%s) and status = 0
+    '''
     proj = db.bd_busca_um(query,(codAutor,))
-    if is_full:
+    if is_full and proj:
+        prenche_projeto(proj)
+    return proj
+
+def get_projeto_novo_codOrientador(codOrientador, is_full=False):
+    query = '''
+        select p.* from projetos as p 
+        natural join projeto_orientador 
+        where codOrientador = (%s) and status = 0
+    '''
+    proj = db.bd_busca_um(query,(codOrientador,))
+    if is_full and proj:
+        prenche_projeto(proj)
+    return proj
+
+def get_projeto_novo_codCurso(codCurso, is_full=False):
+    query = '''
+        select * from projetos 
+        where codCurso = (%s) and status = 0
+    '''
+    proj = db.bd_busca_um(query,(codCurso,))
+    if is_full and proj:
         prenche_projeto(proj)
     return proj
 

@@ -132,6 +132,28 @@ def aluno_token_required(f):
         return data
     return decorated
 
+def aluno_professor_coordenador_token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        success, data = check_tipo_usuario([
+            TiposUsuario.Aluno.value,
+            TiposUsuario.Professor.value,
+            TiposUsuario.Coordenador
+        ], has_user_info=True)
+
+        if(success):
+            if data['user_info']['tipoUsuario'] == TiposUsuario.Aluno.value:
+                is_valid = autores_dao.is_aluno_valido(data['user_info']['codUsuario'])
+            else:
+                is_valid = True
+            
+            if not is_valid:
+                return get_unauthorized('Seu acesso está expirado')
+            kwargs.update(data)
+            return f(*args, **kwargs)            
+        return data
+    return decorated
+
 def coordenador_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):

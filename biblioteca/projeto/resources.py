@@ -33,6 +33,7 @@ from biblioteca.extensions import(
     professor_token_required,
     coordenador_token_required,
     professor_coordenador_secretaria_token_required,
+    aluno_professor_coordenador_token_required,
     is_valid_email,
     TiposUsuario,
     LinguagemProjeto
@@ -88,14 +89,37 @@ class BuscarProjetosCurso(Resource):
         return get_response_code(res, cod)
 
 class GetProjetoOrientador(Resource):
-    @professor_token_required
+    @aluno_professor_coordenador_token_required
     def get(self, user_info, id):
-        orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
-        if not orientador:
-            return get_bad_request('O usuario sendo utilizado nao possui um orientador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro')
+        if user_info['tipoUsuario'] == TiposUsuario.Professor.value:
+            orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+            if not orientador:
+                return get_bad_request('O usuario sendo utilizado nao possui um orientador relacionado consigo mesmo, contate a secretaria para efetuar o cadastro')
 
-        res, cod = get_projeto_orientador(orientador['codOrientador'], id)
-        return get_response_code(res, cod)
+            proj = projetos_dao.get_projeto_novo_codOrientador(orientador['codOrientador'], True)
+            if proj:
+                return get_response_code(proj, 200)
+            return get_not_found('Projeto não encontrado')
+        elif user_info['tipoUsuario'] == TiposUsuario.Aluno.value:
+            autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+            if not autor:
+                return get_erro('O usuario utilizado não possui ligação com nenhum autor cadastrado'), 400
+            
+            proj = projetos_dao.get_projeto_novo_codAutor(autor['codAutor'], True)
+            if proj:
+                return get_response_code(proj, 200)
+            return get_not_found('Projeto não encontrado')
+        elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
+            curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+            if not curso:
+                return get_erro('O usuario utilizado não possui ligação com nenhum curso cadastrado'), 400
+                
+            proj = projetos_dao.get_projeto_novo_codCurso(curso['codCurso'], True)
+            if proj:
+                return get_response_code(proj, 200)
+            return get_not_found('Projeto não encontrado')
+        
+        return get_response_code('Um erro inesperado ocorreu', 500)
 
 class BuscarProjetosInativosResource(Resource):
     @secretaria_token_required
@@ -198,25 +222,61 @@ class DownloadArquivoProjetoResource(Resource):
         return get_not_found('Arquivo não encontrado')
 
 class DownloadArquivoProjetoNovoResource(Resource):
-    @aluno_token_required
+    @aluno_professor_coordenador_token_required
     def get(self, filename, user_info):
         attatch = False
         if request.args.get('as_attachment'):
             attatch = True if request.args.get('as_attachment').lower() == 'true' else False
+        if user_info['tipoUsuario'] == TiposUsuario.Aluno.value:
+            autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+            if not autor:
+                return get_erro('O usuario utilizado não possui ligação com nenhum autor cadastrado'), 400
+            proj = projetos_dao.get_projeto_novo_codAutor(autor['codAutor'])
+            if not proj:
+                return get_erro('Você não tem permição para baixar esta arquivo'), 400
+            if filename == proj['nomeArquivo']:
+                if download_arquivo(filename):
+                    f = send_from_directory(    
+                            app.config['UPLOAD_FOLDER'],
+                            filename, 
+                            as_attachment=attatch
+                        )
 
-        autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
-        if not autor:
-            return get_erro('O usuario utilizado não possui ligação com nenhum autor cadastrado'), 400
-        proj = projetos_dao.get_projeto_novo_codAutor(autor['codAutor'], True)
-        if filename == proj['nomeArquivo']:
-            if download_arquivo(filename):
-                f = send_from_directory(    
-                        app.config['UPLOAD_FOLDER'],
-                        filename, 
-                        as_attachment=attatch
-                    )
+                    return f
+        elif user_info['tipoUsuario'] == TiposUsuario.Professor.value:
+            orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+            if not orientador:
+                return get_erro('O usuario utilizado não possui ligação com nenhum orientador cadastrado'), 400
+            proj = projetos_dao.get_projeto_novo_codOrientador(orientador['codOrientador'])
+            if not proj:
+                return get_erro('Você não tem permição para baixar esta arquivo'), 400
+            if filename == proj['nomeArquivo']:
+                if download_arquivo(filename):
+                    f = send_from_directory(    
+                            app.config['UPLOAD_FOLDER'],
+                            filename, 
+                            as_attachment=attatch
+                        )
 
-                return f
+                    return f
+        elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
+            curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+            if not curso:
+                return get_erro('O usuario utilizado não possui ligação com nenhum curso cadastrado'), 400
+            proj = projetos_dao.get_projeto_novo_codCurso(curso['codCurso'])
+            if not proj:
+                return get_erro('Você não tem permição para baixar esta arquivo'), 400
+            if filename == proj['nomeArquivo']:
+                if download_arquivo(filename):
+                    f = send_from_directory(    
+                            app.config['UPLOAD_FOLDER'],
+                            filename, 
+                            as_attachment=attatch
+                        )
+
+                    return f
+
+
         return get_not_found('Arquivo não encontrado')
 
 class CountProjetosResource(Resource):
@@ -596,12 +656,6 @@ def get_projeto(codProjeto):
         projetos_dao.add_view(codProjeto)
         return get_data(ret), 200
     return get_falha('Projeto requisitado nao existe'), 404
-
-def get_projeto_orientador(codOrientador, codProjeto):
-    res = projetos_dao.get_projeto_orientador(codOrientador, codProjeto)
-    if not res:
-        return None, 404
-    return get_data(res), 200
 
 def get_projeto_autor(user_info):
     autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])

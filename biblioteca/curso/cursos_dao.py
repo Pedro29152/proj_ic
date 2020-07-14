@@ -94,8 +94,11 @@ def get_curso_desc(descricaoCurso):
     return curso
 
 def get_curso_codCurso(codCurso, is_instance=True):
-    res = db.bd_busca_um("select * from cursos where codCurso = (%s) and ativo = 1",
-    (codCurso,))
+    query = '''
+        select * from cursos 
+        where codCurso = (%s) and ativo = 1
+    '''
+    res = db.bd_busca_um(query, (codCurso,))
 
     if(not res):
         return None
