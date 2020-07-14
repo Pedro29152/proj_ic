@@ -711,7 +711,7 @@ def get_count():
     return get_res_count(count), 200
 
 def enviar_email_aprovacao(autor, titulo_projeto):
-    msg = mailer.generate_message(
+    msg = mailer.generate_message_html(
         'BTA - Projeto Aceito',
         autor['email'],
         '''
@@ -732,7 +732,7 @@ def enviar_email_aprovacao(autor, titulo_projeto):
     mailer.send_email(autor['email'], msg)
 
 def enviar_email_reprovacao(autor, titulo_projeto):
-    msg = mailer.generate_message(
+    msg = mailer.generate_message_html(
         'BTA - Projeto Recusado',
         autor['email'],
         '''

@@ -1,5 +1,9 @@
+from flask import request
 from flask_restful import Resource
+from werkzeug.exceptions import BadRequestKeyError
+from os import getenv
 
+from biblioteca import mailer
 from biblioteca.usuarios import usuario_dao
 from biblioteca.projeto import projetos_dao
 from biblioteca.orientador import orientadores_dao
@@ -7,11 +11,14 @@ from biblioteca.curso import cursos_dao
 from biblioteca.responses import (
     get_data,
     get_unauthorized,
-    get_bad_request
+    get_bad_request,
+    get_erro,
+    get_success
 )
 from biblioteca.extensions import (
     token_required,
-    TiposUsuario
+    TiposUsuario,
+    is_valid_email
 )
 
 class AllCountsResource(Resource):
@@ -59,3 +66,42 @@ class AllCountsResource(Resource):
                 'orientadoresCount': orientadores_count,
                 'cursosCount': cursos_count,
             })
+
+class ContatoResource(Resource):
+    def post(self):
+        try:
+            email = request.form['email']
+            nome = request.form['nome']
+            assunto = request.form['assunto']
+            mensagem = request.form['mensagem']
+        except BadRequestKeyError:
+            return get_bad_request('A requsição deve ter os campos "email", "nome", "mensagem" e "assunto" em seu corpo.')
+
+        if not (email and nome and assunto and mensagem):
+            return get_bad_request('Os campos enviados devem ser preenchidos')
+        if not is_valid_email(email):
+            return get_bad_request('O campo email deve ser um e-mail válido')
+
+        CONTACT_MAIL = getenv('CONTACT_EMAIL')
+
+        msg = mailer.generate_message_html(
+            'Contato BTA', 
+            CONTACT_MAIL, 
+            '''
+            <html>
+                <head></head>
+                <body>
+                    <h3>Email: {0}</h3>
+                    <h3>Nome: {1}</h3>
+
+                    <p>{2}</p>
+
+                    <p>{3}</p>
+
+                    <p>Sistema de Contato BTA</p>
+                </body>
+            </html>
+            '''.format(email, nome, assunto, mensagem))
+        mailer.send_email(CONTACT_MAIL, msg)
+
+        return get_success('Email enviado com sucesso')

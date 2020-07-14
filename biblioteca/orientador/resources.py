@@ -239,7 +239,7 @@ def verificar_revisoes(user_info):
     return None, 204
 
 def enviar_email_revisao(autor, titulo_projeto, mensagem):
-    msg = mailer.generate_message(
+    msg = mailer.generate_message_html(
         'BTA - Solicitacao de Revisao',
         autor['email'],
         '''

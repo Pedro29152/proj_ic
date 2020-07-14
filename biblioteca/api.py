@@ -68,7 +68,8 @@ from biblioteca.usuarios.resources import (
     RecuperaraSenha
 )
 from biblioteca.geral.resources import (
-    AllCountsResource
+    AllCountsResource,
+    ContatoResource
 )
 from biblioteca.autor.resources import (
     BuscaAlunosResource,
@@ -93,6 +94,7 @@ def configure_api(app):
     # adicionamos na rota '/' a sua classe correspondente Index
     api.add_resource(Index, '/api')
     api.add_resource(AllCountsResource, '/api/allcounts')
+    api.add_resource(ContatoResource, '/api/contato')
 
     #Rotas de curso
     api.add_resource(CursoResource, '/api/cursos')

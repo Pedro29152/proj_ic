@@ -494,7 +494,7 @@ def recuperar_senha():
 
     mailer.send_email(
         usuario['email'],
-        mailer.generate_message(
+        mailer.generate_message_html(
             'Recuperacao de senha - BTA',
             usuario['email'], 
             '''
