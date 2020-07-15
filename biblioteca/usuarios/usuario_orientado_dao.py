@@ -1,8 +1,10 @@
 from biblioteca import db
 
-def edita_orientador_aluno(codUsuario, codOrientador):
-    query = 'update usuario_orientado set codOrientador = (%s) where codUsuario = (%s)'
-    db.bd_gravar(query, (codOrientador, codUsuario))
+def edita_orientador_projeto_novo(codProjeto, codOrientador):
+    query = 'update usuario_orientado set codOrientador = (%s) where codProjeto = (%s)'
+    query2 = 'update projeto_orientador set codOrientador = (%s) where codProjeto = (%s)'
+    db.bd_gravar(query, (codOrientador, codProjeto))
+    db.bd_gravar(query2, (codOrientador, codProjeto))
 
 def get_usuario_orientado(codOrientador, codUsuario):
     query = '''

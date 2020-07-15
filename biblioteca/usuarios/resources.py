@@ -10,6 +10,7 @@ from biblioteca.orientador.schemas import Orientadores
 from biblioteca.orientador import orientadores_dao
 from biblioteca.autor import autores_dao
 from biblioteca.curso import cursos_dao
+from biblioteca.projeto import projetos_dao
 from biblioteca.extensions import (
     secretaria_token_required,
     admin_token_required,
@@ -439,13 +440,17 @@ def edita_usuario(codUsuario, is_admin, is_user):
         return get_ok('Usuario editado com sucesso'), 200
     return get_falha('O codigo enviado nao esta relacionado a nenhum usuario'), 404
 
-def altera_orientador_aluno(codUsuario, user_info):
-    usr = usuario_dao.get_usuario(codUsuario)
-    if not usr:
-        return get_erro('O código de usuário enviado não esta ligado a nenhum usuario'), 404
-    if not usr['tipoUsuario'] == TiposUsuario.Aluno.value:
-        return get_erro('Voce só pode alterar usuários do tipo Aluno'), 400
-    
+def altera_orientador_aluno(codProjeto, user_info):
+    proj = projetos_dao.get_projeto_novo(codProjeto, True)
+    if not proj:
+        return get_erro('Projeto não encontrado'), 404
+    curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+    if not curso:
+        return get_erro('Você não pode ter acesso a esta ação'), 400
+
+    if not proj['curso']['abreviacao'] == curso['abreviacao']:
+        return get_erro('O projeto selecionado é de outro curso'), 400
+
     try:
         codOrientador = request.form['codOrientador']
     except BadRequestKeyError:
@@ -459,10 +464,8 @@ def altera_orientador_aluno(codUsuario, user_info):
         return get_erro('O código de orientador enviado não esta ligado a nenhum orientador'), 400
     if not orientador['codUsuario']:
         return get_erro('O orientador enviado não possui um usuário cadastrado'), 400
-    if not usuario_dao.get_usuario(orientador['codUsuario']):
-        return get_erro('O orientador enviado não possui um usuário valido cadastrado'), 400
     
-    usuario_orientado_dao.edita_orientador_aluno(codUsuario, orientador['codOrientador'])
+    usuario_orientado_dao.edita_orientador_projeto_novo(codProjeto, orientador['codOrientador'])
     return None, 204
 
 def mudar_senha(id):
