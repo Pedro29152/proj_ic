@@ -71,7 +71,7 @@ def busca_projeto_tipo(tipo, query = '', ordem = 0, crescente = True):
             __ordena(ordem,crescente),
             (query,)
         )
-    elif tipo == 'orientador':
+    elif tipo == 'orientadores':
         ret = __busca_projeto_full(
             QUERY_ORIENTADOR + __ordena(ordem,crescente),
             (query,)
@@ -116,7 +116,7 @@ def busca_projeto_tipo_pag(tipo, query = '', ordem = 0, crescente = True, pag = 
             __ordena(ordem,crescente) + __get_limit(pag),
             (query,)
         )
-    elif tipo == 'orientador':
+    elif tipo == 'orientadores':
         ret = __busca_projeto_full(
             QUERY_ORIENTADOR + __ordena(ordem,crescente) + __get_limit(pag),
             (query,)
