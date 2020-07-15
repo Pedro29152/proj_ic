@@ -15,7 +15,8 @@ from biblioteca.responses import (
     get_falha,
     get_count,
     get_response_code,
-    get_no_content
+    get_no_content,
+    get_not_found
 )
 from biblioteca.extensions import(
     admin_token_required,
@@ -23,9 +24,11 @@ from biblioteca.extensions import(
     professor_token_required,
     professor_admin_token_required,
     aluno_token_required,
+    secretaria_aluno_token_required,
     token_required,
     is_valid_email,
-    is_valid_http_link
+    is_valid_http_link,
+    TiposUsuario
 )
 from . import orientadores_dao
 
@@ -95,12 +98,16 @@ class BuscarRevisoesResource(Resource):
         return get_no_content()
 
 class GetRevisaoResource(Resource):
-    @secretaria_token_required
-    def get(self, id):
-        ret = orientadores_dao.get_revisao(id)
+    @secretaria_aluno_token_required
+    def get(self, id, user_info):
+        if user_info['tipoUsuario'] == TiposUsuario.Aluno.value:
+            ret = orientadores_dao.get_revisao_codUsuario_autor(id, user_info['codUsuario'])    
+        else:
+            ret = orientadores_dao.get_revisao(id)
+        
         if ret:
             return get_response_code(ret, 200)
-        return get_no_content()
+        return get_not_found('Revisão não encontrada')
 
 def cadastro_orientador():
     try:

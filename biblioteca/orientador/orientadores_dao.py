@@ -125,6 +125,18 @@ def get_revisao(codSolicitacao):
 
     return ret
 
+def get_revisao_codUsuario_autor(codSolicitacao, codUsuario):
+    query = '''
+        select sr.* from solicitacoes_revisao as sr
+        join usuario_orientado as uo
+        on sr.codUsuarioOrientado = uo.codUsuarioOrientado
+        join usuarios as u 
+        on u.codUsuario = uo.codUsuario
+        where uo.codUsuario = (%s) and ativo = 1 and codSolicitacao = (%s)
+    '''
+    ret = db.bd_busca(query, (codUsuario, codSolicitacao))
+    return ret
+
 def ativa_orientador(codOrientador):
     query = 'update orientadores set ativo = 1 where codOrientador = (%s)'
 
