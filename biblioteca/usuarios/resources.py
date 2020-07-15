@@ -217,29 +217,25 @@ def cadastro_usuario():
 
 def cadastro_professor(existente=True):
     try:
-        user = request.form['username']
-        senha = request.form['password']
         nome = request.form['nome']
         email = request.form['email']
         if existente:
             codOrientador = request.form['codOrientador']
-            if not (user and senha and email and nome and codOrientador):
+            if not (email and nome and codOrientador):
                 return get_falha('Os campos enviados nao podem estar vazios'), 400
         else:
             currLattes = request.form['currLattes']
             ra = request.form['ra']
-            if not (user and senha and email and nome and currLattes and ra):
+            if not (email and nome and currLattes and ra):
                 return get_falha('Os campos enviados nao podem estar vazios'), 400
     except BadRequestKeyError:
         return get_erro(
-            'A requisicao deve possuir os campos {}"username", "password", "nome" e "email" em seu corpo'.format('"codOrientador", ' if existente else '"currLattes", "ra", ')
+            'A requisicao deve possuir os campos {}, "nome" e "email" em seu corpo'.format('"codOrientador", ' if existente else '"currLattes", "ra", ')
         ), 400
     
     
     if not is_valid_email(email):
         return get_erro('O campo "email" dever ser um email valido'), 400
-    if not is_valid_username(user):
-        return get_erro('O campo "username" dever ser um nome de usuario valido'), 400
 
     if not existente:
         try:
@@ -261,26 +257,53 @@ def cadastro_professor(existente=True):
     else:
         if not orientadores_dao.exists(codOrientador):
             return get_erro('O orientador enviado nao existe'), 400
+            
+    orientador = orientadores_dao.get_orientador_codigo(codOrientador, False)
+    user = orientador['raOrientador']
+    password = generate_random_password()
+    if usuario_dao.add_orientador(user, password, nome, email, codOrientador):
+        
+        msg = mailer.generate_message_html(
+            'BTA - Nova conta de Orientador',
+            email,
+            '''
+            <html>
+                <head></head>
+                <body>
+                    <h2>Você foi cadastrado no sistema BTA</h2>
 
-    if usuario_dao.add_orientador(user, senha, nome, email, codOrientador):
+                    <p>Você foi cadastrado como um novo orientador do sistema BTA - Biblioteca de Trabalhos Acadêmicos.</p>
+                    <p>Veja abaixo os dados de login do seu usuário:</p>
+
+                    <p>Nome de usuário: <b>{0}</b></p>
+                    <p>Senha: <b>{1}</b></p>
+
+                    <p>Sistema de gerenciamento de usuários BTA.</p>
+                </body>
+            </html>
+            '''.format(user, password)
+        )
+        mailer.send_email(email, msg)
+
         return get_ok(
             'Usuario cadastrado com sucesso'
         ), 201
+    if not existente:
+        orientadores_dao.deleta_orientador(codOrientador)
     return get_erro('O nome de usuario "{}" ou o email "{}" ja estao sendo utilizados'.format(user, email)), 400
 
 def cadastro_aluno(professor_user_info):
     try:
-        senha = request.form['password']
         nome = request.form['nome']
         email = request.form['email']
         ra = request.form['ra_aluno']
         codCurso = request.form['codCurso']
     except BadRequestKeyError:
         return get_erro(
-            'A requisicao deve possuir os campos "email", "nome", "ra_aluno", "codCurso" e "password" em seu corpo'
+            'A requisicao deve possuir os campos "email", "nome", "ra_aluno" e "codCurso" em seu corpo'
         ), 400
 
-    if not (senha and email and nome and ra and codCurso):
+    if not (email and nome and ra and codCurso):
         return get_falha('Os campos enviados nao podem estar vazios'), 400
     if not is_valid_email(email):
         return get_erro('O campo "email" dever ser um email valido'), 400
@@ -301,7 +324,31 @@ def cadastro_aluno(professor_user_info):
     if not orientador:
         return get_erro('Você não pode efetuar esta ação pois não esta cadastrado como um orientador válido'), 400
     
-    if usuario_dao.add_aluno(ra, senha, nome, email, autor['codAutor'], orientador['codOrientador'], codCurso):
+    password = generate_random_password()
+    if usuario_dao.add_aluno(ra, password, nome, email, autor['codAutor'], orientador['codOrientador'], codCurso):
+
+        msg = mailer.generate_message_html(
+            'BTA - Nova conta de Autor',
+            email,
+            '''
+            <html>
+                <head></head>
+                <body>
+                    <h2>Você foi cadastrado no sistema BTA</h2>
+
+                    <p>Você foi cadastrado como um novo autor do sistema BTA - Biblioteca de Trabalhos Acadêmicos.</p>
+                    <p>Veja abaixo os dados de login do seu usuário:</p>
+
+                    <p>Nome de usuário: <b>{0}</b></p>
+                    <p>Senha: <b>{1}</b></p>
+
+                    <p>Sistema de gerenciamento de usuários BTA.</p>
+                </body>
+            </html>
+            '''.format(ra, password)
+        )
+        mailer.send_email(email, msg)
+
         return get_ok(
             'Usuario cadastrado com sucesso'
         ), 201
@@ -512,7 +559,7 @@ def recuperar_senha():
 
                     <h3><b>{2}</b></h3>
 
-                    <p>Sistema de gerenciamento de usuarios BTA.</p>
+                    <p>Sistema de gerenciamento de usuários BTA.</p>
                 </body>
             </html>
             '''.format(usuario['nome'], usuario['nomeUsuario'], novaSenha)

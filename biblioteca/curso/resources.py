@@ -100,7 +100,7 @@ def cadastro_curso():
         curso.grava_curso()
 
         msg = mailer.generate_message_html(
-            'BTA - Nova conta  de Coordenador',
+            'BTA - Nova conta de Coordenador',
             email,
             '''
             <html>
@@ -108,13 +108,13 @@ def cadastro_curso():
                 <body>
                     <h2>Você foi cadastrado no sistema BTA</h2>
 
-                    <p>Você foi cadastrado como um novo coordenador do sistema BTA - Biblioteca de Trabalhos Academicos no curso: <b>{0}</b>, <b>{1}</b>.</p>
-                    <p>Veja abaixo os dados de login do seu usuario:</p>
+                    <p>Você foi cadastrado como um novo coordenador do sistema BTA - Biblioteca de Trabalhos Acadêmicos no curso: <b>{0}</b>, <b>{1}</b>.</p>
+                    <p>Veja abaixo os dados de login do seu usuário:</p>
 
                     <p>Nome de usuário: <b>{2}</b></p>
                     <p>Senha: <b>{3}</b></p>
 
-                    <p>Sistema de gerenciamento de usuarios BTA.</p>
+                    <p>Sistema de gerenciamento de usuários BTA.</p>
                 </body>
             </html>
             '''.format(abreviacao, nomeCurso, username, password)

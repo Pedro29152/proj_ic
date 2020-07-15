@@ -143,6 +143,12 @@ def desativa_orientador(codOrientador):
     db.bd_gravar(query, (codOrientador,))
     usuario_dao.remove_responsabilidade_orientador(codOrientador)
 
+def deleta_orientador(codOrientador):
+    query = '''
+        delete from orientadores where codOrientador = (%s)
+    '''
+    db.bd_gravar(query, (codOrientador,))
+
 def exists(codOrientador):
     query = 'select codOrientador from orientadores where codOrientador = (%s)'
     ret = db.bd_busca_um(query, (codOrientador,))
