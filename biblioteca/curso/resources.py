@@ -3,6 +3,7 @@ from flask_restful import Resource, request
 from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import IntegrityError
 
+from biblioteca import mailer
 from biblioteca.usuarios import usuario_dao
 from biblioteca.responses import (
     get_erro,
@@ -16,6 +17,7 @@ from biblioteca.extensions import (
     secretaria_token_required,
     token_required,
     admin_token_required,
+    generate_random_password,
     TiposUsuario
 )
 from . import cursos_dao
@@ -76,16 +78,18 @@ def cadastro_curso():
         abreviacao = request.form['abreviacao']
         nome = request.form['nome']
         email = request.form['email']
-        senha = request.form['password']
     except BadRequestKeyError:
-        return get_erro('A requisicao deve conter os campos "nome", "email", "password", "nomeCurso" e "abreviacao" em seu corpo'), 400
+        return get_erro('A requisicao deve conter os campos "nome", "email", "nomeCurso" e "abreviacao" em seu corpo'), 400
 
-    if not (nomeCurso and abreviacao and nome and email and senha):
+    if not (nomeCurso and abreviacao and nome and email):
         return get_falha('Os campos enviados devem sem preenchidos'), 400
     if len(abreviacao) > 3:
         return get_erro('A abreviação deve ter no máximo 3 caracteres')
-
-    user = usuario_dao.add_usr('coordenador_{}'.format(abreviacao.lower()), senha, TiposUsuario.Coordenador.value, nome, email)
+    username = 'coordenador_{}'.format(abreviacao.lower())
+    password = generate_random_password()
+    user = usuario_dao.add_usr(username, password, TiposUsuario.Coordenador.value, nome, email)
+    if not user:
+        return get_erro('Email ou abreviação ja cadastrados'), 400
 
     curso = Cursos(
         nomeCurso, 
@@ -94,12 +98,36 @@ def cadastro_curso():
     )
     try:
         curso.grava_curso()
+
+        msg = mailer.generate_message_html(
+            'BTA - Nova conta  de Coordenador',
+            email,
+            '''
+            <html>
+                <head></head>
+                <body>
+                    <h2>Você foi cadastrado no sistema BTA</h2>
+
+                    <p>Você foi cadastrado como um novo coordenador do sistema BTA - Biblioteca de Trabalhos Academicos no curso: <b>{0}</b>, <b>{1}</b>.</p>
+                    <p>Veja abaixo os dados de login do seu usuario:</p>
+
+                    <p>Nome de usuário: <b>{2}</b></p>
+                    <p>Senha: <b>{3}</b></p>
+
+                    <p>Sistema de gerenciamento de usuarios BTA.</p>
+                </body>
+            </html>
+            '''.format(abreviacao, nomeCurso, username, password)
+        )
+        mailer.send_email(email, msg)
+
         return get_ok('Curso gravado com suscesso'), 201
     except IntegrityError:
         if not cursos_dao.is_ativo(curso):
             cursos_dao.reativa_curso(curso)
             return get_ok('O curso ja existia, porem esta inativo. O curso foi reativado com os dados novos'), 400
         else:
+            usuario_dao.deleta_usuario(user['codUsuario'])
             return get_erro('O nome ou a breviacao desse curso ja foi cadastrado'), 400
 
 def buscar_cursos():
@@ -146,7 +174,3 @@ def buscar_todos_cursos():
         if cursos:
             return get_data(cursos), 200
         return get_falha("Nenhum curso listado"), 204
-
-
-
-
