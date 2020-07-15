@@ -29,7 +29,7 @@ QUERY_DESCRICAO = '''
     WHERE descricao LIKE (%s) AND ativo = 1 and status = 1 '''
 QUERY_ORIENTADOR = '''
     select distinct pj.*
-    FROM proj_ic.projetos as pj
+    FROM projetos as pj
     natural join projeto_orientador 
     natural join orientadores 
     where nomeOrientador like (%s) AND ativo = 1 and status = 1 
