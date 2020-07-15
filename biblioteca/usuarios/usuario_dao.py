@@ -83,7 +83,7 @@ def busca_usuarios_orientados_nome_like(nomeUsuario, codOrientador):
         select codUsuario, nomeUsuario, tipoUsuario, nome, email 
         from usuarios as u 
         natural join usuario_orientado as uo 
-        where uo.codOrientador = (%s) and nomeUsuario like (%s)
+        where uo.codOrientador = (%s) and nomeUsuario like (%s) and ativo = 1
     '''
     ret = db.bd_busca(query,(codOrientador, nomeUsuario))
     return ret
@@ -93,7 +93,7 @@ def busca_usuarios_orientados(codOrientador):
         select codUsuario, nomeUsuario, tipoUsuario, nome, email 
         from usuarios as u 
         natural join usuario_orientado as uo 
-        where uo.codOrientador = (%s)
+        where uo.codOrientador = (%s) and ativo = 1
     '''
     ret = db.bd_busca(query,(codOrientador,))
     return ret
