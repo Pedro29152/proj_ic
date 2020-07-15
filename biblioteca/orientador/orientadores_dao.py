@@ -134,7 +134,7 @@ def get_revisao_codUsuario_autor(codSolicitacao, codUsuario):
         on u.codUsuario = uo.codUsuario
         where uo.codUsuario = (%s) and ativo = 1 and codSolicitacao = (%s)
     '''
-    ret = db.bd_busca(query, (codUsuario, codSolicitacao))
+    ret = db.bd_busca_um(query, (codUsuario, codSolicitacao))
     return ret
 
 def ativa_orientador(codOrientador):
