@@ -222,6 +222,15 @@ def get_usuario_codProjeto(codProjeto):
     '''
     return db.bd_busca_um(query, (codProjeto,))
 
+def get_user_coordenador(codCurso):
+    query = '''
+        select nome, email from usuarios as u
+        natural join cursos as c 
+        where codCurso = (%s)
+    '''
+    user = db.bd_busca_um(query, (codCurso,))
+    return user
+
 def edita_usuario(usuario):
     query = 'update usuarios set nomeUsuario = (%s), nome = (%s), email = (%s), tipoUsuario = (%s) where codUsuario = (%s)'
     db.bd_gravar(query,(usuario['nomeUsuario'], usuario['nome'], usuario['email'].lower(), usuario['tipoUsuario'], usuario['codUsuario']))

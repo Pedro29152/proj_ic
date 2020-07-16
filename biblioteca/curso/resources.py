@@ -35,6 +35,7 @@ class CursoResource(Resource):
         return get_response_code(res, cod)
 
 class CursoIdResource(Resource):
+    @secretaria_token_required
     def get(self, id):
         res, cod = get_curso(id)
         return get_response_code(res, cod)
@@ -139,6 +140,8 @@ def buscar_cursos():
 
 def get_curso(codCurso):
     curso = cursos_dao.get_curso_codCurso(codCurso, False)
+    coord = usuario_dao.get_user_coordenador(curso['codCurso'])
+    curso.update(coord)
     if not curso:
         return get_erro('Codigo de curso nao encontrado'), 404
     return curso, 200
