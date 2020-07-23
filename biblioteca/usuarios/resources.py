@@ -53,7 +53,7 @@ class UsuarioIdResource(Resource):
         res, cod = deleta_usuario(id, is_user)
         return get_response_code(res, cod)
 
-    @secretaria_token_required_is_user
+    @user_admin_token_required
     def put(self, id, is_user, is_admin):
         res, cod = edita_usuario(id, is_admin, is_user)
         return get_response_code(res, cod)
@@ -470,8 +470,8 @@ def edita_usuario(codUsuario, is_admin, is_user):
                 return get_erro('Voce nao pode alterar um administrador sem ser um administrador'), 400
 
         if nomeUsuario:
-            if not is_valid_username:
-                return get_erro('O campo "nomeUsuario" deve ser um nome de usuario valido')
+            if not is_valid_username(nomeUsuario):
+                return get_erro('O campo "nomeUsuario" deve ser um nome de usuario valido'), 400
             usr['nomeUsuario'] = nomeUsuario
         if nome: 
             usr['nome'] = nome
