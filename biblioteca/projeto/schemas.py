@@ -17,7 +17,8 @@ class Projetos:
     autores=None,
     orientador=None, 
     palavrasChave=None,
-    linguagem=None):
+    linguagem=None,
+    modalidade=None):
 
         self.codProjeto = codProjeto
         self.tituloProjeto = tituloProjeto
@@ -33,6 +34,7 @@ class Projetos:
         self.orientador = orientador
         self.palavrasChave = palavrasChave
         self.linguagem = linguagem
+        self.modalidade = modalidade
 
 class Avalicoes:
     def __init__(self, numVisitas, numDownloads):

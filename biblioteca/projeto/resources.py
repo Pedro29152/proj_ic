@@ -36,7 +36,8 @@ from biblioteca.extensions import(
     aluno_professor_coordenador_token_required,
     is_valid_email,
     TiposUsuario,
-    LinguagemProjeto
+    LinguagemProjeto,
+    ModalidadeProjeto
 )
 from . import projetos_dao
 from .schemas import Projetos, Autores, PalavrasChave
@@ -389,6 +390,7 @@ def upload_projeto(user_info=None):
         dataAvaliacao = request.form['dataAvaliacao']
         subTitulo = request.form['subTitulo']
         linguagem = int(request.form['linguagem'])
+        modalidade = int(request.form['modalidade'])
         if user_info == None:
             raOrientador = request.form['raOrientador']
             codCurso = request.form['codCurso']
@@ -403,10 +405,10 @@ def upload_projeto(user_info=None):
         autores = request.form['autores']
         palavras = request.form['palavras_chave']
     except BadRequestKeyError:
-        return get_erro('A requisicao deve conter os campos "titulo", {}"descricao", "dataAvaliacao", "subTitulo", "autores", "linguagem" e "palavras_chave"'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
+        return get_erro('A requisicao deve conter os campos "titulo", {}"descricao", "dataAvaliacao", "modalidade", "subTitulo", "autores", "linguagem" e "palavras_chave"'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
     except ValueError:
         return get_erro(
-            'O campo "linguagem" deve ser do tipo inteiro entre 0 e 2'
+            'Os campos "linguagem" e "modalidade" devem ser do tipo inteiro'
         ), 400
 
     if not(titulo and raOrientador and descricao and dataAvaliacao and 
@@ -414,6 +416,8 @@ def upload_projeto(user_info=None):
         return get_erro('Os valores de "titulo", {}"descricao", "dataAvaliacao", "linguagem" e "subTitulo" nao podem ser nulos'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
     if not (linguagem) in range(LinguagemProjeto.Espanhol.value + 1):
         return get_falha('O campo linguagem deve ser um campo com numeros entre 0 e 2'), 400
+    if not (modalidade) in range(ModalidadeProjeto.GDD.value + 1):
+        return get_falha('O campo modalidade deve ser um campo com numeros entre 0 e 2'), 400
 
     projeto = Projetos(
         tituloProjeto = titulo,
@@ -421,6 +425,7 @@ def upload_projeto(user_info=None):
         descricao = descricao,
         dataAvaliacao = dataAvaliacao,
         linguagem = linguagem,
+        modalidade = modalidade,
         autores = [], 
         palavrasChave = [],
         curso = cursos_dao.get_curso_codCurso(codCurso),

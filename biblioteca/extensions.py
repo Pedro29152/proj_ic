@@ -30,6 +30,11 @@ class LinguagemProjeto(IntEnum):
     Ingles = 1
     Espanhol = 2
 
+class ModalidadeProjeto(IntEnum):
+    ArtigoCientifio = 0,
+    RelatorioTecnico = 1,
+    GDD = 2
+
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -74,7 +79,6 @@ def secretaria_aluno_token_required(f):
             return f(*args, **kwargs)
         return data
     return decorated
-
 
 def secretaria_token_required_user_info(f):
     @wraps(f)
