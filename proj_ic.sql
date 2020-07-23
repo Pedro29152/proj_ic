@@ -210,6 +210,7 @@ CREATE TABLE `projetos` (
   `subTitulo` longtext NOT NULL,
   `status` int(11) NOT NULL DEFAULT '0',
   `linguagem` int(11) NOT NULL,
+  `modalidade` int(11) NOT NULL,
   PRIMARY KEY (`codProjeto`),
   UNIQUE KEY `nomeArquivo_UNIQUE` (`nomeArquivo`),
   UNIQUE KEY `codProjeto_UNIQUE` (`codProjeto`),
@@ -224,7 +225,7 @@ CREATE TABLE `projetos` (
 
 LOCK TABLES `projetos` WRITE;
 /*!40000 ALTER TABLE `projetos` DISABLE KEYS */;
-INSERT INTO `projetos` VALUES (120,'projeto 1','este teste esta aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','SIST-PROJETO-1-2020-07-12-262D81.PDF',0,0,'2020-07-12','2020-07-12 18:17:48',2,0,'projojojotjoejotjo 1',1,0),(122,'proj aluno 1','descricao/resumo 1 aluno','SIST-PROJ-ALUNO-1-2020-07-12-A37913.PDF',0,0,'2020-07-12','2020-07-12 19:29:08',2,1,'sub titulo 1 aluno',1,0),(123,'proj aluno 2','descricao/resumo 2 aluno','SIST-PROJ-ALUNO-2-2020-07-12-929FC7.PDF',0,0,'2020-07-12','2020-07-12 20:10:15',2,1,'sub titulo 2 aluno',2,0),(124,'proj aluno 3','descricao/resumo 3 aluno','SIST-PROJ-ALUNO-3-2020-07-12-267FE2.PDF',0,0,'2020-07-12','2020-07-12 20:14:36',2,1,'sub titulo 3 aluno',2,0),(126,'proj aluno 4','descricao/resumo 4 aluno','SIST-PROJ-ALUNO-4-2020-07-12-B4E5E4.PDF',0,0,'2020-07-12','2020-07-12 20:38:15',2,1,'sub titulo 4 aluno',2,0),(127,'proj aluno 6','descricao/resumo 6 aluno','SIST-PROJ-ALUNO-6-2020-07-12-240DB5.PDF',0,0,'2020-07-12','2020-07-12 22:39:31',2,1,'sub titulo 6 aluno',0,0);
+INSERT INTO `projetos` VALUES (120,'projeto 1','este teste esta aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','SIST-PROJETO-1-2020-07-12-262D81.PDF',0,0,'2020-07-12','2020-07-12 18:17:48',2,0,'projojojotjoejotjo 1',1,0,0),(122,'proj aluno 1','descricao/resumo 1 aluno','SIST-PROJ-ALUNO-1-2020-07-12-A37913.PDF',0,0,'2020-07-12','2020-07-12 19:29:08',2,1,'sub titulo 1 aluno',1,0,0),(123,'proj aluno 2','descricao/resumo 2 aluno','SIST-PROJ-ALUNO-2-2020-07-12-929FC7.PDF',0,0,'2020-07-12','2020-07-12 20:10:15',2,1,'sub titulo 2 aluno',2,0,0),(124,'proj aluno 3','descricao/resumo 3 aluno','SIST-PROJ-ALUNO-3-2020-07-12-267FE2.PDF',0,0,'2020-07-12','2020-07-12 20:14:36',2,1,'sub titulo 3 aluno',2,0,0),(126,'proj aluno 4','descricao/resumo 4 aluno','SIST-PROJ-ALUNO-4-2020-07-12-B4E5E4.PDF',0,0,'2020-07-12','2020-07-12 20:38:15',2,1,'sub titulo 4 aluno',2,0,0),(127,'proj aluno 6','descricao/resumo 6 aluno','SIST-PROJ-ALUNO-6-2020-07-12-240DB5.PDF',0,0,'2020-07-12','2020-07-12 22:39:31',2,1,'sub titulo 6 aluno',1,0,0);
 /*!40000 ALTER TABLE `projetos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -338,4 +339,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-13  1:43:53
+-- Dump completed on 2020-07-23 16:29:56
