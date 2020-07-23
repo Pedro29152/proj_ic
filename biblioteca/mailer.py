@@ -4,6 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 def generate_message_html(assunto, receiver_email, html_message):
+    assunto = 'NÃO RESPONDA - {}'.format(assunto)
     msg = MIMEMultipart('alternative')
     msg['Subject'] = assunto
     msg['From'] = getenv('MAILER_SENDER_EMAIL')
@@ -13,6 +14,7 @@ def generate_message_html(assunto, receiver_email, html_message):
     return msg.as_string()
 
 def generate_message_text(assunto, receiver_email, text_message):
+    assunto = 'NÃO RESPONDA - {}'.format(assunto)
     msg = MIMEMultipart('alternative')
     msg['Subject'] = assunto
     msg['From'] = getenv('MAILER_SENDER_EMAIL')
