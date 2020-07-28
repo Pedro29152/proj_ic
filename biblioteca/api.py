@@ -65,7 +65,8 @@ from biblioteca.usuarios.resources import (
     BuscaUsuariosOrientadosResource,
     BuscarUsuariosSecretariaAdmResource,
     AlterarOrientadorDoAlunoResource,
-    RecuperaraSenha
+    RecuperaraSenha,
+    AlterarUsuarioResource
 )
 from biblioteca.geral.resources import (
     AllCountsResource,
@@ -161,6 +162,7 @@ def configure_api(app):
     api.add_resource(AlterarOrientadorDoAlunoResource, '/api/usuarios/editaorientadoraluno/<int:id>')
     api.add_resource(MudarSenhaResource, '/api/usuarios/mudarsenha')
     api.add_resource(MudarSenhaUsuarioResource, '/api/usuarios/mudarsenha/<int:id>')
+    api.add_resource(AlterarUsuarioResource, '/api/usuarios/edit')
     api.add_resource(RecuperaraSenha, '/api/usuarios/recuperarsenha')
 
     #Rotas de autor

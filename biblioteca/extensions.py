@@ -31,7 +31,7 @@ class LinguagemProjeto(IntEnum):
     Espanhol = 2
 
 class ModalidadeProjeto(IntEnum):
-    ArtigoCientifio = 0,
+    ArtigoCientifico = 0,
     RelatorioTecnico = 1,
     GDD = 2
 

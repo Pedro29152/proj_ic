@@ -142,6 +142,12 @@ class MudarSenhaResource(Resource):
         ret, cod = mudar_senha(user_info['codUsuario'])
         return get_response_code(ret, cod)
 
+class AlterarUsuarioResource(Resource):
+    @token_required
+    def put(self, user_info):
+        ret, cod = edita_usuario(user_info['codUsuario'], False, True)
+        return get_response_code(ret, cod)
+
 class RecuperaraSenha(Resource):
     def post(self):
         data, cod = recuperar_senha()
