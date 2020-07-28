@@ -33,7 +33,9 @@ class LinguagemProjeto(IntEnum):
 class ModalidadeProjeto(IntEnum):
     ArtigoCientifico = 0,
     RelatorioTecnico = 1,
-    GDD = 2
+    Monografia = 2,
+    RelatorioTecnicoAtividadesPorfolio = 3,
+    GDD = 4
 
 def token_required(f):
     @wraps(f)
