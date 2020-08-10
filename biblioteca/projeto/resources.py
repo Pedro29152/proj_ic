@@ -391,6 +391,7 @@ def upload_projeto(user_info=None):
         dataAvaliacao = request.form['dataAvaliacao']
         linguagem = int(request.form['linguagem'])
         modalidade = int(request.form['modalidade'])
+        raCoOrientador = request.form['raCoOrientador']
         if user_info == None:
             raOrientador = request.form['raOrientador']
             codCurso = request.form['codCurso']
@@ -405,7 +406,7 @@ def upload_projeto(user_info=None):
         autores = request.form['autores']
         palavras = request.form['palavras_chave']
     except BadRequestKeyError:
-        return get_erro('A requisicao deve conter os campos "titulo", {}"descricao", "dataAvaliacao", "modalidade", "subTitulo", "autores", "linguagem" e "palavras_chave"'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
+        return get_erro('A requisicao deve conter os campos "titulo", {}"descricao", "dataAvaliacao", "modalidade", "subTitulo", "autores", "linguagem", "raCoOrientador" e "palavras_chave"'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
     except ValueError:
         return get_erro(
             'Os campos "linguagem" e "modalidade" devem ser do tipo inteiro'
@@ -428,13 +429,18 @@ def upload_projeto(user_info=None):
         autores = [], 
         palavrasChave = [],
         curso = cursos_dao.get_curso_codCurso(codCurso),
-        orientador = orientadores_dao.get_orientador(raOrientador)
+        orientador = orientadores_dao.get_orientador(raOrientador),
+        coOrientador = orientadores_dao.get_orientador(raCoOrientador)
     )
     
     if not projeto.curso:
         return get_erro('O campo "curso" deve conter um código de curso existente'), 400
+    if raOrientador == raCoOrientador:
+        return get_erro('O orientador deve ser diferente do coOrientador'), 400
     if not projeto.orientador:
         return get_falha('O codigo do orientador enviado é invalido'), 400
+    if not projeto.coOrientador:
+        return get_falha('O codigo do co-orientador enviado é invalido'), 400
     
     try:
         autores_obj = json.loads(autores)

@@ -20,6 +20,10 @@ class TiposUsuario(IntEnum):
     Coordenador = 5
     Administrador = 4
 
+class TiposOrientador(IntEnum):
+    Principal = 0
+    CoOrientador = 1
+
 class StatusProjeto(IntEnum):
     Novo = 0
     Aceito = 1

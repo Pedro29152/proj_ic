@@ -15,7 +15,8 @@ class Projetos:
     avaliacao=None,
     curso=None, 
     autores=None,
-    orientador=None, 
+    orientador=None,
+    coOrientador=None, 
     palavrasChave=None,
     linguagem=None,
     modalidade=None):
@@ -32,6 +33,7 @@ class Projetos:
         self.curso = curso
         self.autores = autores
         self.orientador = orientador
+        self.coOrientador = coOrientador
         self.palavrasChave = palavrasChave
         self.linguagem = linguagem
         self.modalidade = modalidade

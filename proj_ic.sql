@@ -172,6 +172,7 @@ DROP TABLE IF EXISTS `projeto_orientador`;
 CREATE TABLE `projeto_orientador` (
   `codOrientador` int(11) NOT NULL,
   `codProjeto` int(11) NOT NULL,
+  `tipoOrientador` int(11) DEFAULT NULL,
   PRIMARY KEY (`codOrientador`,`codProjeto`),
   KEY `FK_PROJETO_ORI_idx` (`codProjeto`),
   CONSTRAINT `FK_ORIENTADOR` FOREIGN KEY (`codOrientador`) REFERENCES `orientadores` (`codOrientador`) ON DELETE CASCADE,
@@ -185,7 +186,7 @@ CREATE TABLE `projeto_orientador` (
 
 LOCK TABLES `projeto_orientador` WRITE;
 /*!40000 ALTER TABLE `projeto_orientador` DISABLE KEYS */;
-INSERT INTO `projeto_orientador` VALUES (20,120),(20,122),(20,123),(20,124),(20,126),(20,127);
+INSERT INTO `projeto_orientador` VALUES (20,120,0),(20,122,0),(20,123,0),(20,124,0),(20,126,0),(20,127,0),(20,132,0),(23,131,0),(23,133,0),(23,136,1),(26,134,0),(26,135,0),(26,136,0);
 /*!40000 ALTER TABLE `projeto_orientador` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -339,4 +340,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-08-10 17:15:14
+-- Dump completed on 2020-08-10 18:28:11

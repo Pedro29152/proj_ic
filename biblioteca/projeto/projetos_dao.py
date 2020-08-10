@@ -11,7 +11,8 @@ from biblioteca.responses import (
     get_ok
 )
 from biblioteca.extensions import (
-    TiposUsuario
+    TiposUsuario,
+    TiposOrientador
 )
 
 QUERY_CURSO = '''
@@ -361,7 +362,9 @@ def grava_projeto(projeto, is_secretaria=True):
     for palavra in projeto.palavrasChave:
         palavra.grava_palavra_chave(projeto.codProjeto)
 
-    __grava_proj_ori(projeto.codProjeto, projeto.orientador.codOrientador)
+    __grava_proj_ori(projeto.codProjeto, projeto.orientador.codOrientador, TiposOrientador.Principal.value)
+    __grava_proj_ori(projeto.codProjeto, projeto.coOrientador.codOrientador, TiposOrientador.CoOrientador.value)
+
 
     return projeto
 
@@ -543,12 +546,12 @@ def prenche_projeto(ret):
     ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
     ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
     ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
-    ret['orientador'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
+    ret['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
 
-def __grava_proj_ori(codProjeto, codOrientador):
-    query = 'insert into projeto_orientador values(%s, %s)'
+def __grava_proj_ori(codProjeto, codOrientador, tipo):
+    query = 'insert into projeto_orientador values(%s, %s, %s)'
 
-    db.bd_gravar(query, (codOrientador, codProjeto))
+    db.bd_gravar(query, (codOrientador, codProjeto, tipo))
 
 def __get_limit(pag, tam = 20):
     fi = 1 + ((pag - 1) * tam)
