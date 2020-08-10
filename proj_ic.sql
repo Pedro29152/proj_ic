@@ -199,7 +199,8 @@ DROP TABLE IF EXISTS `projetos`;
 CREATE TABLE `projetos` (
   `codProjeto` int(11) NOT NULL AUTO_INCREMENT,
   `tituloProjeto` longtext NOT NULL,
-  `descricao` longtext NOT NULL,
+  `subTitulo` longtext,
+  `descricao` longtext,
   `nomeArquivo` varchar(120) NOT NULL,
   `numVisitas` int(11) NOT NULL DEFAULT '0',
   `numDownloads` int(11) NOT NULL DEFAULT '0',
@@ -207,7 +208,6 @@ CREATE TABLE `projetos` (
   `dataEnvio` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `codCurso` int(11) NOT NULL,
   `ativo` int(11) NOT NULL DEFAULT '1',
-  `subTitulo` longtext NOT NULL,
   `status` int(11) NOT NULL DEFAULT '0',
   `linguagem` int(11) NOT NULL,
   `modalidade` int(11) NOT NULL,
@@ -216,7 +216,7 @@ CREATE TABLE `projetos` (
   UNIQUE KEY `codProjeto_UNIQUE` (`codProjeto`),
   KEY `FK_CURSO_idx` (`codCurso`),
   CONSTRAINT `FK_CURSO` FOREIGN KEY (`codCurso`) REFERENCES `cursos` (`codCurso`)
-) ENGINE=InnoDB AUTO_INCREMENT=128 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=136 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -225,7 +225,7 @@ CREATE TABLE `projetos` (
 
 LOCK TABLES `projetos` WRITE;
 /*!40000 ALTER TABLE `projetos` DISABLE KEYS */;
-INSERT INTO `projetos` VALUES (120,'projeto 1','este teste esta aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','SIST-PROJETO-1-2020-07-12-262D81.PDF',0,0,'2020-07-12','2020-07-12 18:17:48',2,0,'projojojotjoejotjo 1',1,0,0),(122,'proj aluno 1','descricao/resumo 1 aluno','SIST-PROJ-ALUNO-1-2020-07-12-A37913.PDF',0,0,'2020-07-12','2020-07-12 19:29:08',2,1,'sub titulo 1 aluno',1,0,0),(123,'proj aluno 2','descricao/resumo 2 aluno','SIST-PROJ-ALUNO-2-2020-07-12-929FC7.PDF',0,0,'2020-07-12','2020-07-12 20:10:15',2,1,'sub titulo 2 aluno',2,0,0),(124,'proj aluno 3','descricao/resumo 3 aluno','SIST-PROJ-ALUNO-3-2020-07-12-267FE2.PDF',0,0,'2020-07-12','2020-07-12 20:14:36',2,1,'sub titulo 3 aluno',2,0,0),(126,'proj aluno 4','descricao/resumo 4 aluno','SIST-PROJ-ALUNO-4-2020-07-12-B4E5E4.PDF',0,0,'2020-07-12','2020-07-12 20:38:15',2,1,'sub titulo 4 aluno',2,0,0),(127,'proj aluno 6','descricao/resumo 6 aluno','SIST-PROJ-ALUNO-6-2020-07-12-240DB5.PDF',0,0,'2020-07-12','2020-07-12 22:39:31',2,1,'sub titulo 6 aluno',1,0,0);
+INSERT INTO `projetos` VALUES (120,'projeto 1','projojojotjoejotjo 1','este teste esta aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','SIST-PROJETO-1-2020-07-12-262D81.PDF',0,0,'2020-07-12','2020-07-12 18:17:48',2,0,1,0,0),(122,'proj aluno 1','sub titulo 1 aluno','descricao/resumo 1 aluno','SIST-PROJ-ALUNO-1-2020-07-12-A37913.PDF',0,0,'2020-07-12','2020-07-12 19:29:08',2,1,1,0,0),(123,'proj aluno 2','sub titulo 2 aluno','descricao/resumo 2 aluno','SIST-PROJ-ALUNO-2-2020-07-12-929FC7.PDF',0,0,'2020-07-12','2020-07-12 20:10:15',2,1,2,0,0),(124,'proj aluno 3','sub titulo 3 aluno','descricao/resumo 3 aluno','SIST-PROJ-ALUNO-3-2020-07-12-267FE2.PDF',0,0,'2020-07-12','2020-07-12 20:14:36',2,1,2,0,0),(126,'proj aluno 4','sub titulo 4 aluno','descricao/resumo 4 aluno','SIST-PROJ-ALUNO-4-2020-07-12-B4E5E4.PDF',0,0,'2020-07-12','2020-07-12 20:38:15',2,1,2,0,0),(127,'proj aluno 6','sub titulo 6 aluno','descricao/resumo 6 aluno','SIST-PROJ-ALUNO-6-2020-07-12-240DB5.PDF',0,0,'2020-07-12','2020-07-12 22:39:31',2,1,1,0,0),(131,'proj aluno ori2','sub titulo ori2 aluno','descricao/resumo ori2 aluno','LOG-PROJ-ALUNO-ORI2-2020-07-13-2F1D65.PDF',0,0,'2020-07-13','2020-07-13 19:00:55',24,1,1,0,0),(132,'proj aluno ori2 2','sub titulo ori2 2 aluno','descricao/resumo ori2 2 aluno','LOG-PROJ-ALUNO-ORI2-2-2020-07-13-38CAD7.PDF',0,5,'2020-07-13','2020-07-13 20:30:16',24,1,0,0,0),(133,'proj aluno ori2 2','sub titulo ori2 2 aluno','descricao/resumo ori2 2 aluno','LOG-PROJ-ALUNO-ORI2-2-2020-07-13-4F3DF7.PDF',0,0,'2020-07-13','2020-07-13 20:34:18',24,1,1,0,0),(134,'projeto 2','projoj tjo 2','teste jojo','SIST-PROJETO-2-2020-07-23-D4B18F.PDF',0,3,'2020-07-12','2020-07-23 15:35:18',2,1,1,0,0),(135,'projeto 2','','','SIST-PROJETO-2-2020-08-10-B8455F.PDF',0,0,'2020-07-12','2020-08-10 17:14:17',2,1,1,0,0);
 /*!40000 ALTER TABLE `projetos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -339,4 +339,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-23 16:29:56
+-- Dump completed on 2020-08-10 17:15:14

@@ -387,8 +387,8 @@ def upload_projeto(user_info=None):
     try:
         titulo = request.form['titulo']
         descricao = request.form['descricao']
-        dataAvaliacao = request.form['dataAvaliacao']
         subTitulo = request.form['subTitulo']
+        dataAvaliacao = request.form['dataAvaliacao']
         linguagem = int(request.form['linguagem'])
         modalidade = int(request.form['modalidade'])
         if user_info == None:
@@ -411,9 +411,8 @@ def upload_projeto(user_info=None):
             'Os campos "linguagem" e "modalidade" devem ser do tipo inteiro'
         ), 400
 
-    if not(titulo and raOrientador and descricao and dataAvaliacao and 
-            codCurso and subTitulo):
-        return get_erro('Os valores de "titulo", {}"descricao", "dataAvaliacao", "linguagem" e "subTitulo" nao podem ser nulos'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
+    if not(titulo and raOrientador and dataAvaliacao and codCurso):
+        return get_erro('Os valores de "titulo", {}"dataAvaliacao" e "linguagem" nao podem ser nulos'.format('"raOrientador", "codCurso", ' if user_info==None else '')), 400
     if not (linguagem) in range(LinguagemProjeto.Espanhol.value + 1):
         return get_falha('O campo linguagem deve ser um campo com numeros entre 0 e 2'), 400
     if not (modalidade) in range(ModalidadeProjeto.GDD.value + 1):
