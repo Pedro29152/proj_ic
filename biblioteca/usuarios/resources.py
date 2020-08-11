@@ -465,11 +465,12 @@ def get_usuario(id):
 
 def edita_usuario(codUsuario, is_admin, is_user):
     try:
-        nomeUsuario = request.form['nomeUsuario']
         nome = request.form['nome']
         email = request.form['email']
         tipoUsuario = None
+        nomeUsuario = None
         if is_admin and not is_user:
+            nomeUsuario = request.form['nomeUsuario']
             tipoUsuario = request.form['tipoUsuario']
     except BadRequestKeyError:
         return get_erro('A requsicao deve conter o campo "nome", "email", "tipoUsuario" e "nomeUsuario" em seu corpo'), 400
