@@ -439,8 +439,9 @@ def upload_projeto(user_info=None):
         return get_erro('O orientador deve ser diferente do coOrientador'), 400
     if not projeto.orientador:
         return get_falha('O codigo do orientador enviado é invalido'), 400
-    if not projeto.coOrientador:
-        return get_falha('O codigo do co-orientador enviado é invalido'), 400
+    if raCoOrientador:
+        if not projeto.coOrientador:
+            return get_falha('O codigo do co-orientador enviado é invalido'), 400
     
     try:
         autores_obj = json.loads(autores)

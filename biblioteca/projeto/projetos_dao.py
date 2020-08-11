@@ -363,7 +363,8 @@ def grava_projeto(projeto, is_secretaria=True):
         palavra.grava_palavra_chave(projeto.codProjeto)
 
     __grava_proj_ori(projeto.codProjeto, projeto.orientador.codOrientador, TiposOrientador.Principal.value)
-    __grava_proj_ori(projeto.codProjeto, projeto.coOrientador.codOrientador, TiposOrientador.CoOrientador.value)
+    if projeto.coOrientador:
+        __grava_proj_ori(projeto.codProjeto, projeto.coOrientador.codOrientador, TiposOrientador.CoOrientador.value)
 
 
     return projeto
