@@ -146,7 +146,11 @@ class MudarSenhaResource(Resource):
 class AlterarUsuarioResource(Resource):
     @token_required
     def put(self, user_info):
-        ret, cod = edita_usuario(user_info['codUsuario'], False, True)
+        is_admin = False
+        if TiposUsuario.Administrador.value:
+            is_admin = True
+
+        ret, cod = edita_usuario(user_info['codUsuario'], is_admin, True)
         return get_response_code(ret, cod)
 
 class GetUsuarioProprioREsource(Resource):
