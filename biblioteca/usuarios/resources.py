@@ -32,7 +32,8 @@ from biblioteca.responses import (
     get_ok,
     get_data,
     get_count,
-    get_response_code
+    get_response_code,
+    get_not_found
 )
 from . import usuario_dao, usuario_orientado_dao
 from . import util
@@ -147,6 +148,11 @@ class AlterarUsuarioResource(Resource):
     def put(self, user_info):
         ret, cod = edita_usuario(user_info['codUsuario'], False, True)
         return get_response_code(ret, cod)
+
+class GetUsuarioProprioREsource(Resource):
+    @token_required
+    def get(self, user_info):
+        return get_data(user_info)
 
 class RecuperaraSenha(Resource):
     def post(self):
