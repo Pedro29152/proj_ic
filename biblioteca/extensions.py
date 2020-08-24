@@ -39,7 +39,8 @@ class ModalidadeProjeto(IntEnum):
     RelatorioTecnico = 1,
     Monografia = 2,
     RelatorioTecnicoAtividadesPorfolio = 3,
-    GDD = 4
+    Resumo = 4,
+    GDD = 5
 
 def token_required(f):
     @wraps(f)
