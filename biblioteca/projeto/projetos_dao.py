@@ -319,8 +319,8 @@ def grava_projeto(projeto, is_secretaria=True):
     if is_secretaria:
         db.bd_gravar(
             'insert into projetos'+
-            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, status, linguagem, modalidade)'+
-            'values(%s,%s,%s,%s,%s,%s,1,%s,%s)',
+            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, status, linguagem, modalidade, localPublicacao)'+
+            'values(%s,%s,%s,%s,%s,%s,1,%s,%s,%s)',
             (projeto.tituloProjeto,
             projeto.subTitulo,
             projeto.descricao, 
@@ -328,13 +328,14 @@ def grava_projeto(projeto, is_secretaria=True):
             projeto.dataAvaliacao,
             projeto.curso.codCurso,
             projeto.linguagem,
-            projeto.modalidade)
+            projeto.modalidade,
+            projeto.localPublicacao)
         )
     else:
         db.bd_gravar(
             'insert into projetos'+
-            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, linguagem, modalidade)'+
-            'values(%s,%s,%s,%s,%s,%s,%s,%s)',
+            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, linguagem, modalidade, localPublicacao)'+
+            'values(%s,%s,%s,%s,%s,%s,%s,%s,%s)',
             (projeto.tituloProjeto,
             projeto.subTitulo,
             projeto.descricao, 
@@ -342,7 +343,8 @@ def grava_projeto(projeto, is_secretaria=True):
             projeto.dataAvaliacao,
             projeto.curso.codCurso,
             projeto.linguagem,
-            projeto.modalidade)
+            projeto.modalidade,
+            projeto.localPublicacao)
         )
 
     projeto.codProjeto = get_cod_projeto_titulo(projeto.tituloProjeto)
