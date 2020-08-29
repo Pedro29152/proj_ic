@@ -170,7 +170,7 @@ def configure_api(app):
     #Rotas de autor
     api.add_resource(BuscaAlunosResource, '/api/autores')
     api.add_resource(GetAlunoResource, '/api/autores/<int:id>')
-    api.add_resource(GetSelfAlunoResource, '/api/autores/get')
+    api.add_resource(GetSelfAlunoResource, '/api/usuario/info')
 
     # inicializamos a api com as configurações do flask vinda por parâmetro
     api.init_app(app)

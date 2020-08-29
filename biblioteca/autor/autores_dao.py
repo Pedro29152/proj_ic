@@ -48,6 +48,15 @@ def get_autor_codUsuario(codUsuario):
     '''
     return db.bd_busca_um(query, (codUsuario,))
 
+def get_orientador_codAutor(codAutor):
+    query = '''
+        select o.* from usuario_orientado as uo
+        join orientadores as o 
+        on uo.codOrientador = o.codOrientador 
+        where uo.codAutor = (%s)
+    '''
+    return db.bd_busca_um(query, (codAutor,))
+
 def cadastra_autor(nome, email, ra):
     query = 'insert into autores(nomeAutor, email, raAutor) values (%s, %s, %s)'
     try:

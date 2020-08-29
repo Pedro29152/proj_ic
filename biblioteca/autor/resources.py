@@ -34,7 +34,11 @@ class GetSelfAlunoResource(Resource):
     @aluno_token_required
     def get(self, user_info):
         autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+        orientador = autores_dao.get_orientador_codAutor(autor['codAutor'])
         if autor:
-            return get_success(autor)
+            return get_success({
+                'autor': autor, 
+                'orientador':orientador
+            })
         return get_not_found('Voce não possui um autor relacionado')
 
