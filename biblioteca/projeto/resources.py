@@ -454,14 +454,10 @@ def upload_projeto(user_info=None):
     except JSONDecodeError:
         return get_erro('O campo "palavras_chave" deve ser um array contendo objetos JSON com o atributo: "palavra"'), 400
 
-    if not user_info:
-        if len(autores_obj) < 1:
-            return get_erro('Cada projeto deve ter no mínimo 1 autor'), 400
-        if len(autores_obj) > 5:
-            return get_erro('Cada projeto deve ter no máximo 5 autores'), 400
-    else:
-        if len(autores_obj) > 4:
-            return get_erro('Cada projeto deve ter no máximo 4 autores'), 400
+    if len(autores_obj) < 1:
+        return get_erro('Cada projeto deve ter no mínimo 1 autor'), 400
+    if len(autores_obj) > 5:
+        return get_erro('Cada projeto deve ter no máximo 5 autores'), 400
 
     if len(palavras_obj) < 1:
         return get_erro('Cada projeto deve ter no mínimo 1 palavra-chave'), 400
@@ -472,6 +468,9 @@ def upload_projeto(user_info=None):
         lider = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
         if not lider:
             return get_erro('Não foi possivel obter os dados do autor principal'), 400
+        for i in range(len(autores_obj)):
+            if autores_obj[i]['ra'] == lider['raAutor']:
+                autores_obj.pop(i)
         projeto.autores.append(Autores(lider['raAutor'], lider['nomeAutor'], lider['email']))
 
         if not projetos_dao.is_valid_project(lider['codAutor']):
