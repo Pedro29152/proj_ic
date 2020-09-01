@@ -468,9 +468,11 @@ def upload_projeto(user_info=None):
         lider = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
         if not lider:
             return get_erro('Não foi possivel obter os dados do autor principal'), 400
+        removed = 0
         for i in range(len(autores_obj)):
-            if autores_obj[i]['ra'] == lider['raAutor']:
-                autores_obj.pop(i)
+            if autores_obj[i - removed]['ra'] == lider['raAutor']:
+                autores_obj.pop(i - removed)
+                removed = removed + 1
         projeto.autores.append(Autores(lider['raAutor'], lider['nomeAutor'], lider['email']))
 
         if not projetos_dao.is_valid_project(lider['codAutor']):
