@@ -88,19 +88,12 @@ class ContatoResource(Resource):
             'Contato BTA', 
             CONTACT_MAIL, 
             '''
-            <html>
-                <head></head>
-                <body>
-                    <h3>Email: {0}</h3>
-                    <h3>Nome: {1}</h3>
+                <h3>Email: {0}</h3>
+                <h3>Nome: {1}</h3>
 
-                    <p>{2}</p>
+                <p>{2}</p>
 
-                    <p>{3}</p>
-
-                    <p>Sistema de Contato BTA</p>
-                </body>
-            </html>
+                <p>{3}</p>
             '''.format(email, nome, assunto, mensagem))
         mailer.send_email(CONTACT_MAIL, msg)
 

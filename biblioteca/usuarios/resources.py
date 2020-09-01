@@ -283,20 +283,13 @@ def cadastro_professor(existente=True):
             'BTA - Nova conta de Orientador',
             email,
             '''
-            <html>
-                <head></head>
-                <body>
-                    <h2>Você foi cadastrado no sistema BTA</h2>
+                <h2>Você foi cadastrado no sistema BTA</h2>
 
-                    <p>Você foi cadastrado como um novo orientador do sistema BTA - Biblioteca de Trabalhos Acadêmicos.</p>
-                    <p>Veja abaixo os dados de login do seu usuário:</p>
+                <p>Você foi cadastrado como um novo orientador do sistema BTA - Biblioteca de Trabalhos Acadêmicos.</p>
+                <p>Veja abaixo os dados de login do seu usuário:</p>
 
-                    <p>Nome de usuário: <b>{0}</b></p>
-                    <p>Senha: <b>{1}</b></p>
-
-                    <p>Sistema de gerenciamento de usuários BTA.</p>
-                </body>
-            </html>
+                <p>Nome de usuário: <b>{0}</b></p>
+                <p>Senha: <b>{1}</b></p>
             '''.format(user, password)
         )
         mailer.send_email(email, msg)
@@ -347,20 +340,13 @@ def cadastro_aluno(professor_user_info):
             'BTA - Nova conta de Autor',
             email,
             '''
-            <html>
-                <head></head>
-                <body>
-                    <h2>Você foi cadastrado no sistema BTA</h2>
+                <h2>Você foi cadastrado no sistema BTA</h2>
 
-                    <p>Você foi cadastrado como um novo autor do sistema BTA - Biblioteca de Trabalhos Acadêmicos.</p>
-                    <p>Veja abaixo os dados de login do seu usuário:</p>
+                <p>Você foi cadastrado como um novo autor do sistema BTA - Biblioteca de Trabalhos Acadêmicos.</p>
+                <p>Veja abaixo os dados de login do seu usuário:</p>
 
-                    <p>Nome de usuário: <b>{0}</b></p>
-                    <p>Senha: <b>{1}</b></p>
-
-                    <p>Sistema de gerenciamento de usuários BTA.</p>
-                </body>
-            </html>
+                <p>Nome de usuário: <b>{0}</b></p>
+                <p>Senha: <b>{1}</b></p>
             '''.format(ra, password)
         )
         mailer.send_email(email, msg)
@@ -562,23 +548,16 @@ def recuperar_senha():
     mailer.send_email(
         usuario['email'],
         mailer.generate_message_html(
-            'Recuperacao de senha - BTA',
+            'Recuperação de senha - BTA',
             usuario['email'], 
             '''
-            <html>
-                <head></head>
-                <body>
-                    <h2>Sua senha foi redefinida.</h2>
+                <h2>Sua senha foi redefinida.</h2>
 
-                    <p>Ola, {0}.</p>
+                <p>Olá, {0}.</p>
 
-                    <p>A senha abaixo sera sua nova senha para o usuario <b>{1}</b></p>
+                <p>A senha do usuário <b>{1}</b> foi redefinida para:</p>
 
-                    <h3><b>{2}</b></h3>
-
-                    <p>Sistema de gerenciamento de usuários BTA.</p>
-                </body>
-            </html>
+                <h3><b>{2}</b></h3>
             '''.format(usuario['nome'], usuario['nomeUsuario'], novaSenha)
         )
     )

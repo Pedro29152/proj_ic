@@ -7,6 +7,7 @@ from datetime import timedelta
 
 class Config:
     APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+    STATIC_FOLDER = os.path.join(APP_ROOT, 'static')
     UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static\\files')
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024
     PROPAGATE_EXCEPTIONS = True

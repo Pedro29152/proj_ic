@@ -727,18 +727,11 @@ def enviar_email_aprovacao(autor, titulo_projeto):
         'BTA - Projeto Aceito',
         autor['email'],
         '''
-        <html>
-            <head></head>
-            <body>
-                <h2>Seu projeto foi aceito.</h2>
+            <h2>Seu projeto foi aceito.</h2>
 
-                <p>Ola, {0}.</p>
+            <p>Olá, {0}.</p>
 
-                <p>O seu projeto: <b>{1}</b>, foi aceito na Biblioteca de Trabalhos Academicos e, a partir de agora estará visivel para todos.</p>
-
-                <p>Sistema de gerenciamento de trabalhos acadêmicos BTA.</p>
-            </body>
-        </html>
+            <p>O seu projeto: <b>{1}</b>, foi aceito na Biblioteca de Trabalhos Acadêmicos e, a partir de agora estará visível para todos.</p>
         '''.format(autor['nomeAutor'], titulo_projeto)
     )
     mailer.send_email(autor['email'], msg)
@@ -748,18 +741,11 @@ def enviar_email_reprovacao(autor, titulo_projeto):
         'BTA - Projeto Recusado',
         autor['email'],
         '''
-        <html>
-            <head></head>
-            <body>
-                <h2>Seu projeto foi recusado.</h2>
+            <h2>Seu projeto foi recusado.</h2>
 
-                <p>Ola, {0}.</p>
+            <p>Olá, {0}.</p>
 
-                <p>O seu projeto: <b>{1}</b>, foi recusado e não será exposto publicamente na Biblioteca de Trabalhos Academicos.</p>
-
-                <p>Sistema de gerenciamento de trabalhos acadêmicos BTA.</p>
-            </body>
-        </html>
+            <p>O seu projeto: <b>{1}</b>, foi recusado e não será exposto publicamente na Biblioteca de Trabalhos Acadêmicos.</p>
         '''.format(autor['nomeAutor'], titulo_projeto)
     )
     mailer.send_email(autor['email'], msg)
