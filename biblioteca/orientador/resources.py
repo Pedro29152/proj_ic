@@ -4,7 +4,7 @@ from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import DataError, IntegrityError
 
 from .schemas import Orientadores
-from biblioteca import mailer
+from biblioteca import mailer, response_messages
 from biblioteca.projeto import projetos_dao
 from biblioteca.usuarios import usuario_dao, usuario_orientado_dao
 from biblioteca.autor import autores_dao
@@ -107,7 +107,7 @@ class GetRevisaoResource(Resource):
         
         if ret:
             return get_response_code(ret, 200)
-        return get_not_found('Revisão não encontrada')
+        return get_not_found(response_messages.NAO_ENCONTRADO.format('Revisão'))
 
 def cadastro_orientador():
     try:
@@ -120,20 +120,20 @@ def cadastro_orientador():
         try:
             orientadores.grava_orientador()
         except DataError:
-            return get_erro('O codigo do orientador deve ter no maximo 13 caracteres e seu nome no maximo 200'), 400
+            return get_erro(response_messages.VALIDACAO_DEVE.format('raOrientador', 'ter no maximo 5 caracteres e seu nome no maximo 200')), 400
 
-        return get_ok('Orientador gravado com sucesso'), 201
+        return get_ok(response_messages.ENTIDADE_GRAVADA.format('Orientador')), 201
     except AttributeError as ex:
         return get_erro(ex.__str__()), 400
     except BadRequestKeyError:
-        return get_erro('Os campos "nomeOrientador", "raOrientador", "email" e "linkCurrLattes" devem ser enviados no corpo da requisicao'), 400
+        return get_erro(response_messages.CAMPOS_OBRIGATORIOS.format('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"')), 400
     except IntegrityError:
-        return get_erro('Os campos "email" e "raAutor" devem ser unicos'), 400
+        return get_erro(response_messages.ERRO_INTEGRIDADE.format('Email ou raAutor')), 400
 
 def edita_orientador(codOrientador):
     ori = orientadores_dao.get_orientador_codigo(codOrientador)
     if not ori:
-        return get_erro('Codigo de orientador enviado não existe'), 404
+        return get_erro(response_messages.NAO_ENCONTRADO.format('Orientador')), 404
 
     try:
         nomeOrientador = request.form['nomeOrientador']
@@ -148,29 +148,29 @@ def edita_orientador(codOrientador):
         if email:
             ori.email = email
             if not is_valid_email(email):
-                raise AttributeError('O campo "email" deve ser um email valido')
+                raise AttributeError(response_messages.VALIDACAO_DEVE.format('email', 'ser um email valido'))
         if currLattes:
             if not is_valid_http_link(currLattes):
-                raise AttributeError('O campo "currLattes" deve ser um link http/https valido')
+                raise AttributeError(response_messages.VALIDACAO_DEVE.format('currLattes', 'ser um link http/https valido'))
             ori.currLattes = currLattes
 
         ori.edita_orientador()
 
-        return get_ok('Orientador editado com sucesso'), 200
+        return get_ok(response_messages.ENTIDADE_EDITADA.format('Orientador')), 200
 
     except AttributeError as ex:
         return get_erro(ex.__str__()), 400
     except BadRequestKeyError:
-        return get_erro('Os campos "nomeOrientador", "raOrientador", "email" e "linkCurrLattes" devem ser enviados no corpo da requisicao'), 400
+        return get_erro(response_messages.CAMPOS_OBRIGATORIOS.format('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"')), 400
     except IntegrityError:
-        return get_erro('Os campos "email" e "raAutor" devem ser unicos'), 400
+        return get_erro(response_messages.ERRO_INTEGRIDADE.format('Email ou raAutor')), 400
     except DataError:
-        return get_erro('O codigo do orientador deve ter no maximo 13 caracteres e seu nome no maximo 200'), 400
+        return get_erro(response_messages.VALIDACAO_DEVE.format('raOrientador', 'ter no maximo 5 caracteres e seu nome no maximo 200')), 400
 
 def get_orientador(codOrientador):
     ori = orientadores_dao.get_orientador_codigo(codOrientador, False)
     if not ori:
-        return get_erro('Codigo de orientador enviado não existe'), 404
+        return get_erro(response_messages.NAO_ENCONTRADO.format('Orientador')), 404
     return ori, 200
 
 def busca_orientadores():
@@ -184,7 +184,7 @@ def busca_orientadores():
     if ret:
         return get_data(ret), 200
     else:
-        return get_falha('Nenhum orientador listado'), 204
+        return None, 204
 
 def busca_todos_orientadores():
     query = request.args.get('nomeOrientador')
@@ -197,35 +197,35 @@ def busca_todos_orientadores():
     if ret:
         return get_data(ret), 200
     else:
-        return get_falha('Nenhum orientador listado'), 204
+        return None, 204
 
 def ativa_orientador(id):
     if orientadores_dao.exists(id):
         orientadores_dao.ativa_orientador(id)
     else:
-        return get_erro('Codigo do orientador enviado não esta cadastrado no sistema'), 404
-    return get_ok('Orientador ativado com sucesso'), 200
+        return get_erro(response_messages.NAO_ENCONTRADO.format('Orientador')), 404
+    return get_ok(response_messages.ENTIDADE_ATIVADA.format('Orientador')), 200
 
 def desativa_orientador(id):
     if orientadores_dao.exists(id):
         orientadores_dao.desativa_orientador(id)
     else:
-        return get_erro('Codigo do orientador enviado não esta cadastrado no sistema'), 404
-    return get_ok('Orientador desativado com sucesso'), 200
+        return get_erro(response_messages.NAO_ENCONTRADO.format('Orientador')), 404
+    return get_ok(response_messages.ENTIDADE_DESATIVADA.format('Orientador')), 200
 
 def solicitar_revisao(codProjeto, professor_user_info):
     orientador = orientadores_dao.get_orientador_codUsuario(professor_user_info['codUsuario'])
     if not orientador:
-        return get_erro('O usuario utilizado não está ligado a nenhum orientador'), 400
+        return get_erro(response_messages.USUARIO_NAO_RELACIONADO), 400
     
     proj = projetos_dao.get_projeto_novo(codProjeto, True)
     if not proj:
-        return get_erro('O projeto enviado não existe'), 400
+        return get_erro(response_messages.NAO_ENCONTRADO.format('Projeto')), 404
 
     try:
         mensagem = request.form['mensagem']
     except BadRequestKeyError:
-        return get_erro('O campo "mensagem" devem ser enviados no corpo da requisicao'), 400
+        return get_erro(response_messages.CAMPOS_OBRIGATORIOS.format('"mensagem"')), 400
 
 
     usuarioOrientado = usuario_orientado_dao.get_usuario_orientado_codProjeto_codOrientador(codProjeto, orientador['codOrientador'])
@@ -235,8 +235,8 @@ def solicitar_revisao(codProjeto, professor_user_info):
         for autor in proj['autores']:
             enviar_email_revisao(autor, proj['tituloProjeto'], mensagem)
 
-        return get_ok('Solicitação de revisao enviada'), 200
-    return get_erro('Você não esta orientando este projeto'), 400
+        return get_ok(response_messages.SOLICITACAO_REVISAO_ENVIADA), 200
+    return get_erro(response_messages.ORIENTACAO_NECESSARIA), 400
 
 def verificar_revisoes(user_info):
     usuarioOrientado = usuario_orientado_dao.get_usuario_orientado_aluno(user_info['codUsuario'])

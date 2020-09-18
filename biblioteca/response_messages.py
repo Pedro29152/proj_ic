@@ -1,0 +1,42 @@
+#AUTORIZACAO
+ACESSO_EXPIRADO = 'Seu acesso está expirado'
+SEM_AUTORIZACAO = 'Sem autorização para esta ação'
+TOKEN_EXPIRADO = 'Token expirado'
+TOKEN_NAO_ENVIADO = 'Nenhum token enviado'
+TOKEN_TIPO_INVALIDO = 'O Token enviado deve ser do tipo Bearer'
+USUARIO_SENHA_INCORRETOS = 'Usuario ou senha incorretos'
+EMAIL_ENVIADO_SENHA_NOVA = 'Um email foi enviado para você sobre sua nova senha'
+
+PARAMETRO_NAO_ENVIADO = 'O(s) parametro(s) {0} deve(m) ser enviado(s)'
+CAMPOS_OBRIGATORIOS = 'A requisicao deve conter o(s) campo(s) {0} em seu corpo'
+ATRIBUTO_OBRIGATORIO = 'O(s) campo(s) {0} deve(m) ser preenchido(s)'
+PREENCHIMENTO_OBRIGATORIO = 'O(s) campo(s) enviado(s) deve(m) ser preenchido(s)'
+
+ENTIDADE_GRAVADA = '{0} gravado(a) com suscesso'
+ENTIDADE_ATIVADA = '{0} ativado(a) com sucesso'
+ENTIDADE_DESATIVADA = '{0} desativado(a) com sucesso'
+ENTIDADE_EDITADA = '{0} editado(a) com sucesso'
+ENTIDADE_DELETADA = '{0} deletado(a) com sucesso'
+ERRO_INTEGRIDADE = '{0} ja cadastrado(s)'
+ERRO_INESPERADO = 'Um erro inesperado ocorreu'
+
+ARQUIVO_NAO_ENVIADO = 'Nenhum arquivo foi enviado'
+EXTENSAO_NAO_SUPORTADA = 'Extensão não suportada'
+NAO_ENCONTRADO = '{0} não encontrado(a)'
+NAO_FOI_POSSIVEL = 'Não foi possivel {0}'
+ATRIBUTO_INVALIDO = 'O valor do campo {0} enviado é inválido'
+VALIDACAO_DEVE = 'O campo {0} deve {1}'
+VALIDACAO_DEVEM = 'Os campos {0} devem {1}'
+EMAIL_ENVIADO = 'Email enviado com sucesso'
+SEM_PERMICAO = "Voce nao pode {0}"
+
+TRABALHO_APROVADO = 'Trabalho aprovado com sucesso'
+TRABALHO_REPROVADO = 'Trabalho reprovado com sucesso'
+USUARIO_NAO_RELACIONADO = 'O usuário utilizado não possui um orientador ligado a ele'
+USUARIO_NAO_RELACIONADO_AUT = 'O usuário utilizado não possui um autor ligado a ele'
+USUARIO_NAO_RELACIONADO_CURSO = 'O usuário utilizado não possui um curso ligado a ele'
+SOLICITACAO_REVISAO_ENVIADA = 'Solicitação de revisao enviada'
+ORIENTACAO_NECESSARIA = 'Você precisa orientar este projeto para efetuar esta ação'
+NAO_PODE_ALTERAR_PROJETO = 'Você não pode cadastrar mais um projeto, somente alterar o ja cadastrado caso ele ainda não tenha sido aprovado'
+
+NOVA_ROTA_CADASTRO = 'Para cadastrar um {0} utilize a rota {1}'

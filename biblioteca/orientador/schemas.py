@@ -1,4 +1,4 @@
-from biblioteca import db
+from biblioteca import db, response_messages
 from biblioteca import extensions
 
 class Orientadores:
@@ -10,9 +10,9 @@ class Orientadores:
         self.currLattes = currLattes
 
         if not extensions.is_valid_email(self.email):
-            raise AttributeError('O campo "email" deve ser um email valido')
+            raise AttributeError(response_messages.VALIDACAO_DEVE.format('email', 'ser um email valido'))
         if not extensions.is_valid_http_link(self.currLattes):
-            raise AttributeError('O campo "currLattes" deve ser um link http/https valido valido')
+            raise AttributeError(response_messages.VALIDACAO_DEVE.format('currLattes', 'ser um link http/https valido valido'))
     
     def grava_orientador(self):
         if self.nomeOrientador and self.raOrientador and self.email and self.currLattes:
@@ -25,11 +25,11 @@ class Orientadores:
                 (self.raOrientador,)
             )['codOrientador']
         else:
-            raise AttributeError('Os campos "nomeOrientador", "raOrientador", "email" e "linkCurrLattes" devem ser preenchidos')
+            raise AttributeError(response_messages.ATRIBUTO_OBRIGATORIO.format('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"'))
     
     def edita_orientador(self):
         if not (self.nomeOrientador or self.raOrientador or self.email or self.currLattes):
-            raise AttributeError('Os campos "nomeOrientador", "raOrientador", "email" e "linkCurrLattes" devem ser preenchidos')
+            raise AttributeError(response_messages.ATRIBUTO_OBRIGATORIO.format('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"'))
 
         db.bd_gravar(
             'update orientadores set nomeOrientador = (%s), raOrientador = (%s), email = (%s), currLattes = (%s) where codOrientador = (%s)',

@@ -1,6 +1,6 @@
 from mysql.connector.errors import DataError, IntegrityError
 
-from biblioteca import db
+from biblioteca import db, response_messages
 from biblioteca.ext_dao import palavras_chave_dao
 from biblioteca.autor import autores_dao, projeto_autor_dao
 from biblioteca.curso import cursos_dao
@@ -354,12 +354,12 @@ def grava_projeto(projeto, is_secretaria=True):
             codAutor = aut.tenta_gravar_autor(projeto.codProjeto)
         except DataError:
             deleta_projeto(projeto.codProjeto)
-            raise Exception('O ra enviado deve ter no maximo 13 caracteres e o nome deve ter no maximo 200')
+            raise Exception(response_messages.VALIDACAO_DEVE.format('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
         try:
             projeto_autor_dao.grava_autor_proj(projeto.codProjeto, codAutor)
         except IntegrityError:
             deleta_projeto(projeto.codProjeto)
-            raise Exception('Voce nao pode cadastrar dois alunos com o mesmo ra no mesmo projeto')
+            raise Exception(response_messages.SEM_PERMICAO.format('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
 
     for palavra in projeto.palavrasChave:
         palavra.grava_palavra_chave(projeto.codProjeto)

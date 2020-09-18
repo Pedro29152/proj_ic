@@ -3,7 +3,7 @@ from flask_restful import Resource, request
 from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import IntegrityError
 
-from biblioteca import mailer
+from biblioteca import mailer, response_messages
 from biblioteca.usuarios import usuario_dao
 from biblioteca.responses import (
     get_erro,
@@ -50,14 +50,14 @@ class AtivaCursoResource(Resource):
     def post(self, id):    
         cursos_dao.ativa_curso(id)
 
-        return get_ok('Curso ativado com sucesso')
+        return get_ok(response_messages.ENTIDADE_ATIVADA.format('Curso'))
 
 class DesativaCursoResource(Resource):
     @secretaria_token_required
     def post(self, id):    
         cursos_dao.desativa_curso(id)
 
-        return get_ok('Curso desativado com sucesso')
+        return get_ok(response_messages.ENTIDADE_DESATIVADA.format('Curso'))
 
 class TodosCursosResource(Resource):
     @secretaria_token_required
@@ -80,17 +80,17 @@ def cadastro_curso():
         nome = request.form['nome']
         email = request.form['email']
     except BadRequestKeyError:
-        return get_erro('A requisicao deve conter os campos "nome", "email", "nomeCurso" e "abreviacao" em seu corpo'), 400
+        return get_erro(response_messages.CAMPOS_OBRIGATORIOS.format('"nome", "email", "nomeCurso" e "abreviacao"')), 400
 
     if not (nomeCurso and abreviacao and nome and email):
-        return get_falha('Os campos enviados devem sem preenchidos'), 400
+        return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO), 400
     if len(abreviacao) > 3:
-        return get_erro('A abreviação deve ter no máximo 3 caracteres')
+        return get_erro(response_messages.VALIDACAO_DEVE.format('abreviação', 'ter no máximo 3 caracteres'))
     username = 'coordenador_{}'.format(abreviacao.lower())
     password = generate_random_password()
     user = usuario_dao.add_usr(username, password, TiposUsuario.Coordenador.value, nome, email)
     if not user:
-        return get_erro('Email ou abreviação ja cadastrados'), 400
+        return get_erro(response_messages.ERRO_INTEGRIDADE.format('Email ou abreviação')), 400
 
     curso = Cursos(
         nomeCurso, 
@@ -115,34 +115,34 @@ def cadastro_curso():
         )
         mailer.send_email(email, msg)
 
-        return get_ok('Curso gravado com suscesso'), 201
+        return get_ok(response_messages.ENTIDADE_GRAVADA.format('Curso')), 201
     except IntegrityError:
         if not cursos_dao.is_ativo(curso):
             cursos_dao.reativa_curso(curso)
             return get_ok('O curso ja existia, porem esta inativo. O curso foi reativado com os dados novos'), 400
         else:
             usuario_dao.deleta_usuario(user['codUsuario'])
-            return get_erro('O nome ou a breviacao desse curso ja foi cadastrado'), 400
+            return get_erro(response_messages.ERRO_INTEGRIDADE.format('Nome ou breviacao')), 400
 
 def buscar_cursos():
         cursos = cursos_dao.busca_cursos()
         
         if cursos:
             return get_data(cursos), 200
-        return get_falha("Nenhum curso listado"), 204
+        return None, 204
 
 def get_curso(codCurso):
     curso = cursos_dao.get_curso_codCurso(codCurso, False)
     coord = usuario_dao.get_user_coordenador(curso['codCurso'])
     curso.update(coord)
     if not curso:
-        return get_erro('Codigo de curso nao encontrado'), 404
+        return get_erro(response_messages.NAO_ENCONTRADO.format('Codigo de curso')), 404
     return curso, 200
 
 def edita_curso(codCurso):
     curso = cursos_dao.get_curso_codCurso(codCurso)
     if not curso:
-        return get_erro('Codigo de curso nao encontrado'), 404
+        return get_erro(response_messages.NAO_ENCONTRADO.format('Codigo de curso')), 404
 
     try:
         descricaoCurso = request.form['nomeCurso'] 
@@ -155,18 +155,18 @@ def edita_curso(codCurso):
 
         curso.edita_curso()
         
-        return get_ok('Curso editado com sucesso'), 200
+        return get_ok(response_messages.ENTIDADE_EDITADA.format('Curso')), 200
 
     except AttributeError as ex:
         return get_erro(ex.__str__()), 400
     except BadRequestKeyError:
-        return get_erro('A requisicao deve conter os campos "nomeCurso" e "abreviacao" em seu corpo'), 400
+        return get_erro(response_messages.CAMPOS_OBRIGATORIOS.format('"nomeCurso" e "abreviacao"')), 400
     except IntegrityError:
-        return get_erro('Os campos "abreviacao" e "nomeCurso" devem ser unicos'), 400
+        return get_erro(response_messages.ERRO_INTEGRIDADE.format('Abreviacao ou Nome do Curso')), 400
 
 def buscar_todos_cursos():
         cursos = cursos_dao.busca_cursos_inativo()
     
         if cursos:
             return get_data(cursos), 200
-        return get_falha("Nenhum curso listado"), 204
+        return None, 204

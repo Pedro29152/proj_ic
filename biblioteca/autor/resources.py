@@ -2,6 +2,7 @@ from flask import jsonify
 from flask_restful import Resource, request
 
 from . import autores_dao 
+from biblioteca import response_messages
 from biblioteca.responses import (
     get_data,
     get_response_code,
@@ -28,7 +29,7 @@ class GetAlunoResource(Resource):
         ret = autores_dao.get_autor(id)
         if ret:
             return get_data(ret)
-        return get_not_found('Autor não encontrado')
+        return get_not_found(response_messages.NAO_ENCONTRADO.format('Autor'))
 
 class GetSelfAlunoResource(Resource):
     @aluno_token_required
@@ -40,5 +41,5 @@ class GetSelfAlunoResource(Resource):
                 'autor': autor, 
                 'orientador':orientador
             })
-        return get_not_found('Voce não possui um autor relacionado')
+        return get_not_found(response_messages.NAO_ENCONTRADO.format('Autor'))
 
