@@ -22,7 +22,7 @@ class Cursos:
 
     def edita_curso(self):
         if not (self.codCurso or self.descricaoCurso or self.abreviacao):
-            raise AttributeError(response_messages.ATRIBUTO_OBRIGATORIO.format('"codCurso", "descricaoCurso" e "abreviacao"'))
+            raise AttributeError(response_messages.ATRIBUTO_OBRIGATORIO('"codCurso", "descricaoCurso" e "abreviacao"'))
         
         db.bd_gravar(
             'update cursos set descricaoCurso = (%s), abreviacao = (%s) where codCurso = (%s)',

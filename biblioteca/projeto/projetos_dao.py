@@ -354,12 +354,12 @@ def grava_projeto(projeto, is_secretaria=True):
             codAutor = aut.tenta_gravar_autor(projeto.codProjeto)
         except DataError:
             deleta_projeto(projeto.codProjeto)
-            raise Exception(response_messages.VALIDACAO_DEVE.format('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
+            raise Exception(response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
         try:
             projeto_autor_dao.grava_autor_proj(projeto.codProjeto, codAutor)
         except IntegrityError:
             deleta_projeto(projeto.codProjeto)
-            raise Exception(response_messages.SEM_PERMICAO.format('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
+            raise Exception(response_messages.SEM_PERMICAO('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
 
     for palavra in projeto.palavrasChave:
         palavra.grava_palavra_chave(projeto.codProjeto)

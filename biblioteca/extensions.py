@@ -168,7 +168,7 @@ def aluno_token_required(f):
         if(success):
             is_valid = autores_dao.is_aluno_valido(data['user_info']['codUsuario'])
             if not is_valid:
-                return get_unauthorized(response_messages.ACESSO_EXPIRADO)
+                return get_unauthorized(response_messages.ACESSO_EXPIRADO())
             kwargs.update(data)
             return f(*args, **kwargs)            
         return data
@@ -190,7 +190,7 @@ def aluno_professor_coordenador_token_required(f):
                 is_valid = True
             
             if not is_valid:
-                return get_unauthorized(response_messages.ACESSO_EXPIRADO)
+                return get_unauthorized(response_messages.ACESSO_EXPIRADO())
             kwargs.update(data)
             return f(*args, **kwargs)            
         return data
@@ -286,11 +286,11 @@ def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has
         current_user = usuario_dao.busca_usuarios_nome(data['username'])
 
         if not current_user:
-            raise Exception(response_messages.SEM_AUTORIZACAO)
+            raise Exception(response_messages.SEM_AUTORIZACAO())
 
         if has_is_user:
             if not id:
-                raise AttributeError(response_messages.PARAMETRO_NAO_ENVIADO.format('"id"'))
+                raise AttributeError(response_messages.PARAMETRO_NAO_ENVIADO('"id"'))
             if id == current_user['codUsuario']:
                 authorized = True 
                 is_user = True
@@ -310,9 +310,9 @@ def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has
                     authorized = True
 
         if not authorized:
-            raise Exception(response_messages.SEM_AUTORIZACAO)
+            raise Exception(response_messages.SEM_AUTORIZACAO())
     except Exception as ex:
-        return False, get_unauthorized('Erro: ' + ex.__str__())
+        return False, get_unauthorized(ex.__str__())
 
     res_data = {}
     if has_is_user:
@@ -330,19 +330,19 @@ def get_token_data():
     auth_header = request.headers.get('AUTHORIZATION')
 
     if not auth_header:
-        raise Exception(response_messages.TOKEN_NAO_ENVIADO)
+        raise Exception(response_messages.TOKEN_NAO_ENVIADO())
     token_arr = auth_header.split(' ')
     if(not token_arr[0] == 'Bearer'):
-        raise Exception(response_messages.TOKEN_TIPO_INVALIDO)
+        raise Exception(response_messages.TOKEN_TIPO_INVALIDO())
 
     try:
         token = token_arr[1]
     except IndexError:
-        raise Exception(response_messages.TOKEN_NAO_ENVIADO)
+        raise Exception(response_messages.TOKEN_NAO_ENVIADO())
 
     data = jwt.decode(token, app.config['SECRET_KEY'])
     if(not is_valid(data)):
-        raise Exception(response_messages.TOKEN_EXPIRADO)
+        raise Exception(response_messages.TOKEN_EXPIRADO())
     return data
 
 def is_valid(token_data):

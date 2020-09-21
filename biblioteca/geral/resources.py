@@ -25,11 +25,11 @@ class AllCountsResource(Resource):
     @token_required
     def get(self, user_info):
         if (user_info['tipoUsuario'] == TiposUsuario.Aluno.value):
-            return get_unauthorized(response_messages.SEM_AUTORIZACAO)
+            return get_unauthorized(response_messages.SEM_AUTORIZACAO())
         if (user_info['tipoUsuario'] == TiposUsuario.Professor.value):
             orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
             if not orientador:
-                return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO)
+                return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
             usuarios_count = usuario_dao.get_count(codOrientador=orientador['codOrientador'])
             projetos_count = projetos_dao.get_count(codOrientador=orientador['codOrientador'])
@@ -75,12 +75,12 @@ class ContatoResource(Resource):
             assunto = request.form['assunto']
             mensagem = request.form['mensagem']
         except BadRequestKeyError:
-            return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS.format('"email", "nome", "mensagem" e "assunto"'))
+            return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"email", "nome", "mensagem" e "assunto"'))
 
         if not (email and nome and assunto and mensagem):
-            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO.format('"email", "nome", "mensagem" e "assunto"'))
+            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"email", "nome", "mensagem" e "assunto"'))
         if not is_valid_email(email):
-            return get_bad_request(response_messages.VALIDACAO_DEVE.format('email', 'ser um e-mail válido'))
+            return get_bad_request(response_messages.VALIDACAO_DEVE('email', 'ser um e-mail válido'))
 
         CONTACT_MAIL = getenv('CONTACT_EMAIL')
 
@@ -97,4 +97,4 @@ class ContatoResource(Resource):
             '''.format(email, nome, assunto, mensagem))
         mailer.send_email(CONTACT_MAIL, msg)
 
-        return get_success(response_messages.EMAIL_ENVIADO)
+        return get_success(response_messages.EMAIL_ENVIADO())

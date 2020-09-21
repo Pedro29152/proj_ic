@@ -50,14 +50,14 @@ class AtivaCursoResource(Resource):
     def post(self, id):    
         cursos_dao.ativa_curso(id)
 
-        return get_ok(response_messages.ENTIDADE_ATIVADA.format('Curso'))
+        return get_ok(response_messages.ENTIDADE_ATIVADA('Curso'))
 
 class DesativaCursoResource(Resource):
     @secretaria_token_required
     def post(self, id):    
         cursos_dao.desativa_curso(id)
 
-        return get_ok(response_messages.ENTIDADE_DESATIVADA.format('Curso'))
+        return get_ok(response_messages.ENTIDADE_DESATIVADA('Curso'))
 
 class TodosCursosResource(Resource):
     @secretaria_token_required
@@ -80,17 +80,17 @@ def cadastro_curso():
         nome = request.form['nome']
         email = request.form['email']
     except BadRequestKeyError:
-        return get_erro(response_messages.CAMPOS_OBRIGATORIOS.format('"nome", "email", "nomeCurso" e "abreviacao"')), 400
+        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nome", "email", "nomeCurso" e "abreviacao"')), 400
 
     if not (nomeCurso and abreviacao and nome and email):
-        return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO), 400
+        return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
     if len(abreviacao) > 3:
-        return get_erro(response_messages.VALIDACAO_DEVE.format('abreviação', 'ter no máximo 3 caracteres'))
+        return get_erro(response_messages.VALIDACAO_DEVE('abreviação', 'ter no máximo 3 caracteres'))
     username = 'coordenador_{}'.format(abreviacao.lower())
     password = generate_random_password()
     user = usuario_dao.add_usr(username, password, TiposUsuario.Coordenador.value, nome, email)
     if not user:
-        return get_erro(response_messages.ERRO_INTEGRIDADE.format('Email ou abreviação')), 400
+        return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou abreviação')), 400
 
     curso = Cursos(
         nomeCurso, 
@@ -115,14 +115,14 @@ def cadastro_curso():
         )
         mailer.send_email(email, msg)
 
-        return get_ok(response_messages.ENTIDADE_GRAVADA.format('Curso')), 201
+        return get_ok(response_messages.ENTIDADE_GRAVADA('Curso')), 201
     except IntegrityError:
         if not cursos_dao.is_ativo(curso):
             cursos_dao.reativa_curso(curso)
             return get_ok('O curso ja existia, porem esta inativo. O curso foi reativado com os dados novos'), 400
         else:
             usuario_dao.deleta_usuario(user['codUsuario'])
-            return get_erro(response_messages.ERRO_INTEGRIDADE.format('Nome ou breviacao')), 400
+            return get_erro(response_messages.ERRO_INTEGRIDADE('Nome ou breviacao')), 400
 
 def buscar_cursos():
         cursos = cursos_dao.busca_cursos()
@@ -136,13 +136,13 @@ def get_curso(codCurso):
     coord = usuario_dao.get_user_coordenador(curso['codCurso'])
     curso.update(coord)
     if not curso:
-        return get_erro(response_messages.NAO_ENCONTRADO.format('Codigo de curso')), 404
+        return get_erro(response_messages.NAO_ENCONTRADO('Codigo de curso')), 404
     return curso, 200
 
 def edita_curso(codCurso):
     curso = cursos_dao.get_curso_codCurso(codCurso)
     if not curso:
-        return get_erro(response_messages.NAO_ENCONTRADO.format('Codigo de curso')), 404
+        return get_erro(response_messages.NAO_ENCONTRADO('Codigo de curso')), 404
 
     try:
         descricaoCurso = request.form['nomeCurso'] 
@@ -155,14 +155,14 @@ def edita_curso(codCurso):
 
         curso.edita_curso()
         
-        return get_ok(response_messages.ENTIDADE_EDITADA.format('Curso')), 200
+        return get_ok(response_messages.ENTIDADE_EDITADA('Curso')), 200
 
     except AttributeError as ex:
         return get_erro(ex.__str__()), 400
     except BadRequestKeyError:
-        return get_erro(response_messages.CAMPOS_OBRIGATORIOS.format('"nomeCurso" e "abreviacao"')), 400
+        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeCurso" e "abreviacao"')), 400
     except IntegrityError:
-        return get_erro(response_messages.ERRO_INTEGRIDADE.format('Abreviacao ou Nome do Curso')), 400
+        return get_erro(response_messages.ERRO_INTEGRIDADE('Abreviacao ou Nome do Curso')), 400
 
 def buscar_todos_cursos():
         cursos = cursos_dao.busca_cursos_inativo()

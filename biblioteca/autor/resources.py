@@ -29,7 +29,7 @@ class GetAlunoResource(Resource):
         ret = autores_dao.get_autor(id)
         if ret:
             return get_data(ret)
-        return get_not_found(response_messages.NAO_ENCONTRADO.format('Autor'))
+        return get_not_found(response_messages.NAO_ENCONTRADO('Autor'))
 
 class GetSelfAlunoResource(Resource):
     @aluno_token_required
@@ -41,5 +41,5 @@ class GetSelfAlunoResource(Resource):
                 'autor': autor, 
                 'orientador':orientador
             })
-        return get_not_found(response_messages.NAO_ENCONTRADO.format('Autor'))
+        return get_not_found(response_messages.NAO_ENCONTRADO('Autor'))
 
