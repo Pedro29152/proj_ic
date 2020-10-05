@@ -82,6 +82,11 @@ def PREENCHIMENTO_OBRIGATORIO():
         'O(s) campo(s) enviado(s) deve(m) ser preenchido(s)', 
         'The fields that were sent must be filled'
     )
+def NOME_ARQUIVO_MUITO_GRANDE():
+    return get_msg(
+        'O nome do arquivo enviado é muito grande', 
+        'The file name sent is too long'
+    )
 
 def ENTIDADE_GRAVADA(entidade):
     return get_msg(

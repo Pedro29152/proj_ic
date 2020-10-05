@@ -73,6 +73,10 @@ from biblioteca.geral.resources import (
     AllCountsResource,
     ContatoResource
 )
+from biblioteca.slide.resources import (
+    BuscarSlidesResource,
+    SlideIdResource
+)
 from biblioteca.autor.resources import (
     BuscaAlunosResource,
     GetAlunoResource,
@@ -97,6 +101,10 @@ def configure_api(app):
     api.add_resource(Index, '/api')
     api.add_resource(AllCountsResource, '/api/allcounts')
     api.add_resource(ContatoResource, '/api/contato')
+
+    #Rotas de slide
+    api.add_resource(BuscarSlidesResource, '/api/slides')
+    api.add_resource(SlideIdResource, '/api/slides/<int:id>')
 
     #Rotas de curso
     api.add_resource(CursoResource, '/api/cursos')

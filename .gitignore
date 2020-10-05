@@ -171,5 +171,7 @@ dmypy.json
 .env
 
 static/files/*
+static/slides/*
 
 !static/files/.gitkeep 
+!static/slides/.gitkeep
