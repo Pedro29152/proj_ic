@@ -232,6 +232,22 @@ INSERT INTO `projetos` VALUES (120,'projeto 1','projojojotjoejotjo 1','este test
 UNLOCK TABLES;
 
 --
+-- Table structure for table `slides`
+--
+
+DROP TABLE IF EXISTS `slides`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `slides` (
+  `codSlide` int(11) NOT NULL AUTO_INCREMENT,
+  `titulo` longtext NOT NULL,
+  `subtitulo` longtext NOT NULL,
+  `imagem` varchar(255) NOT NULL,
+  PRIMARY KEY (`codSlide`),
+  UNIQUE KEY `imagem_UNIQUE` (`imagem`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+--
 -- Table structure for table `solicitacoes_revisao`
 --
 
