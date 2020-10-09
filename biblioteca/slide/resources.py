@@ -16,7 +16,7 @@ from biblioteca.responses import (
     get_falha
 )
 
-ALLOWED_EXTENSIONS = set(['png', 'gif'])
+ALLOWED_EXTENSIONS = set(['png', 'gif', 'jpg', 'jpeg'])
 
 class BuscarSlidesResource(Resource):
     def get(self):
