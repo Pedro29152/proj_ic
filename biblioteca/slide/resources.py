@@ -25,6 +25,10 @@ class BuscarSlidesResource(Resource):
 
     @admin_token_required
     def post(self):
+        count = slide_dao.get_count()
+        if count >= 3:
+            return get_bad_request(response_messages.SEM_PERMICAO('cadastrar mais que 3 slides'))
+
         r, code = check_file()
         if r:
             return get_response_code(r, code)
@@ -32,18 +36,27 @@ class BuscarSlidesResource(Resource):
         try:
             titulo = request.form['titulo']
             subTitulo = request.form['subTitulo']
+
+            title = request.form['title']
+            subTitle = request.form['subTitle']
         except:
-            return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"titulo" e "subTitulo"'))
+            return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "subTitulo", "title" e "subTitle"'))
         
-        if not (titulo and subTitulo):
-            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"titulo" e "subTitulo"'))
+        if titulo and not title:
+            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"title"'))
+        if title and not titulo:
+            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"titulo"'))
+        if subTitulo and not subTitle:
+            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitle"'))
+        if subTitle and not subTitulo:
+            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitulo"'))
 
         file = request.files['file']
         filename = file.filename
         if len(filename) > 255:
             return get_erro(response_messages.NOME_ARQUIVO_MUITO_GRANDE())
         try:
-            slide_dao.adiciona_slide(titulo, subTitulo, filename)
+            slide_dao.adiciona_slide(titulo, subTitulo, title, subTitle, filename)
         except IntegrityError:
             return get_bad_request(response_messages.ERRO_INTEGRIDADE('Imagem'))
 
@@ -70,13 +83,30 @@ class SlideIdResource(Resource):
         try:
             titulo = request.form['titulo']
             subTitulo = request.form['subTitulo']
+
+            title = request.form['title']
+            subTitle = request.form['subTitle']
         except:
-            return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"titulo" e "subTitulo"'))
+            return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "subTitulo", "title" e "subTitle"'))
+        
+        if (titulo and not title) and not slide['titulo']:
+            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"title"'))
+        if (title and not titulo) and not slide['title']:
+            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"titulo"'))
+        if (subTitulo and not subTitle) and not slide['subtitle']:
+            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitle"'))
+        if (subTitle and not subTitulo) and not slide['subtitulo']:
+            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitulo"'))
 
         if titulo:
             slide['titulo'] = titulo
         if subTitulo:
-            slide['subTitulo'] = subTitulo
+            slide['subtitulo'] = subTitulo
+
+        if title:
+            slide['title'] = title
+        if subTitle:
+            slide['subtitle'] = subTitle
 
         slide_dao.edita_slide(slide)
 
@@ -105,6 +135,10 @@ class SlideIdResource(Resource):
 
     @admin_token_required
     def delete(self, id):
+        count = slide_dao.get_count()
+        if count <= 1:
+            return get_bad_request(response_messages.SEM_PERMICAO('apagar o último slide'))
+
         slide = slide_dao.get_slide(id)
         if not slide:
             return get_not_found(response_messages.NAO_ENCONTRADO('Slide'))

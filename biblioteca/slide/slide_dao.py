@@ -16,12 +16,12 @@ def get_slide(codSlide):
     ret = db.bd_busca_um(query, (codSlide,))
     return ret
 
-def adiciona_slide(titulo, subTitulo, nomeImagem):
+def adiciona_slide(titulo, subTitulo, title, subTitle, nomeImagem):
     query = '''
-        insert into slides(titulo, subtitulo, imagem) values (%s,%s,%s)
+        insert into slides(titulo, subtitulo, title, subtitle, imagem) values (%s,%s,%s,%s,%s)
     '''
 
-    db.bd_gravar(query, (titulo, subTitulo, nomeImagem))
+    db.bd_gravar(query, (titulo, subTitulo, title, subTitle, nomeImagem))
 
 def edita_slide(slide):
     query = '''
@@ -43,3 +43,10 @@ def delete_slide(codSlide):
         where codSlide = (%s)
     '''
     db.bd_gravar(query, (codSlide,))
+
+def get_count():
+    query = '''
+        select count(*) as count from slides
+    '''
+    ret = db.bd_busca_um(query, None)
+    return ret['count']
