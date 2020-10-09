@@ -69,6 +69,10 @@ class BuscarSlidesResource(Resource):
         return get_success(response_messages.ENTIDADE_GRAVADA('Slide'))
 
 class SlideIdResource(Resource):
+    def get(self, id):
+        slide = slide_dao.get_slide(id)
+        return get_success(slide)
+    
     @admin_token_required
     def put(self, id):
         has_file = True
