@@ -26,7 +26,7 @@ class BuscarSlidesResource(Resource):
     @admin_token_required
     def post(self):
         count = slide_dao.get_count()
-        if count >= 3:
+        if count >= 5:
             return get_bad_request(response_messages.SEM_PERMICAO('cadastrar mais que 3 slides'))
 
         r, code = check_file()
@@ -56,7 +56,7 @@ class BuscarSlidesResource(Resource):
         if len(filename) > 255:
             return get_erro(response_messages.NOME_ARQUIVO_MUITO_GRANDE())
         try:
-            slide_dao.adiciona_slide(titulo, subTitulo, title, subTitle, filename)
+            slide_dao.adiciona_slide(titulo, subTitulo, title, subTitle, '/static/slides/{0}'.format(filename))
         except IntegrityError:
             return get_bad_request(response_messages.ERRO_INTEGRIDADE('Imagem'))
 
@@ -113,9 +113,8 @@ class SlideIdResource(Resource):
         if has_file:
             file = request.files['file']
             filename = file.filename
-
             try:
-                slide_dao.edita_imagem(id, filename)
+                slide_dao.edita_imagem(id, '/static/slides/{0}'.format(filename))
             except IntegrityError:
                 return get_bad_request(response_messages.ERRO_INTEGRIDADE('Imagem'))
 
@@ -145,9 +144,10 @@ class SlideIdResource(Resource):
         
         slide_dao.delete_slide(id)
 
+        nomeImagem = slide['imagem'].split('/')[-1]
         filepath = os.path.join(
             app.config['SLIDES_FOLDER'],
-            slide['imagem']
+            nomeImagem
         )
         os.remove(filepath)
 
