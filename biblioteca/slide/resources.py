@@ -122,9 +122,10 @@ class SlideIdResource(Resource):
             except IntegrityError:
                 return get_bad_request(response_messages.ERRO_INTEGRIDADE('Imagem'))
 
+            nomeImagem = slide['imagem'].split('/')[-1]
             oldFilepath = os.path.join(
                 app.config['SLIDES_FOLDER'],
-                slide['imagem']
+                nomeImagem
             )
             filepath = os.path.join(
                 app.config['SLIDES_FOLDER'],

@@ -25,10 +25,10 @@ def adiciona_slide(titulo, subTitulo, title, subTitle, nomeImagem):
 
 def edita_slide(slide):
     query = '''
-        update slides set titulo = (%s), subtitulo = (%s)
+        update slides set titulo = (%s), subtitulo = (%s), title = (%s), subtitle = (%s)
         where codSlide = (%s)
     '''
-    db.bd_gravar(query, (slide['titulo'], slide['subtitulo'], slide['codSlide']))
+    db.bd_gravar(query, (slide['titulo'], slide['subtitulo'], slide['title'], slide['subtitle'], slide['codSlide']))
 
 def edita_imagem(codSlide, imagem):
     query = '''
