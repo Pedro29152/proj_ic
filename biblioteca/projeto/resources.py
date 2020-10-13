@@ -199,6 +199,16 @@ class AlteraProjetoAlunoResource(Resource):
         status, cod = edita_projeto_aluno(id, user_info, has_file)
         return get_response_code(status, cod)
 
+class AlteraLocalPublicacaoResource(Resource):
+    @professor_token_required
+    def put(self, user_info, id):
+        orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+        if not orientador:
+            return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
+
+        status, cod = edita_publicacao(id, orientador['codOrientador'])
+        return get_response_code(status, cod)
+
 class GetProjetoResource(Resource):
     def get(self, id):
         status, cod = get_projeto(id)
@@ -676,6 +686,22 @@ def edita_projeto_aluno(codProjeto, user_info, has_file):
             __adicionar_cabecalio([capa, filepath], filepath)
 
         return get_ok(response_messages.ENTIDADE_EDITADA('Trabalho')), 200
+    return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
+
+def edita_publicacao(codProjeto, codOrientador):
+    proj = projetos_dao.get_projeto_orientador(codOrientador, codProjeto)
+    if proj:
+        try:
+            publicacao = request.form['publicacaoProjeto']
+        except BadRequestKeyError:
+            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"publicacaoProjeto"')), 400
+
+        if not publicacao:
+            return get_erro(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
+
+        projetos_dao.edita_publicacao(codProjeto, publicacao)
+
+        return get_ok(response_messages.ENTIDADE_EDITADA('Publicação')), 200
     return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
 
 def get_projeto(codProjeto):

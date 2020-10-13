@@ -220,11 +220,9 @@ def get_projeto_orientador(codOrientador, codProjeto):
         select p.*
         from projetos as p
         natural join projeto_orientador
-        where ativo = 1 and status = 0 and codOrientador = (%s) and codProjeto = (%s)
+        where ativo = 1 and status = 1 and codOrientador = (%s) and codProjeto = (%s)
     '''
     ret = db.bd_busca_um(query, (codOrientador, codProjeto))
-
-    prenche_projeto(ret)
 
     return ret
 
@@ -496,6 +494,11 @@ def edita_subtitulo(codProjeto, subtitulo):
     query = 'update projetos set subTitulo = (%s) where codProjeto = (%s)'
 
     db.bd_gravar(query, (subtitulo, codProjeto))
+
+def edita_publicacao(codProjeto, localPublicacao):
+    query = 'update projetos set localPublicacao = (%s) where codProjeto = (%s)'
+
+    db.bd_gravar(query, (localPublicacao, codProjeto))
 
 def is_ativo_filename(filename):
     query = 'select codProjeto from projetos where nomeArquivo = (%s) and ativo = 1 and not status = 2 '

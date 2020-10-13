@@ -43,6 +43,7 @@ from biblioteca.projeto.resources import (
     AtivaProjetoResource,
     AlteraProjetoResource,
     AlteraProjetoAlunoResource,
+    AlteraLocalPublicacaoResource,
     CountProjetosResource,
     UploadProjetoAlunoResource,
     AprovarProjetoResource,
@@ -151,6 +152,7 @@ def configure_api(app):
     api.add_resource(AtivaProjetoResource, '/api/projetos/ativar/<int:id>') #id: codigo do projeto a ser ativado
     api.add_resource(AlteraProjetoResource, '/api/projetos/editar/<int:id>')  #id: codigo do projeto a ser editado
     api.add_resource(AlteraProjetoAlunoResource, '/api/projetos/editar/aluno/<int:id>')
+    api.add_resource(AlteraLocalPublicacaoResource, '/api/projetos/editar/publicacao/<int:id>')
     api.add_resource(CountProjetosResource, '/api/projetos/count')
 
     #Rotas de autorizacao
