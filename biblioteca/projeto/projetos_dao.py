@@ -191,6 +191,20 @@ def busca_projeto_ranking_pag(titulo, tipo, ordem, pag):
 
 def busca_projeto_orientador(codOrientador):
     query = '''
+        select p.*
+        from projetos as p
+        natural join projeto_orientador
+        where ativo = 1 and status = 1 and codOrientador = (%s)
+    '''
+    ret = db.bd_busca(query, (codOrientador,))
+
+    if ret:
+        prenche_projetos(ret)
+
+    return ret
+
+def busca_projeto_orientador_novo(codOrientador):
+    query = '''
         select distinct p.*
         from projetos as p
         natural join projeto_orientador as po
@@ -198,8 +212,9 @@ def busca_projeto_orientador(codOrientador):
         where p.ativo = 1 and p.status = 0 and po.codOrientador = (%s) and uo.dataValidade >= current_timestamp()
     '''
     ret = db.bd_busca(query, (codOrientador,))
-
-    prenche_projetos(ret)
+    
+    if ret:
+        prenche_projetos(ret)
 
     return ret
 

@@ -28,6 +28,7 @@ from biblioteca.projeto.resources import (
     BuscaProjetoResource,
     BuscaRankingResource,
     BuscarProjetosOrientador,
+    BuscarProjetosOrientadorNovo,
     BuscarProjetosOrientadorId,
     BuscarProjetosCurso,
     BuscarProjetosInativosResource,
@@ -134,6 +135,7 @@ def configure_api(app):
                                            '/api/projetos') #id: titulo, curso, descricao, orientador, autor e palavrasChave
     api.add_resource(BuscaRankingResource, '/api/projetos/ranking')
     api.add_resource(BuscarProjetosOrientador, '/api/projetos/orientador')
+    api.add_resource(BuscarProjetosOrientadorNovo, '/api/projetos/orientador/novo')
     api.add_resource(BuscarProjetosCurso, '/api/projetos/coordenador')
     api.add_resource(BuscarProjetosOrientadorId, '/api/projetos/orientador/<int:id>')#publico
     api.add_resource(BuscarProjetosInativosResource, '/api/projetos/inativos')
