@@ -170,6 +170,11 @@ def SEM_PERMICAO(acao):
         'You cannot {0}'.format(acao)
     )
 
+def DADOS_PARAMETRO_INVALIDOS(parametros):
+    return get_msg(
+        'Os dados enviados nos parâmetros {0} são inválidos'.format(parametros), 
+        'The data sent in the parameters {0} are invalid'.format(parametros)
+    )
 def TRABALHO_APROVADO():
     return get_msg(
         'Trabalho aprovado com sucesso', 

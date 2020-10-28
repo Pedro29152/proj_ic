@@ -84,6 +84,10 @@ from biblioteca.autor.resources import (
     GetAlunoResource,
     GetSelfAlunoResource
 )
+from biblioteca.dashboard.resources import (
+    CountProjetosSemestre,
+    CountProjetosAnos
+)
 from .db import bd_busca   
 
 # Criamos uma classe que extende de Resource
@@ -103,6 +107,10 @@ def configure_api(app):
     api.add_resource(Index, '/api')
     api.add_resource(AllCountsResource, '/api/allcounts')
     api.add_resource(ContatoResource, '/api/contato')
+
+    #Rotas de dashboard
+    api.add_resource(CountProjetosAnos, '/api/dashboard/anos')
+    api.add_resource(CountProjetosSemestre, '/api/dashboard/semestre')
 
     #Rotas de slide
     api.add_resource(BuscarSlidesResource, '/api/slides')
