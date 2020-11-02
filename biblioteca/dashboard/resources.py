@@ -44,3 +44,8 @@ class CountProjetosCurso(Resource):
     def get(self):
         ret = dashboard_dao.get_count_projetos_curso()
         return ret
+
+class CountProjetosOrientador(Resource):
+    def get(self):
+        ret = dashboard_dao.get_count_projetos_orientador()
+        return ret

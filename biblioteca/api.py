@@ -87,7 +87,8 @@ from biblioteca.autor.resources import (
 from biblioteca.dashboard.resources import (
     CountProjetosSemestre,
     CountProjetosAnos,
-    CountProjetosCurso
+    CountProjetosCurso,
+    CountProjetosOrientador
 )
 from .db import bd_busca   
 
@@ -113,6 +114,7 @@ def configure_api(app):
     api.add_resource(CountProjetosAnos, '/api/dashboard/anos')
     api.add_resource(CountProjetosSemestre, '/api/dashboard/semestre')
     api.add_resource(CountProjetosCurso, '/api/dashboard/projetosporcurso')
+    api.add_resource(CountProjetosOrientador, '/api/dashboard/projetospororientador')
 
     #Rotas de slide
     api.add_resource(BuscarSlidesResource, '/api/slides')

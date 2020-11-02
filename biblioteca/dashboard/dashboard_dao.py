@@ -21,7 +21,7 @@ def get_count_projetos_semestre(ano, semestre):
         SELECT
             {0}
         FROM projetos
-        where year(dataAvaliacao) = (%s)
+        where year(dataAvaliacao) = (%s) and (ativo = 1 and status = 1)
     '''.format(dataQuery)
     res = db.bd_busca_um(query, (ano,))
     
@@ -48,7 +48,7 @@ def get_count_projetos_semestres(anoI, anoF):
             sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end) AS 'semestre1',
             sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
         FROM projetos
-        where year(dataAvaliacao) between (%s) and (%s)
+        where year(dataAvaliacao) between (%s) and (%s) and (ativo = 1 and status = 1)
         group by year(dataAvaliacao)
         order by 1
     '''
@@ -72,6 +72,7 @@ def get_count_projetos_curso():
             sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end)  AS 'semestre1',
             sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
         FROM projetos natural join cursos
+        where (ativo = 1 and status = 1)
         group by year(dataAvaliacao), codCurso
         order by descricaoCurso, year(dataAvaliacao)
     '''
@@ -88,7 +89,7 @@ def get_count_projetos_curso():
         except KeyError:
             cursos[item['abreviacao']] = [item]
     ret = None
-    
+
     for chave in cursos.keys():
         curso = cursos[chave]
         cursos[chave] = {}
@@ -100,6 +101,49 @@ def get_count_projetos_curso():
             cursos[chave][ano] = dataset
 
     return cursos
+
+def get_count_projetos_orientador():
+    query = '''
+        SELECT
+            o.codOrientador,
+            o.raOrientador,
+            o.nomeOrientador,
+            year(dataAvaliacao) as ano,
+            sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end)  AS 'semestre1',
+            sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
+        FROM projetos as p 
+        join projeto_orientador as po on po.codProjeto = p.codProjeto
+        join orientadores as o on o.codOrientador = po.codOrientador
+        where (p.ativo = 1 and p.status = 1)
+        group by year(dataAvaliacao), codOrientador
+        order by nomeOrientador	, year(dataAvaliacao)
+    '''
+    ret = db.bd_busca(query, None)
+
+    for item in ret:
+        item['semestre1'] = int(item['semestre1'])
+        item['semestre2'] = int(item['semestre2'])
+    
+    orientadores = {}
+    for item in ret:
+        try:
+            orientadores[item['nomeOrientador']].append(item)
+        except KeyError:
+            orientadores[item['nomeOrientador']] = [item]
+    ret = None
+    
+    for chave in orientadores.keys():
+        ori = orientadores[chave]
+        orientadores[chave] = {}
+        for o in ori:
+            dataset = []
+            dataset.append(o['semestre1'])
+            dataset.append(o['semestre2'])
+            ano = o['ano']
+            orientadores[chave][ano] = dataset
+
+    return orientadores
+
 
 def valid_int(val):
     try:
