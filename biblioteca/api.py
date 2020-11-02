@@ -85,6 +85,7 @@ from biblioteca.autor.resources import (
     GetSelfAlunoResource
 )
 from biblioteca.dashboard.resources import (
+    GetAnos,
     CountProjetosSemestre,
     CountProjetosAnos,
     CountProjetosCurso,
@@ -111,8 +112,9 @@ def configure_api(app):
     api.add_resource(ContatoResource, '/api/contato')
 
     #Rotas de dashboard
-    api.add_resource(CountProjetosAnos, '/api/dashboard/anos')
-    api.add_resource(CountProjetosSemestre, '/api/dashboard/semestre')
+    api.add_resource(GetAnos, '/api/dashboard/anos')
+    api.add_resource(CountProjetosAnos, '/api/dashboard/projetospeloano')
+    api.add_resource(CountProjetosSemestre, '/api/dashboard/projetospelosemestre')
     api.add_resource(CountProjetosCurso, '/api/dashboard/projetosporcurso')
     api.add_resource(CountProjetosOrientador, '/api/dashboard/projetospororientador')
 

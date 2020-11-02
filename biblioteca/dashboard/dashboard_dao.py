@@ -144,6 +144,18 @@ def get_count_projetos_orientador():
 
     return orientadores
 
+def get_anos():
+    query = '''
+        select
+            min(year(dataAvaliacao)) as min, 
+            max(year(dataAvaliacao)) as max
+        from projetos as p
+        where (p.ativo = 1 and p.status = 1)
+    '''
+    ret = db.bd_busca_um(query, None)
+    if not ret:
+        return ret
+    return list(range(ret['min'], ret['max'] + 1))
 
 def valid_int(val):
     try:

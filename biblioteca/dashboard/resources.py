@@ -5,7 +5,8 @@ from biblioteca import response_messages
 from biblioteca.dashboard import dashboard_dao
 from biblioteca.responses import (
     get_success,
-    get_bad_request
+    get_bad_request,
+    get_no_content
 )
 
 class CountProjetosSemestre(Resource):
@@ -43,9 +44,20 @@ class CountProjetosAnos(Resource):
 class CountProjetosCurso(Resource):
     def get(self):
         ret = dashboard_dao.get_count_projetos_curso()
-        return ret
+        if not ret:
+            return get_no_content()
+        return get_success(ret)
 
 class CountProjetosOrientador(Resource):
     def get(self):
         ret = dashboard_dao.get_count_projetos_orientador()
-        return ret
+        if not ret:
+            return get_no_content()
+        return get_success(ret)
+
+class GetAnos(Resource):
+    def get(self):
+        ret = dashboard_dao.get_anos()
+        if not ret:
+            return get_no_content()
+        return get_success(ret)
