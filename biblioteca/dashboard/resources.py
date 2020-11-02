@@ -39,3 +39,8 @@ class CountProjetosAnos(Resource):
         if count_ano != None:
             return get_success(count_ano)
         return get_bad_request(response_messages.DADOS_PARAMETRO_INVALIDOS('"anoI" e "anoF"'))
+
+class CountProjetosCurso(Resource):
+    def get(self):
+        ret = dashboard_dao.get_count_projetos_curso()
+        return ret

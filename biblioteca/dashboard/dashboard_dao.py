@@ -62,6 +62,34 @@ def get_count_projetos_semestres(anoI, anoF):
 
     return ret
 
+def get_count_projetos_curso():
+    query = '''
+        SELECT
+            codCurso,
+            descricaoCurso,
+            abreviacao,
+            year(dataAvaliacao) as ano,
+            sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end)  AS 'semestre1',
+            sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
+        FROM projetos natural join cursos
+        group by year(dataAvaliacao), codCurso
+        order by descricaoCurso, year(dataAvaliacao)
+    '''
+    ret = db.bd_busca(query, None)
+
+    for item in ret:
+        item['semestre1'] = int(item['semestre1'])
+        item['semestre2'] = int(item['semestre2'])
+    
+    anos = {}
+    for item in ret:
+        try:
+            anos[item['ano']].append(item)
+        except KeyError:
+            anos[item['ano']] = [item]
+    
+    return anos
+
 def valid_int(val):
     try:
         t = int(val)
