@@ -81,14 +81,25 @@ def get_count_projetos_curso():
         item['semestre1'] = int(item['semestre1'])
         item['semestre2'] = int(item['semestre2'])
     
-    anos = {}
+    cursos = {}
     for item in ret:
         try:
-            anos[item['ano']].append(item)
+            cursos[item['abreviacao']].append(item)
         except KeyError:
-            anos[item['ano']] = [item]
+            cursos[item['abreviacao']] = [item]
+    ret = None
     
-    return anos
+    for chave in cursos.keys():
+        curso = cursos[chave]
+        cursos[chave] = {}
+        for c in curso:
+            dataset = []
+            dataset.append(c['semestre1'])
+            dataset.append(c['semestre2'])
+            ano = c['ano']
+            cursos[chave][ano] = dataset
+
+    return cursos
 
 def valid_int(val):
     try:
