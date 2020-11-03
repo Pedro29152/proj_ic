@@ -71,6 +71,13 @@ class CountProjetoStatus(Resource):
             return get_no_content()
         return get_success(ret)
 
+class CountSolicitacoesRevisao(Resource):
+    def get(self):
+        ret = dashboard_dao.get_count_solicitacoes_revisao()
+        if ret == None:
+            return get_no_content()
+        return get_success(ret)
+
 class GetAnos(Resource):
     def get(self):
         ret = dashboard_dao.get_anos()

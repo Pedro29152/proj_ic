@@ -77,6 +77,8 @@ def get_count_projetos_curso():
         order by descricaoCurso, year(dataAvaliacao)
     '''
     ret = db.bd_busca(query, None)
+    if not ret:
+        return ret
 
     for item in ret:
         item['semestre1'] = int(item['semestre1'])
@@ -119,6 +121,8 @@ def get_count_projetos_orientador():
         order by nomeOrientador	, year(dataAvaliacao)
     '''
     ret = db.bd_busca(query, None)
+    if not ret:
+        return ret
 
     for item in ret:
         item['semestre1'] = int(item['semestre1'])
@@ -159,6 +163,8 @@ def get_count_projetos_formandos_curso():
         order by p.codCurso, year(dataAvaliacao)
     '''
     ret = db.bd_busca(query, None)
+    if not ret:
+        return ret
 
     for item in ret:
         item['semestre1'] = int(item['semestre1'])
@@ -197,6 +203,8 @@ def get_count_projetos_status():
         order by status, year(dataAvaliacao);
     '''
     ret = db.bd_busca(query, None)
+    if not ret:
+        return ret
 
     for item in ret:
         item['semestre1'] = int(item['semestre1'])
@@ -221,6 +229,30 @@ def get_count_projetos_status():
             status[chave][ano] = dataset
 
     return status
+
+def get_count_solicitacoes_revisao():
+    query = '''
+        select
+            year(dataSolicitacao) as ano,
+            sum(case when month(dataSolicitacao) between 1 and 7 then 1 else 0 end)  AS 'semestre1',
+            sum(case when month(dataSolicitacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
+        FROM solicitacoes_revisao as sr
+        group by 1
+        order by 1
+    '''
+    ret = db.bd_busca(query, None)
+    if not ret:
+        return ret
+
+    for item in ret:
+        item['semestre1'] = int(item['semestre1'])
+        item['semestre2'] = int(item['semestre2'])
+    
+    solic = {}
+    for item in ret:
+        solic[item['ano']] = [item['semestre1'], item['semestre2']]
+
+    return solic
 
 def get_anos():
     query = '''
