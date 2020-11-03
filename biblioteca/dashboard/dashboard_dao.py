@@ -184,6 +184,44 @@ def get_count_projetos_formandos_curso():
 
     return cursos
 
+def get_count_projetos_status():
+    query = '''
+        select
+            (case when status = 0 then 'processando' when status = 1 then 'aceito' when status = 2 then 'rejeitado' else 'erro' end) as status,
+            year(dataAvaliacao) as ano,
+            sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end)  AS 'semestre1',
+            sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
+        FROM projetos as p
+        where (p.ativo = 1)
+        group by 1, year(dataAvaliacao)
+        order by status, year(dataAvaliacao);
+    '''
+    ret = db.bd_busca(query, None)
+
+    for item in ret:
+        item['semestre1'] = int(item['semestre1'])
+        item['semestre2'] = int(item['semestre2'])
+    
+    status = {}
+    for item in ret:
+        try:
+            status[item['status']].append(item)
+        except KeyError:
+            status[item['status']] = [item]
+    ret = None
+
+    for chave in status.keys():
+        stat = status[chave]
+        status[chave] = {}
+        for s in stat:
+            dataset = []
+            dataset.append(s['semestre1'])
+            dataset.append(s['semestre2'])
+            ano = s['ano']
+            status[chave][ano] = dataset
+
+    return status
+
 def get_anos():
     query = '''
         select
