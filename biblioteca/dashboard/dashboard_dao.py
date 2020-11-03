@@ -254,6 +254,33 @@ def get_count_solicitacoes_revisao():
 
     return solic
 
+def get_count_usuarios_tipo():
+    query = '''
+        select
+            (case
+                when tipoUsuario = 1 then 'aluno'
+                when tipoUsuario = 2 then 'orientador'
+                when tipoUsuario = 3 then 'secretaria'
+                when tipoUsuario = 4 then 'administrador'
+                when tipoUsuario = 5 then 'coordenador'
+                else 'erro'
+            end) as tipo,
+            count(*) as usuarios
+        from usuarios
+        where ativo = 1
+        group by tipoUsuario
+        order by 1
+    '''
+    ret = db.bd_busca(query, None)
+    if not ret:
+        return ret
+
+    tipos = {}
+    for item in ret:
+        tipos[item['tipo']] = item['usuarios']
+    
+    return tipos
+
 def get_anos():
     query = '''
         select

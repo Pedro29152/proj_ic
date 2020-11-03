@@ -92,7 +92,8 @@ from biblioteca.dashboard.resources import (
     CountProjetosOrientador,
     CountProjetosFormandos,
     CountProjetoStatus,
-    CountSolicitacoesRevisao
+    CountSolicitacoesRevisao,
+    CountUsuariosTipo
 )
 from .db import bd_busca   
 
@@ -123,6 +124,7 @@ def configure_api(app):
     api.add_resource(CountProjetosFormandos, '/api/dashboard/formandosporcurso')
     api.add_resource(CountProjetoStatus, '/api/dashboard/projetosporstatus')
     api.add_resource(CountSolicitacoesRevisao, '/api/dashboard/solicitacoes')
+    api.add_resource(CountUsuariosTipo, '/api/dashboard/usuarios')
 
     #Rotas de slide
     api.add_resource(BuscarSlidesResource, '/api/slides')

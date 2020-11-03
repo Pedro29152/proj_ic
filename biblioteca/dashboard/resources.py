@@ -78,6 +78,13 @@ class CountSolicitacoesRevisao(Resource):
             return get_no_content()
         return get_success(ret)
 
+class CountUsuariosTipo(Resource):
+    def get(self):
+        ret = dashboard_dao.get_count_usuarios_tipo()
+        if ret == None:
+            return get_no_content()
+        return get_success(ret)
+
 class GetAnos(Resource):
     def get(self):
         ret = dashboard_dao.get_anos()
