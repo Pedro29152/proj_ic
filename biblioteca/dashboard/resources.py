@@ -55,6 +55,13 @@ class CountProjetosOrientador(Resource):
             return get_no_content()
         return get_success(ret)
 
+class CountProjetosFormandos(Resource):
+    def get(self):
+        ret = dashboard_dao.get_count_projetos_formandos_curso()
+        if not ret:
+            return get_no_content()
+        return get_success(ret)
+
 class GetAnos(Resource):
     def get(self):
         ret = dashboard_dao.get_anos()
