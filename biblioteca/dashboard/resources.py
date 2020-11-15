@@ -14,8 +14,6 @@ class CountProjetosSemestre(Resource):
         ano = request.args.get('ano')
         semestre = request.args.get('semestre')
         
-        ret = dashboard_dao.get_anos()
-        
         if not ano:
             ano = datetime.now().year
         if not semestre:
@@ -67,6 +65,13 @@ class CountProjetosFormandos(Resource):
 class CountProjetoStatus(Resource):
     def get(self):
         ret = dashboard_dao.get_count_projetos_status()
+        if ret == None:
+            return get_no_content()
+        return get_success(ret)
+
+class CountProjetoModalidade(Resource):
+    def get(self):
+        ret = dashboard_dao.get_count_projetos_modalidade()
         if ret == None:
             return get_no_content()
         return get_success(ret)

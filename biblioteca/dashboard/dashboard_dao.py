@@ -56,9 +56,7 @@ def get_count_projetos_semestres(anoI, anoF):
     if not ret:
         return None
     
-    for item in ret:
-        item['semestre1'] = int(item['semestre1'])
-        item['semestre2'] = int(item['semestre2'])
+    __remove_decimais(ret)
 
     return ret
 
@@ -80,27 +78,10 @@ def get_count_projetos_curso():
     if not ret:
         return ret
 
-    for item in ret:
-        item['semestre1'] = int(item['semestre1'])
-        item['semestre2'] = int(item['semestre2'])
+    __remove_decimais(ret)
     
-    cursos = {}
-    for item in ret:
-        try:
-            cursos[item['abreviacao']].append(item)
-        except KeyError:
-            cursos[item['abreviacao']] = [item]
+    cursos = __gerar_obj_proj(ret, 'abreviacao', order_ano=True)
     ret = None
-
-    for chave in cursos.keys():
-        curso = cursos[chave]
-        cursos[chave] = {}
-        for c in curso:
-            dataset = []
-            dataset.append(c['semestre1'])
-            dataset.append(c['semestre2'])
-            ano = c['ano']
-            cursos[chave][ano] = dataset
 
     return cursos
 
@@ -124,27 +105,10 @@ def get_count_projetos_orientador():
     if not ret:
         return ret
 
-    for item in ret:
-        item['semestre1'] = int(item['semestre1'])
-        item['semestre2'] = int(item['semestre2'])
+    __remove_decimais(ret)
     
-    orientadores = {}
-    for item in ret:
-        try:
-            orientadores[item['nomeOrientador']].append(item)
-        except KeyError:
-            orientadores[item['nomeOrientador']] = [item]
+    orientadores = __gerar_obj_proj(ret, 'nomeOrientador', order_ano=True)
     ret = None
-    
-    for chave in orientadores.keys():
-        ori = orientadores[chave]
-        orientadores[chave] = {}
-        for o in ori:
-            dataset = []
-            dataset.append(o['semestre1'])
-            dataset.append(o['semestre2'])
-            ano = o['ano']
-            orientadores[chave][ano] = dataset
 
     return orientadores
 
@@ -166,27 +130,10 @@ def get_count_projetos_formandos_curso():
     if not ret:
         return ret
 
-    for item in ret:
-        item['semestre1'] = int(item['semestre1'])
-        item['semestre2'] = int(item['semestre2'])
+    __remove_decimais(ret)
     
-    cursos = {}
-    for item in ret:
-        try:
-            cursos[item['abreviacao']].append(item)
-        except KeyError:
-            cursos[item['abreviacao']] = [item]
+    cursos = __gerar_obj_proj(ret, 'abreviacao', order_ano=True)
     ret = None
-
-    for chave in cursos.keys():
-        curso = cursos[chave]
-        cursos[chave] = {}
-        for c in curso:
-            dataset = []
-            dataset.append(c['semestre1'])
-            dataset.append(c['semestre2'])
-            ano = c['ano']
-            cursos[chave][ano] = dataset
 
     return cursos
 
@@ -206,29 +153,43 @@ def get_count_projetos_status():
     if not ret:
         return ret
 
-    for item in ret:
-        item['semestre1'] = int(item['semestre1'])
-        item['semestre2'] = int(item['semestre2'])
+    __remove_decimais(ret)
     
-    status = {}
-    for item in ret:
-        try:
-            status[item['status']].append(item)
-        except KeyError:
-            status[item['status']] = [item]
+    status = __gerar_obj_proj(ret, 'status', order_ano=True)
     ret = None
 
-    for chave in status.keys():
-        stat = status[chave]
-        status[chave] = {}
-        for s in stat:
-            dataset = []
-            dataset.append(s['semestre1'])
-            dataset.append(s['semestre2'])
-            ano = s['ano']
-            status[chave][ano] = dataset
-
     return status
+
+def get_count_projetos_modalidade():
+    query = '''
+        select 
+            year(dataAvaliacao) as ano,
+            (case 
+                when modalidade = 0 then 'Artigo Cientifico'
+                when modalidade = 1 then 'Relatorio Tecnico'
+                when modalidade = 2 then 'Monografia'
+                when modalidade = 3 then 'Relatorio Tecnico Atividades Porfolio'
+                when modalidade = 4 then 'Resumo'
+                when modalidade = 5 then 'GDD'
+                else 'erro'
+            end) as modalidade,
+            sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end)  AS 'semestre1',
+            sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
+        from projetos
+        where (ativo = 1 and status = 1)
+        group by year(dataAvaliacao), modalidade
+        order by 1
+    '''
+    ret = db.bd_busca(query, None)
+    if not ret:
+        return ret
+    
+    __remove_decimais(ret)
+    
+    modalidade = __gerar_obj_proj(ret, 'modalidade', order_ano=True)
+    ret = None
+
+    return modalidade
 
 def get_count_solicitacoes_revisao():
     query = '''
@@ -244,9 +205,7 @@ def get_count_solicitacoes_revisao():
     if not ret:
         return ret
 
-    for item in ret:
-        item['semestre1'] = int(item['semestre1'])
-        item['semestre2'] = int(item['semestre2'])
+    __remove_decimais(ret)
     
     solic = {}
     for item in ret:
@@ -300,3 +259,29 @@ def valid_int(val):
     except ValueError:
         return False
     return True
+
+def __remove_decimais(obj):
+    for item in obj:
+        item['semestre1'] = int(item['semestre1'])
+        item['semestre2'] = int(item['semestre2'])    
+
+def __gerar_obj_proj(obj, attr, order_ano=False, ano_attr='ano'):
+    ret = {}
+    for item in obj:
+        try:
+            ret[item[attr]].append(item)
+        except KeyError:
+            ret[item[attr]] = [item]
+
+    if order_ano:
+        for chave in ret.keys():
+            att = ret[chave]
+            ret[chave] = {}
+            for a in att:
+                dataset = []
+                dataset.append(a['semestre1'])
+                dataset.append(a['semestre2'])
+                ano = a['ano']
+                ret[chave][ano] = dataset
+
+    return ret
