@@ -1,13 +1,17 @@
 from biblioteca import db
+from biblioteca.projeto import projetos_dao
+
 
 def get_count_projetos_semestre(ano, semestre):
-    if not valid_int(ano):
+    if not __valid_int(ano):
         return None
-    if not valid_int(semestre):
+    if not __valid_int(semestre):
         return None
     
     semestre = int(semestre)
     ano = int(ano)
+    
+    projetos_dao.reprova_projetos_invalidos()
 
     dataQuery = ''
     if semestre == 1:
@@ -31,9 +35,9 @@ def get_count_projetos_semestre(ano, semestre):
     return int(count)
 
 def get_count_projetos_semestres(anoI, anoF):
-    if not valid_int(anoI):
+    if not __valid_int(anoI):
         return None
-    if not valid_int(anoF):
+    if not __valid_int(anoF):
         return None
     
     anoI = int(anoI)
@@ -41,6 +45,8 @@ def get_count_projetos_semestres(anoI, anoF):
     
     if anoI > anoF:
         return None
+
+    projetos_dao.reprova_projetos_invalidos()
 
     query = '''
         SELECT
@@ -61,6 +67,8 @@ def get_count_projetos_semestres(anoI, anoF):
     return ret
 
 def get_count_projetos_curso():
+    projetos_dao.reprova_projetos_invalidos()
+
     query = '''
         SELECT
             codCurso,
@@ -86,6 +94,8 @@ def get_count_projetos_curso():
     return cursos
 
 def get_count_projetos_orientador():
+    projetos_dao.reprova_projetos_invalidos()
+
     query = '''
         SELECT
             o.codOrientador,
@@ -113,6 +123,8 @@ def get_count_projetos_orientador():
     return orientadores
 
 def get_count_projetos_formandos_curso():
+    projetos_dao.reprova_projetos_invalidos()
+
     query =  '''
         SELECT
             p.codCurso,
@@ -138,6 +150,8 @@ def get_count_projetos_formandos_curso():
     return cursos
 
 def get_count_projetos_status():
+    projetos_dao.reprova_projetos_invalidos()
+    
     query = '''
         select
             (case when status = 0 then 'processando' when status = 1 then 'aceito' when status = 2 then 'rejeitado' else 'erro' end) as status,
@@ -161,14 +175,16 @@ def get_count_projetos_status():
     return status
 
 def get_count_projetos_modalidade():
+    projetos_dao.reprova_projetos_invalidos()
+
     query = '''
         select 
             year(dataAvaliacao) as ano,
             (case 
-                when modalidade = 0 then 'Artigo Cientifico'
-                when modalidade = 1 then 'Relatorio Tecnico'
+                when modalidade = 0 then 'ArtigoCientifico'
+                when modalidade = 1 then 'RelatorioTecnico'
                 when modalidade = 2 then 'Monografia'
-                when modalidade = 3 then 'Relatorio Tecnico Atividades Porfolio'
+                when modalidade = 3 then 'RelatorioTecnicoAtividadesPorfolio'
                 when modalidade = 4 then 'Resumo'
                 when modalidade = 5 then 'GDD'
                 else 'erro'
@@ -190,6 +206,7 @@ def get_count_projetos_modalidade():
     ret = None
 
     return modalidade
+
 
 def get_count_solicitacoes_revisao():
     query = '''
@@ -253,7 +270,8 @@ def get_anos():
         return []
     return list(range(ret['min'], ret['max'] + 1))
 
-def valid_int(val):
+
+def __valid_int(val):
     try:
         t = int(val)
     except ValueError:

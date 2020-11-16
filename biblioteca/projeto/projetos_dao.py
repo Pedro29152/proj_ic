@@ -1,3 +1,6 @@
+import os
+
+from flask import current_app as app
 from mysql.connector.errors import DataError, IntegrityError
 
 from biblioteca import db, response_messages
@@ -568,6 +571,22 @@ def prenche_projeto(ret):
     ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
     ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
     ret['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
+
+def reprova_projetos_invalidos():
+    query = '''
+        select p.codProjeto, p.nomeArquivo
+        from usuario_orientado as uo
+        natural join projetos as p
+        where status = 0 and dataValidade <= current_timestamp()
+    '''
+    ret = db.bd_busca(query, None)
+
+    for proj in ret:
+        recusar_projeto(proj['codProjeto'])
+        try:
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
+        except FileNotFoundError:
+            pass
 
 def __grava_proj_ori(codProjeto, codOrientador, tipo):
     query = 'insert into projeto_orientador values(%s, %s, %s)'
