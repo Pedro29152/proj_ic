@@ -378,3 +378,19 @@ def generate_random_password():
         a = a + a.join(random.choice(chars))
     return str(a)
 
+def separate_camel_case(string):
+    if string == string.upper():
+        return string
+        
+    string = string[0].upper() + string[1:]
+    frase = ''
+    arr = []
+    for i, char in enumerate(string):
+        if char.isalpha() and char.isupper():
+            arr += [i]
+    for i in range(len(arr)):
+        if not i + 1 == len(arr):
+            frase += string[arr[i]:arr[i+1]] + ' '
+        else: 
+            frase += string[arr[-1]:len(string)]
+    return frase
