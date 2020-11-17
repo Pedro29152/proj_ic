@@ -30,6 +30,7 @@ from biblioteca.projeto.resources import (
     BuscarProjetosOrientador,
     BuscarProjetosOrientadorNovo,
     BuscarProjetosOrientadorId,
+    BuscarAtributosProjetoResource,
     BuscarProjetosCurso,
     BuscarProjetosInativosResource,
     BuscaTodosProjetosResource,
@@ -101,6 +102,9 @@ from biblioteca.dashboard.resources import (
     CountSolicitacoesRevisao,
     CountUsuariosTipo
 )
+from biblioteca.relatorios.resources import (
+    ReltorioProjetosResource
+)
 from .db import bd_busca   
 
 # Criamos uma classe que extende de Resource
@@ -138,6 +142,9 @@ def configure_api(app):
     api.add_resource(CountSolicitacoesRevisao, '/api/dashboard/solicitacoes')
     api.add_resource(CountUsuariosTipo, '/api/dashboard/usuarios')
 
+    #Rotas de relatorios
+    api.add_resource(ReltorioProjetosResource, '/api/relatorios/projetos')
+
     #Rotas de slide
     api.add_resource(BuscarSlidesResource, '/api/slides')
     api.add_resource(SlideIdResource, '/api/slides/<int:id>')
@@ -173,6 +180,7 @@ def configure_api(app):
     api.add_resource(BuscarProjetosCurso, '/api/projetos/coordenador')
     api.add_resource(BuscarProjetosOrientadorId, '/api/projetos/orientador/<int:id>')#publico
     api.add_resource(BuscarProjetosInativosResource, '/api/projetos/inativos')
+    api.add_resource(BuscarAtributosProjetoResource, '/api/projetos/atributos')
     api.add_resource(BuscaTodosProjetosResource, '/api/projetos/todos')
     api.add_resource(GetProjetoInativoResource, '/api/projetos/inativos/<int:id>')
     api.add_resource(GetProjetoNovo, '/api/projetos/novo/get/<int:id>')

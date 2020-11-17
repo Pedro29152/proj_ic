@@ -1,7 +1,7 @@
 import os
 
 from flask import current_app as app
-from mysql.connector.errors import DataError, IntegrityError
+from mysql.connector.errors import DataError, IntegrityError, ProgrammingError
 
 from biblioteca import db, response_messages
 from biblioteca.ext_dao import palavras_chave_dao
@@ -15,7 +15,8 @@ from biblioteca.responses import (
 )
 from biblioteca.extensions import (
     TiposUsuario,
-    TiposOrientador
+    TiposOrientador,
+    separate_camel_case as scc
 )
 
 QUERY_CURSO = '''
@@ -142,12 +143,26 @@ def busca_projeto_tipo_pag(tipo, query = '', ordem = 0, crescente = True, pag = 
 
     return ret
 
-def busca_projeto():
-    query = 'select * from projetos where ativo = 1 and status = 1 '
+def busca_projeto(proj_attr=[]):
+    attr = busca_atributos_projeto()
+    keys = list(attr.keys())
+    atributos = list(set(proj_attr) & set(keys))
 
-    ret = db.bd_busca(
-        query,None
-    )
+    if len(atributos) > 0:
+        atrib = ', '.join([attr[a] for a in atributos])
+    else:
+        atrib = ', '.join([attr[a] for a in keys])
+    
+    query = f'''
+        select codProjeto, codCurso, {atrib} 
+        from projetos 
+        where ativo = 1 and status = 1
+    '''
+        
+    try:
+        ret = db.bd_busca(query)
+    except ProgrammingError:
+        return None
 
     prenche_projetos(ret)
 
@@ -587,6 +602,26 @@ def reprova_projetos_invalidos():
             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
         except FileNotFoundError:
             pass
+
+def busca_atributos_projeto(separate_camel_case=False):
+    query = '''
+        select c.ordinal_position as idx, c.column_name as coluna
+        from information_schema.tables t
+        inner join information_schema.COLUMNS c
+            on c.table_schema=t.table_schema
+            and c.table_name=t.table_name
+        where (t.table_schema='proj_ic' and t.table_name='projetos') 
+        and (not (c.ordinal_position in (1,10,11,12)))
+        order by t.table_name, c.ordinal_position
+    '''
+    ret = db.bd_busca_information_schema(query)
+    obj = {}
+    for attr in ret:
+        if separate_camel_case:
+            obj[attr['idx']] = scc(attr['coluna'])
+        else:
+            obj[attr['idx']] = attr['coluna']
+    return obj
 
 def __grava_proj_ori(codProjeto, codOrientador, tipo):
     query = 'insert into projeto_orientador values(%s, %s, %s)'

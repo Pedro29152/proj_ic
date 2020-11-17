@@ -394,3 +394,12 @@ def separate_camel_case(string):
         else: 
             frase += string[arr[-1]:len(string)]
     return frase
+
+def get_enum_obj(intenum, separate=True):
+    obj = {}
+    for i, tipo in enumerate(intenum):
+        if separate:
+            obj[tipo.value] = separate_camel_case(tipo.name)
+        else:
+            obj[tipo.value] = tipo.name
+    return obj

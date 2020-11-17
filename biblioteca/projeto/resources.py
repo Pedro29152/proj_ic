@@ -24,7 +24,8 @@ from biblioteca.responses import (
     get_bad_request,
     get_response_code,
     get_not_found,
-    get_no_content
+    get_no_content,
+    get_success
 )
 from biblioteca.extensions import(
     admin_token_required,
@@ -158,6 +159,14 @@ class BuscarProjetosOrientadorId(Resource):
 
         res, cod = busca_projetos_orientador_publico(orientador['codOrientador'])
         return get_response_code(res, cod)
+
+class BuscarAtributosProjetoResource(Resource):
+    @admin_token_required
+    def get(self):
+        ret = projetos_dao.busca_atributos_projeto()
+        if not ret:
+            return get_no_content()
+        return get_success(ret)
 
 class AprovarProjetoResource(Resource):
     @professor_coordenador_secretaria_token_required

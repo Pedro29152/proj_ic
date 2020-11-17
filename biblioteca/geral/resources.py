@@ -2,8 +2,6 @@ from flask import request
 from flask_restful import Resource
 from werkzeug.exceptions import BadRequestKeyError
 from os import getenv
-
-from . import general_dao
 from biblioteca import mailer, response_messages
 from biblioteca.usuarios import usuario_dao
 from biblioteca.projeto import projetos_dao
@@ -24,7 +22,8 @@ from biblioteca.extensions import (
     ModalidadeProjeto,
     token_required,
     TiposUsuario,
-    is_valid_email
+    is_valid_email,
+    get_enum_obj
 )
 
 class AllCountsResource(Resource):
@@ -106,12 +105,13 @@ class ContatoResource(Resource):
         return get_success(response_messages.EMAIL_ENVIADO())
 
 class GetTiposUsuarioEnumResource(Resource):
-    def get(self):
+    @token_required
+    def get(self, user_info):
         separate = True
         if not request.args.get('separate') == None:
             separate = False if request.args.get('separate') == 'false' else True
 
-        ret = general_dao.get_enum_obj(TiposUsuario, separate_camel_case=separate)
+        ret = get_enum_obj(TiposUsuario, separate=separate)
         return get_success(ret)
 class GetTiposOrientadorEnumResource(Resource):
     def get(self):
@@ -119,15 +119,16 @@ class GetTiposOrientadorEnumResource(Resource):
         if not request.args.get('separate') == None:
             separate = False if request.args.get('separate') == 'false' else True
 
-        ret = general_dao.get_enum_obj(TiposOrientador, separate_camel_case=separate)
+        ret = get_enum_obj(TiposOrientador, separate=separate)
         return get_success(ret)
 class GetStatusProjetoEnumResource(Resource):
-    def get(self):
+    @token_required
+    def get(self, user_info):
         separate = True
         if not request.args.get('separate') == None:
             separate = False if request.args.get('separate') == 'false' else True
         
-        ret = general_dao.get_enum_obj(StatusProjeto, separate_camel_case=separate)
+        ret = get_enum_obj(StatusProjeto, separate=separate)
         return get_success(ret)
 class GetLinguagemProjetoEnumResource(Resource):
     def get(self):
@@ -135,7 +136,7 @@ class GetLinguagemProjetoEnumResource(Resource):
         if not request.args.get('separate') == None:
             separate = False if request.args.get('separate') == 'false' else True
         
-        ret = general_dao.get_enum_obj(LinguagemProjeto, separate_camel_case=separate)
+        ret = get_enum_obj(LinguagemProjeto, separate=separate)
         return get_success(ret)
 
 class GetModalidadeProjetoEnumResource(Resource):
@@ -144,5 +145,5 @@ class GetModalidadeProjetoEnumResource(Resource):
         if not request.args.get('separate') == None:
             separate = False if request.args.get('separate') == 'false' else True
         
-        ret = general_dao.get_enum_obj(ModalidadeProjeto, separate_camel_case=separate)
+        ret = get_enum_obj(ModalidadeProjeto, separate=separate)
         return get_success(ret)
