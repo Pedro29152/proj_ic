@@ -58,7 +58,7 @@ def busca_curso_cod(codCurso):
     )
 
     return val
-    
+
 def get_all_curso_cod(codCurso):
     query = '''
         select descricaoCurso, abreviacao from cursos 

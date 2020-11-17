@@ -73,7 +73,12 @@ from biblioteca.usuarios.resources import (
 )
 from biblioteca.geral.resources import (
     AllCountsResource,
-    ContatoResource
+    ContatoResource,
+    GetTiposUsuarioEnumResource,
+    GetTiposOrientadorEnumResource,
+    GetStatusProjetoEnumResource,
+    GetLinguagemProjetoEnumResource,
+    GetModalidadeProjetoEnumResource
 )
 from biblioteca.slide.resources import (
     BuscarSlidesResource,
@@ -115,6 +120,11 @@ def configure_api(app):
     api.add_resource(Index, '/api')
     api.add_resource(AllCountsResource, '/api/allcounts')
     api.add_resource(ContatoResource, '/api/contato')
+    api.add_resource(GetTiposUsuarioEnumResource, '/api/enum/tipousuario')
+    api.add_resource(GetTiposOrientadorEnumResource, '/api/enum/tipoorientador')
+    api.add_resource(GetStatusProjetoEnumResource, '/api/enum/statusprojeto')
+    api.add_resource(GetLinguagemProjetoEnumResource, '/api/enum/linguagemprojeto')
+    api.add_resource(GetModalidadeProjetoEnumResource, '/api/enum/modalidadeprojeto')
 
     #Rotas de dashboard
     api.add_resource(GetAnos, '/api/dashboard/anos')

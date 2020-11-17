@@ -39,7 +39,7 @@ class ModalidadeProjeto(IntEnum):
     ArtigoCientifico = 0,
     RelatorioTecnico = 1,
     Monografia = 2,
-    RelatorioTecnicoAtividadesPorfolio = 3,
+    RelatorioTecnicoDeAtividadesDePorfolio = 3,
     Resumo = 4,
     GDD = 5
 
