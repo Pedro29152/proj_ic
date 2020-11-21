@@ -66,7 +66,7 @@ def get_count_projetos_semestres(anoI, anoF):
 
     return ret
 
-def get_count_projetos_curso():
+def get_count_projetos_curso(anoI, anoF):
     projetos_dao.reprova_projetos_invalidos()
 
     query = '''
@@ -78,22 +78,21 @@ def get_count_projetos_curso():
             sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end)  AS 'semestre1',
             sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
         FROM projetos natural join cursos
-        where (ativo = 1 and status = 1)
+        where (ativo = 1 and status = 1) and year(dataAvaliacao) between %s and %s
         group by year(dataAvaliacao), codCurso
         order by descricaoCurso, year(dataAvaliacao)
     '''
-    ret = db.bd_busca(query, None)
+    ret = db.bd_busca(query, (anoI, anoF))
     if not ret:
         return ret
 
     __remove_decimais(ret)
     
     cursos = __gerar_obj_proj(ret, 'abreviacao', order_ano=True)
-    ret = None
 
     return cursos
 
-def get_count_projetos_orientador():
+def get_count_projetos_orientador(anoI, anoF):
     projetos_dao.reprova_projetos_invalidos()
 
     query = '''
@@ -107,11 +106,11 @@ def get_count_projetos_orientador():
         FROM projetos as p 
         join projeto_orientador as po on po.codProjeto = p.codProjeto
         join orientadores as o on o.codOrientador = po.codOrientador
-        where (p.ativo = 1 and p.status = 1)
+        where (p.ativo = 1 and p.status = 1) and year(dataAvaliacao) between %s and %s
         group by year(dataAvaliacao), codOrientador
         order by nomeOrientador	, year(dataAvaliacao)
     '''
-    ret = db.bd_busca(query, None)
+    ret = db.bd_busca(query, (anoI, anoF))
     if not ret:
         return ret
 
@@ -122,7 +121,7 @@ def get_count_projetos_orientador():
 
     return orientadores
 
-def get_count_projetos_formandos_curso():
+def get_count_projetos_formandos_curso(anoI, anoF):
     projetos_dao.reprova_projetos_invalidos()
 
     query =  '''
@@ -135,10 +134,11 @@ def get_count_projetos_formandos_curso():
         FROM projeto_autor as pa 
         natural join projetos as p
         join cursos as c on c.codCurso = p.codCurso
+        where (p.ativo = 1 and p.status = 1) and year(dataAvaliacao) between %s and %s
         group by p.codCurso,  year(dataAvaliacao)
         order by p.codCurso, year(dataAvaliacao)
     '''
-    ret = db.bd_busca(query, None)
+    ret = db.bd_busca(query, (anoI, anoF))
     if not ret:
         return ret
 
@@ -149,7 +149,7 @@ def get_count_projetos_formandos_curso():
 
     return cursos
 
-def get_count_projetos_status():
+def get_count_projetos_status(anoI, anoF):
     projetos_dao.reprova_projetos_invalidos()
     
     query = '''
@@ -159,11 +159,11 @@ def get_count_projetos_status():
             sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end)  AS 'semestre1',
             sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
         FROM projetos as p
-        where (p.ativo = 1)
+        where (p.ativo = 1) and year(dataAvaliacao) between %s and %s
         group by 1, year(dataAvaliacao)
         order by status, year(dataAvaliacao);
     '''
-    ret = db.bd_busca(query, None)
+    ret = db.bd_busca(query, (anoI, anoF))
     if not ret:
         return ret
 
@@ -174,7 +174,7 @@ def get_count_projetos_status():
 
     return status
 
-def get_count_projetos_modalidade():
+def get_count_projetos_modalidade(anoI, anoF):
     projetos_dao.reprova_projetos_invalidos()
 
     query = '''
@@ -192,11 +192,11 @@ def get_count_projetos_modalidade():
             sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end)  AS 'semestre1',
             sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
         from projetos
-        where (ativo = 1 and status = 1)
+        where (ativo = 1 and status = 1) and year(dataAvaliacao) between %s and %s
         group by year(dataAvaliacao), modalidade
         order by 1
     '''
-    ret = db.bd_busca(query, None)
+    ret = db.bd_busca(query, (anoI, anoF))
     if not ret:
         return ret
     
@@ -208,17 +208,18 @@ def get_count_projetos_modalidade():
     return modalidade
 
 
-def get_count_solicitacoes_revisao():
+def get_count_solicitacoes_revisao(anoI, anoF):
     query = '''
         select
             year(dataSolicitacao) as ano,
             sum(case when month(dataSolicitacao) between 1 and 7 then 1 else 0 end)  AS 'semestre1',
             sum(case when month(dataSolicitacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
         FROM solicitacoes_revisao as sr
+        where year(dataSolicitacao) between %s and %s
         group by 1
         order by 1
     '''
-    ret = db.bd_busca(query, None)
+    ret = db.bd_busca(query, (anoI, anoF))
     if not ret:
         return ret
 

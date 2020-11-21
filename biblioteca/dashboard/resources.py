@@ -27,58 +27,78 @@ class CountProjetosSemestre(Resource):
 
 class CountProjetosAnos(Resource):
     def get(self):
-        anoI = request.args.get('anoI')
-        anoF = request.args.get('anoF')
-        
-        if not anoI:
-            anoI = datetime.now().year
-        if not anoF:
-            anoF = datetime.now().year
+        anoI, anoF = get_anoI_anoF()
+        if anoF < anoI:
+            return get_no_content()
         
         count_ano = dashboard_dao.get_count_projetos_semestres(anoI, anoF)
         
         if count_ano != None:
             return get_success(count_ano)
-        return get_bad_request(response_messages.DADOS_PARAMETRO_INVALIDOS('"anoI" e "anoF"'))
+        return get_no_content()
 
 class CountProjetosCurso(Resource):
     def get(self):
-        ret = dashboard_dao.get_count_projetos_curso()
+        anoI, anoF = get_anoI_anoF()
+        if anoF < anoI:
+            return get_no_content()
+
+        ret = dashboard_dao.get_count_projetos_curso(anoI, anoF)
         if ret == None:
             return get_no_content()
         return get_success(ret)
 
 class CountProjetosOrientador(Resource):
     def get(self):
-        ret = dashboard_dao.get_count_projetos_orientador()
+        anoI, anoF = get_anoI_anoF()
+        if anoF < anoI:
+            return get_no_content()
+
+        ret = dashboard_dao.get_count_projetos_orientador(anoI, anoF)
         if ret == None:
             return get_no_content()
         return get_success(ret)
 
 class CountProjetosFormandos(Resource):
     def get(self):
-        ret = dashboard_dao.get_count_projetos_formandos_curso()
+        anoI, anoF = get_anoI_anoF()
+        if anoF < anoI:
+            return get_no_content()
+
+        ret = dashboard_dao.get_count_projetos_formandos_curso(anoI, anoF)
         if ret == None:
             return get_no_content()
         return get_success(ret)
 
 class CountProjetoStatus(Resource):
     def get(self):
-        ret = dashboard_dao.get_count_projetos_status()
+        anoI, anoF = get_anoI_anoF()
+        if anoF < anoI:
+            return get_no_content()
+
+        ret = dashboard_dao.get_count_projetos_status(anoI, anoF)
         if ret == None:
             return get_no_content()
         return get_success(ret)
 
 class CountProjetoModalidade(Resource):
     def get(self):
-        ret = dashboard_dao.get_count_projetos_modalidade()
+        anoI, anoF = get_anoI_anoF()
+        if anoF < anoI:
+            return get_no_content()
+        
+        ret = dashboard_dao.get_count_projetos_modalidade(anoI, anoF)
         if ret == None:
             return get_no_content()
         return get_success(ret)
 
 class CountSolicitacoesRevisao(Resource):
     def get(self):
-        ret = dashboard_dao.get_count_solicitacoes_revisao()
+        anoI, anoF = get_anoI_anoF()
+        if anoF < anoI:
+            return get_no_content()
+        
+        ret = dashboard_dao.get_count_solicitacoes_revisao(anoI, anoF)
         if ret == None:
             return get_no_content()
         return get_success(ret)
@@ -96,3 +116,24 @@ class GetAnos(Resource):
         if ret == None:
             return get_no_content()
         return get_success(ret)
+
+def get_anoI_anoF():
+    try:
+        anoI = int(request.args.get('anoInicial'))
+    except:
+        anoI = None
+    try:
+        anoF = int(request.args.get('anoFinal'))
+    except:
+        anoF = None
+
+    anos = dashboard_dao.get_anos()
+    if not anos:
+        anos = [datetime.now().year]
+
+    if not anoI:
+        anoI = anos[0]
+    if not anoF:
+        anoF = anos[-1]
+
+    return anoI, anoF
