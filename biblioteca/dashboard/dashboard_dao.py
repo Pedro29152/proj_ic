@@ -92,10 +92,10 @@ def get_count_projetos_curso(anoI, anoF):
 
     return cursos
 
-def get_count_projetos_orientador(anoI, anoF):
+def get_count_projetos_orientador(anoI, anoF, orientadores= tuple()):
     projetos_dao.reprova_projetos_invalidos()
 
-    query = '''
+    baseQuery = '''
         SELECT
             o.codOrientador,
             o.raOrientador,
@@ -106,11 +106,21 @@ def get_count_projetos_orientador(anoI, anoF):
         FROM projetos as p 
         join projeto_orientador as po on po.codProjeto = p.codProjeto
         join orientadores as o on o.codOrientador = po.codOrientador
-        where (p.ativo = 1 and p.status = 1) and year(dataAvaliacao) between %s and %s
+        where 
+            (p.ativo = 1 and p.status = 1) and
+            (year(dataAvaliacao) between %s and %s)
+            {0}
         group by year(dataAvaliacao), codOrientador
         order by nomeOrientador	, year(dataAvaliacao)
     '''
-    ret = db.bd_busca(query, (anoI, anoF))
+
+    if orientadores:
+        query = baseQuery.format('and (o.raOrientador in (%s))' % ','.join(['%s'] * len(orientadores)))
+        ret = db.bd_busca(query, (anoI, anoF) + orientadores)
+    else:
+        query = baseQuery.format('')
+        ret = db.bd_busca(query, (anoI, anoF))
+
     if not ret:
         return ret
 
@@ -181,10 +191,10 @@ def get_count_projetos_modalidade(anoI, anoF):
         select 
             year(dataAvaliacao) as ano,
             (case 
-                when modalidade = 0 then 'ArtigoCientifico'
-                when modalidade = 1 then 'RelatorioTecnico'
+                when modalidade = 0 then 'Artigo Científico'
+                when modalidade = 1 then 'Relatório Técnico'
                 when modalidade = 2 then 'Monografia'
-                when modalidade = 3 then 'RelatorioTecnicoAtividadesPorfolio'
+                when modalidade = 3 then 'Relatório Técnico de Atividades de Porfólio'
                 when modalidade = 4 then 'Resumo'
                 when modalidade = 5 then 'GDD'
                 else 'erro'

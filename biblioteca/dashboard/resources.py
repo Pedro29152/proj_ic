@@ -54,7 +54,19 @@ class CountProjetosOrientador(Resource):
         if anoF < anoI:
             return get_no_content()
 
-        ret = dashboard_dao.get_count_projetos_orientador(anoI, anoF)
+        o = request.args.get('orientadores')
+        if not o:
+            oris = tuple()
+        else:
+            oris = tuple()
+            for ori in o.split(','):
+                try:
+                    oris = oris + (int(ori),)
+                except:
+                    oris = tuple()
+                    break
+
+        ret = dashboard_dao.get_count_projetos_orientador(anoI, anoF, orientadores= oris)
         if ret == None:
             return get_no_content()
         return get_success(ret)
