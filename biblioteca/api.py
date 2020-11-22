@@ -31,6 +31,7 @@ from biblioteca.projeto.resources import (
     BuscarProjetosOrientadorNovo,
     BuscarProjetosOrientadorId,
     BuscarAtributosProjetoResource,
+    BuscarAtributosEspeciaisProjetoResource,
     BuscarProjetosCurso,
     BuscarProjetosInativosResource,
     BuscaTodosProjetosResource,
@@ -181,6 +182,7 @@ def configure_api(app):
     api.add_resource(BuscarProjetosOrientadorId, '/api/projetos/orientador/<int:id>')#publico
     api.add_resource(BuscarProjetosInativosResource, '/api/projetos/inativos')
     api.add_resource(BuscarAtributosProjetoResource, '/api/projetos/atributos')
+    api.add_resource(BuscarAtributosEspeciaisProjetoResource, '/api/projetos/atributosespeciais')
     api.add_resource(BuscaTodosProjetosResource, '/api/projetos/todos')
     api.add_resource(GetProjetoInativoResource, '/api/projetos/inativos/<int:id>')
     api.add_resource(GetProjetoNovo, '/api/projetos/novo/get/<int:id>')

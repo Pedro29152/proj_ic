@@ -65,8 +65,9 @@ def busca_orientadores_codProjeto(codProjeto):
         '''
             select codOrientador, nomeOrientador, raOrientador, email, currLattes, tipoOrientador 
             from orientadores 
-            natural join projeto_orientador 
+            natural join projeto_orientador as po
             where codProjeto = (%s)
+            order by po.tipoOrientador
         ''',
         (codProjeto,)
     )

@@ -14,6 +14,12 @@ from biblioteca.responses import (
 )
 from .usuarios import usuario_dao
 
+class AtributosEspeciaisProjeto(IntEnum):
+    Autores = 1
+    PalavrasChave = 2
+    Curso = 3
+    Orientadores = 4
+
 class TiposUsuario(IntEnum):
     Aluno = 1
     Professor = 2

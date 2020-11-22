@@ -31,9 +31,18 @@ class ReltorioProjetosResource(Resource):
             except ValueError:
                 atributos = []
 
-        projs_wb = get_projs_workbook(proj_attr=atributos, data_i=dataInicial, data_f=dataFinal)
+        atributosEsp = request.args.get('atributosEspeciais')
+        if not atributosEsp:
+            atributosEsp = []
+        else:
+            try:
+                atributosEsp = [int(i) for i in atributosEsp.split(',')]
+            except ValueError:
+                atributosEsp = []
+
+        projs_wb = get_projs_workbook(proj_attr=atributos, proj_attr_esp=atributosEsp, data_i=dataInicial, data_f=dataFinal)
         if not projs_wb:
-            return get_bad_request(response_messages.NAO_ENCONTRADO('"trablho"'))
+            return get_bad_request(response_messages.NAO_ENCONTRADO('"trabalho"'))
 
         xlsx = BytesIO(save_virtual_workbook(projs_wb))
 

@@ -16,6 +16,8 @@ from biblioteca.responses import (
 from biblioteca.extensions import (
     TiposUsuario,
     TiposOrientador,
+    AtributosEspeciaisProjeto,
+    get_enum_obj,
     separate_camel_case as scc
 )
 
@@ -143,7 +145,7 @@ def busca_projeto_tipo_pag(tipo, query = '', ordem = 0, crescente = True, pag = 
 
     return ret
 
-def busca_projeto(proj_attr=[], data_i= None, data_f= None):
+def busca_projeto(proj_attr=[], proj_attr_esp=None, data_i= None, data_f= None):
     attr = busca_atributos_projeto()
     keys = list(attr.keys())
     atributos = list(set(proj_attr) & set(keys))
@@ -152,6 +154,13 @@ def busca_projeto(proj_attr=[], data_i= None, data_f= None):
         atrib = ', '.join([attr[a] for a in atributos])
     else:
         atrib = ', '.join([attr[a] for a in keys])
+    
+    if not (proj_attr_esp == None): 
+        attrEsp = get_enum_obj(AtributosEspeciaisProjeto)
+        keysEsp = list(attrEsp.keys())
+        atributosEsp = list(set(proj_attr_esp) & set(keysEsp))
+    else:
+        atributosEsp = None
     
     if data_i and data_f:
         query = f'''
@@ -175,7 +184,7 @@ def busca_projeto(proj_attr=[], data_i= None, data_f= None):
             return None
 
 
-    prenche_projetos(ret)
+    prenche_projetos(ret, attrs=atributosEsp)
 
     return ret
 
@@ -588,15 +597,28 @@ def add_view(codProjeto):
 
     db.bd_gravar(query, (codProjeto,))
 
-def prenche_projetos(ret):
+def prenche_projetos(ret, attrs=None):
     for item in ret:
-        prenche_projeto(item)
+        prenche_projeto(item, attrs=attrs)
 
-def prenche_projeto(ret):
-    ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
-    ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
-    ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
-    ret['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
+def prenche_projeto(ret, attrs=None):
+    if attrs == None:
+        ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
+        ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
+        ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
+        ret['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
+    else:
+        if AtributosEspeciaisProjeto.Autores.value in attrs:
+            ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
+
+        if AtributosEspeciaisProjeto.PalavrasChave.value in attrs:
+            ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
+
+        if AtributosEspeciaisProjeto.Curso.value in attrs:
+            ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
+
+        if AtributosEspeciaisProjeto.Orientadores.value in attrs:
+            ret['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
 
 def reprova_projetos_invalidos():
     query = '''

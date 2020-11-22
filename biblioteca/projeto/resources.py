@@ -36,9 +36,11 @@ from biblioteca.extensions import(
     professor_coordenador_secretaria_token_required,
     aluno_professor_coordenador_token_required,
     is_valid_email,
+    get_enum_obj,
     TiposUsuario,
     LinguagemProjeto,
-    ModalidadeProjeto
+    ModalidadeProjeto,
+    AtributosEspeciaisProjeto
 )
 from . import projetos_dao
 from .schemas import Projetos, Autores, PalavrasChave
@@ -166,6 +168,16 @@ class BuscarAtributosProjetoResource(Resource):
         ret = projetos_dao.busca_atributos_projeto()
         if not ret:
             return get_no_content()
+        return get_success(ret)
+
+class BuscarAtributosEspeciaisProjetoResource(Resource):
+    @admin_token_required
+    def get(self):
+        separate = True
+        if not request.args.get('separate') == None:
+            separate = False if request.args.get('separate') == 'false' else True
+        
+        ret = get_enum_obj(AtributosEspeciaisProjeto, separate=separate)
         return get_success(ret)
 
 class AprovarProjetoResource(Resource):
