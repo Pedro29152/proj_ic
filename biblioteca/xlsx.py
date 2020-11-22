@@ -10,8 +10,8 @@ from biblioteca.extensions import (
     get_enum_obj
 )
 
-def get_projs_workbook(proj_attr=[]):
-    projs = projetos_dao.busca_projeto(proj_attr=proj_attr)
+def get_projs_workbook(proj_attr= [], data_i= None, data_f= None):
+    projs = projetos_dao.busca_projeto(proj_attr=proj_attr, data_i=data_i, data_f=data_f)
     if not projs:
         return None
     

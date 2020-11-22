@@ -143,7 +143,7 @@ def busca_projeto_tipo_pag(tipo, query = '', ordem = 0, crescente = True, pag = 
 
     return ret
 
-def busca_projeto(proj_attr=[]):
+def busca_projeto(proj_attr=[], data_i= None, data_f= None):
     attr = busca_atributos_projeto()
     keys = list(attr.keys())
     atributos = list(set(proj_attr) & set(keys))
@@ -153,16 +153,27 @@ def busca_projeto(proj_attr=[]):
     else:
         atrib = ', '.join([attr[a] for a in keys])
     
-    query = f'''
-        select codProjeto, codCurso, {atrib} 
-        from projetos 
-        where ativo = 1 and status = 1
-    '''
-        
-    try:
-        ret = db.bd_busca(query)
-    except ProgrammingError:
-        return None
+    if data_i and data_f:
+        query = f'''
+            select codProjeto, codCurso, {atrib}
+            from projetos
+            where (ativo = 1 and status = 1) and dataAvaliacao between %s and %s
+        '''
+        try:
+            ret = db.bd_busca(query, (data_i, data_f))
+        except ProgrammingError:
+            return None
+    else:
+        query = f'''
+            select codProjeto, codCurso, {atrib}
+            from projetos
+            where (ativo = 1 and status = 1)
+        '''
+        try:
+            ret = db.bd_busca(query)
+        except ProgrammingError:
+            return None
+
 
     prenche_projetos(ret)
 
