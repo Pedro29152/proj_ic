@@ -29,7 +29,8 @@ QUERY_CURSO = '''
 QUERY_TITULO = '''
     SELECT * 
     FROM projetos 
-    WHERE tituloProjeto LIKE (%s) AND ativo = 1 and status = 1 '''
+    WHERE tituloProjeto LIKE (%s) AND ativo = 1 and status = 1
+    '''
 QUERY_DESCRICAO = '''
     SELECT * 
     FROM projetos 
@@ -54,8 +55,14 @@ QUERY_PALAVRAS_CHAVE = '''
     join projetos pj 
     where palavraChave like (%s) AND ativo = 1 and status = 1 
     '''
-    
+QUERY_MODALIDADE = '''
+    SELECT * 
+    FROM projetos 
+    WHERE modalidade = (%s) AND ativo = 1 and status = 1
+    '''
+
 def busca_projeto_tipo(tipo, query = '', ordem = 0, crescente = True):
+    queryBase = query
     query = '%' + query + '%'
 
     ret = None
@@ -88,12 +95,17 @@ def busca_projeto_tipo(tipo, query = '', ordem = 0, crescente = True):
             QUERY_AUTOR + __ordena(ordem,crescente),
             (query,)
         )
-
     elif tipo == 'palavrasChave':
         ret = __busca_projeto_full(
             QUERY_PALAVRAS_CHAVE +
             __ordena(ordem, crescente),
             (query,)
+        )
+    elif tipo == 'modalidade':
+        ret = __busca_projeto_full(
+            QUERY_MODALIDADE +
+            __ordena(ordem, crescente),
+            (queryBase,)
         )
     else:
         ret = None
@@ -101,6 +113,7 @@ def busca_projeto_tipo(tipo, query = '', ordem = 0, crescente = True):
     return ret
 
 def busca_projeto_tipo_pag(tipo, query = '', ordem = 0, crescente = True, pag = 1):
+    queryBase = query
     query = '%' + query + '%'
 
     ret = None
@@ -133,12 +146,17 @@ def busca_projeto_tipo_pag(tipo, query = '', ordem = 0, crescente = True, pag = 
             QUERY_AUTOR + __ordena(ordem,crescente) + __get_limit(pag),
             (query,)
         )
-
     elif tipo == 'palavrasChave':
         ret = __busca_projeto_full(
             QUERY_PALAVRAS_CHAVE +
             __ordena(ordem, crescente) + __get_limit(pag),
             (query,)
+        )
+    elif tipo == 'modalidade':
+        ret = __busca_projeto_full(
+            QUERY_MODALIDADE +
+            __ordena(ordem, crescente) + __get_limit(pag),
+            (queryBase,)
         )
     else:
         ret = None
@@ -222,6 +240,8 @@ def busca_projeto_ranking_pag(titulo, tipo, ordem, pag):
         query += 'order by numVisitas' + ordem
     elif tipo == 'numDownloads':
         query += 'order by numDownloads' + ordem
+    else:
+        query += 'order by numVisitas' + ordem
     
     query += __get_limit(pag, 5)
 
