@@ -165,7 +165,11 @@ class BuscarProjetosOrientadorId(Resource):
 class BuscarAtributosProjetoResource(Resource):
     @admin_token_required
     def get(self):
-        ret = projetos_dao.busca_atributos_projeto()
+        separate = True
+        if not request.args.get('separate') == None:
+            separate = False if request.args.get('separate') == 'false' else True
+        
+        ret = projetos_dao.busca_atributos_projeto(separate_camel_case=separate)
         if not ret:
             return get_no_content()
         return get_success(ret)

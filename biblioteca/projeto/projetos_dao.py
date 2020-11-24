@@ -1,4 +1,5 @@
 import os
+from os import getenv
 
 from flask import current_app as app
 from mysql.connector.errors import DataError, IntegrityError, ProgrammingError
@@ -390,7 +391,7 @@ def grava_projeto(projeto, is_secretaria=True):
     if is_secretaria:
         db.bd_gravar(
             'insert into projetos'+
-            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, status, linguagem, modalidade, localPublicacao)'+
+            '(tituloProjeto, subtitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, status, linguagem, modalidade, localPublicacao)'+
             'values(%s,%s,%s,%s,%s,%s,1,%s,%s,%s)',
             (projeto.tituloProjeto,
             projeto.subTitulo,
@@ -405,7 +406,7 @@ def grava_projeto(projeto, is_secretaria=True):
     else:
         db.bd_gravar(
             'insert into projetos'+
-            '(tituloProjeto, subTitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, linguagem, modalidade, localPublicacao)'+
+            '(tituloProjeto, subtitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, linguagem, modalidade, localPublicacao)'+
             'values(%s,%s,%s,%s,%s,%s,%s,%s,%s)',
             (projeto.tituloProjeto,
             projeto.subTitulo,
@@ -564,7 +565,7 @@ def edita_descricao(codProjeto, descricao):
     db.bd_gravar(query, (descricao, codProjeto))
 
 def edita_subtitulo(codProjeto, subtitulo):
-    query = 'update projetos set subTitulo = (%s) where codProjeto = (%s)'
+    query = 'update projetos set subtitulo = (%s) where codProjeto = (%s)'
 
     db.bd_gravar(query, (subtitulo, codProjeto))
 
@@ -663,10 +664,10 @@ def busca_atributos_projeto(separate_camel_case=False):
         inner join information_schema.COLUMNS c
             on c.table_schema=t.table_schema
             and c.table_name=t.table_name
-        where (t.table_schema='proj_ic' and t.table_name='projetos') 
+        where (t.table_schema='{0}' and t.table_name='projetos') 
         and (not (c.ordinal_position in (1,10,11,12)))
         order by t.table_name, c.ordinal_position
-    '''
+    '''.format(getenv('MYSQL_DATABASE'))
     ret = db.bd_busca_information_schema(query)
     obj = {}
     for attr in ret:

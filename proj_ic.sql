@@ -140,7 +140,7 @@ DROP TABLE IF EXISTS `projetos`;
 CREATE TABLE `projetos` (
   `codProjeto` int(11) NOT NULL AUTO_INCREMENT,
   `tituloProjeto` longtext NOT NULL,
-  `subTitulo` longtext,
+  `subtitulo` longtext,
   `descricao` longtext,
   `nomeArquivo` varchar(120) NOT NULL,
   `numVisitas` int(11) NOT NULL DEFAULT '0',
