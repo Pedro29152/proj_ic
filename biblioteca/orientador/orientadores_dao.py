@@ -3,6 +3,8 @@ from .schemas import Orientadores
 from biblioteca.projeto import projetos_dao
 from biblioteca.usuarios import usuario_dao
 
+from mysql.connector.errors import ProgrammingError
+
 def get_orientador(raOrientador):
     query = 'select * from orientadores where raOrientador = (%s) and ativo = 1'
     ret = db.bd_busca_um(query, (raOrientador,))
@@ -179,3 +181,42 @@ def get_count():
     query = 'select count(*) as orientadores from orientadores'
     ret = db.bd_busca_um(query, None)
     return ret['orientadores']
+
+def get_relatorio_orientadores(data_i= None, data_f= None):
+    base_query = '''
+        select 
+            o.nomeOrientador as nomeDoOrientador, 
+            count(*) as numProjetos, 
+            year(p.dataAvaliacao) as ano,
+            sum(case when month(p.dataAvaliacao) between 1 and 7 then 1 else 0 end) AS 'semestre 1',
+            sum(case when month(p.dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre 2'
+        from orientadores as o
+        join projeto_orientador as po
+        on po.codOrientador = o.codOrientador
+        join projetos as p on p.codProjeto = po.codProjeto
+        where (p.ativo = 1 and p.status = 1) {0}
+        group by o.codOrientador, 3
+        order by 1, 3
+    '''
+    
+    if data_i and data_f:
+        query = base_query.format('and dataAvaliacao between %s and %s')
+        try:
+            ret = db.bd_busca(query, (data_i, data_f))
+        except ProgrammingError:
+            return None
+    else:
+        query = base_query.format('')
+        try:
+            ret = db.bd_busca(query)
+        except ProgrammingError:
+            return None
+    
+    __remove_decimais(ret)
+
+    return ret
+
+def __remove_decimais(obj):
+    for item in obj:
+        item['semestre 1'] = int(item['semestre 1'])
+        item['semestre 2'] = int(item['semestre 2'])

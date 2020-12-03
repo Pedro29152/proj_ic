@@ -8,7 +8,8 @@ from openpyxl.writer.excel import save_virtual_workbook
 from biblioteca import response_messages
 from biblioteca.xlsx import (
     get_projs_workbook,
-    get_cursos_workbook
+    get_cursos_workbook,
+    get_orientadores_workbook
 )
 from biblioteca.extensions import (
     admin_token_required
@@ -69,6 +70,23 @@ class RelatorioCursosResource(Resource):
         data_str = f'{data.day}-{data.month}-{data.year}'
 
         return get_excel(cursos_wb, title='Relatorio-Cursos-{0}'.format(data_str))
+
+class RelatorioOrientadoresResource(Resource):
+    def get(self):
+        dataInicial = (request.args.get('dataInicial'))
+        dataFinal = (request.args.get('dataFinal'))
+
+        if (dataInicial and not dataFinal) or (not dataInicial and dataFinal):
+            return get_no_content()
+
+        orientadores_wb = get_orientadores_workbook(data_i=dataInicial, data_f=dataFinal)
+        if not orientadores_wb:
+            return get_bad_request(response_messages.NAO_FOI_POSSIVEL('gerar um relatorio com os parametros enviados'))
+
+        data = datetime.now()
+        data_str = f'{data.day}-{data.month}-{data.year}'
+
+        return get_excel(orientadores_wb, title='Relatorio-Orientadores-{0}'.format(data_str))
 
 
 def get_excel(xlsx_wb, title='arquivo'):

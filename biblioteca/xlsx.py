@@ -4,6 +4,7 @@ from openpyxl.styles import Font, PatternFill
 
 from biblioteca.projeto import projetos_dao
 from biblioteca.curso import cursos_dao
+from biblioteca.orientador import orientadores_dao
 from biblioteca.extensions import (
     LinguagemProjeto,
     ModalidadeProjeto,
@@ -93,7 +94,7 @@ def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= No
     
     return wb
 
-def get_cursos_workbook(curso_attr=[], curso_attr_esp=[], data_i= None, data_f= None):
+def get_cursos_workbook(data_i= None, data_f= None):
     cursos = cursos_dao.get_relatorio_cursos(data_i=data_i, data_f=data_f)
     if not cursos:
         return None
@@ -132,10 +133,46 @@ def get_cursos_workbook(curso_attr=[], curso_attr_esp=[], data_i= None, data_f= 
     
     return wb
 
-#def get_orientador_workbook(ori_attr= [], ori_attr_esp=[], data_i=None, data_f=None):
-#    pass
+def get_orientadores_workbook(data_i= None, data_f= None):
+    orientadores = orientadores_dao.get_relatorio_orientadores(data_i=data_i, data_f=data_f)
+    if not orientadores:
+        return None
 
+    atributos = list(orientadores[0].keys())
 
+    wb = __generate_workbook(
+        title='Relatorio Orientadores',
+        header= __generate_header(atributos)
+    )
+    ws = wb.active
+
+    column_widths = __get_base_column_widths(atributos)
+
+    for i, orientador in enumerate(orientadores):
+        linha = []
+
+        for j, atributo in enumerate(atributos):
+            val = orientador[atributo]
+            
+            linha.append(val)
+
+            tam_cell = (len(str(linha[j])) + 3)
+            if tam_cell > 80:
+                tam_cell = 80
+            
+            if len(column_widths) > j:
+                if tam_cell > column_widths[j]:
+                    column_widths[j] = tam_cell
+            else:
+                column_widths += [tam_cell]
+
+        ws.append(linha)
+
+    for i, column_width in enumerate(column_widths):
+        ws.column_dimensions[get_column_letter(i+1)].width = column_width
+    
+    return wb
+    
 def __generate_header(attr):
     ret = [separate_camel_case(key) for key in attr]
     return ret
