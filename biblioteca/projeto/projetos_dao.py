@@ -202,7 +202,6 @@ def busca_projeto(proj_attr=[], proj_attr_esp=None, data_i= None, data_f= None):
         except ProgrammingError:
             return None
 
-
     prenche_projetos(ret, attrs=atributosEsp)
 
     return ret
@@ -305,7 +304,7 @@ def busca_projeto_orientador_publico(codOrientador):
         select p.*
         from projetos as p
         natural join projeto_orientador
-        where ativo = 1 and status = 1 and codOrientador = (%s)
+        where (ativo = 1 and status = 1) and codOrientador = (%s)
     '''
     ret = db.bd_busca(query, (codOrientador,))
 

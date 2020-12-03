@@ -104,7 +104,8 @@ from biblioteca.dashboard.resources import (
     CountUsuariosTipo
 )
 from biblioteca.relatorios.resources import (
-    ReltorioProjetosResource
+    RelatorioProjetosResource,
+    RelatorioCursosResource
 )
 from .db import bd_busca   
 
@@ -144,7 +145,8 @@ def configure_api(app):
     api.add_resource(CountUsuariosTipo, '/api/dashboard/usuarios')
 
     #Rotas de relatorios
-    api.add_resource(ReltorioProjetosResource, '/api/relatorios/projetos')
+    api.add_resource(RelatorioProjetosResource, '/api/relatorios/projetos')
+    api.add_resource(RelatorioCursosResource, '/api/relatorios/cursos')
 
     #Rotas de slide
     api.add_resource(BuscarSlidesResource, '/api/slides')

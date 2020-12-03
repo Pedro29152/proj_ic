@@ -3,12 +3,24 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill
 
 from biblioteca.projeto import projetos_dao
+from biblioteca.curso import cursos_dao
 from biblioteca.extensions import (
     LinguagemProjeto,
     ModalidadeProjeto,
     separate_camel_case, 
     get_enum_obj
 )
+
+DEFAULT_FILL = PatternFill(
+        fill_type= "solid",
+        fgColor='b3605d'
+    )
+DEFAULT_FONT = Font(
+        size=18,
+        bold=True,
+        color='ffffff'
+    )
+
 
 def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= None):
     projs = projetos_dao.busca_projeto(proj_attr=proj_attr, proj_attr_esp=proj_attr_esp, data_i=data_i, data_f=data_f)
@@ -20,14 +32,12 @@ def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= No
     atributos.remove('codCurso')
 
     wb = __generate_workbook(
-        title='Relatorio Projetos',
-        header= __generate_header(atributos),
-        header_font=Font(size=18, bold=True, color='ffffff'),
-        header_fill=PatternFill(fill_type= "solid", fgColor='b3605d')
+        title='Relatorio Trabalhos',
+        header= __generate_header(atributos)
     )
     ws = wb.active
     
-    column_widths = [(len(separate_camel_case(att)) + 3) * 1.6 for att in atributos]
+    column_widths = __get_base_column_widths(atributos)
     for i, projeto in enumerate(projs):
         linha = []
 
@@ -83,11 +93,54 @@ def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= No
     
     return wb
 
+def get_cursos_workbook(curso_attr=[], curso_attr_esp=[], data_i= None, data_f= None):
+    cursos = cursos_dao.get_relatorio_cursos(data_i=data_i, data_f=data_f)
+    if not cursos:
+        return None
+
+    atributos = list(cursos[0].keys())
+
+    wb = __generate_workbook(
+        title='Relatorio Cursos',
+        header= __generate_header(atributos)
+    )
+    ws = wb.active
+
+    column_widths = __get_base_column_widths(atributos)
+    for i, curso in enumerate(cursos):
+        linha = []
+        
+        for j, atributo in enumerate(atributos):
+            val = curso[atributo]
+            
+            linha.append(val)
+
+            tam_cell = (len(str(linha[j])) + 3)
+            if tam_cell > 80:
+                tam_cell = 80
+            
+            if len(column_widths) > j:
+                if tam_cell > column_widths[j]:
+                    column_widths[j] = tam_cell
+            else:
+                column_widths += [tam_cell]
+
+        ws.append(linha)
+
+    for i, column_width in enumerate(column_widths):
+        ws.column_dimensions[get_column_letter(i+1)].width = column_width
+    
+    return wb
+
+#def get_orientador_workbook(ori_attr= [], ori_attr_esp=[], data_i=None, data_f=None):
+#    pass
+
+
 def __generate_header(attr):
     ret = [separate_camel_case(key) for key in attr]
     return ret
 
-def __generate_workbook(title='', header='', header_font=None, header_fill=None):
+def __generate_workbook(title='', header='', header_font=DEFAULT_FONT, header_fill=DEFAULT_FILL):
     wb = Workbook()
     ws = wb.active
     if title != '':
@@ -99,3 +152,6 @@ def __generate_workbook(title='', header='', header_font=None, header_fill=None)
         cell.fill = header_fill
 
     return wb
+
+def __get_base_column_widths(attrs):
+    return [(len(separate_camel_case(att)) + 3) * 1.6 for att in attrs]

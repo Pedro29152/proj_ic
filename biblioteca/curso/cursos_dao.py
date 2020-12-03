@@ -1,6 +1,8 @@
 from biblioteca import db
 from .schemas import Cursos
 
+from mysql.connector.errors import ProgrammingError
+
 def busca_curso_nome(descricaoCurso):
     nomeCurso = '%' + descricaoCurso + '%'
 
@@ -129,3 +131,40 @@ def get_curso_codUsuario_coordenador(codUsuario):
     '''
     ret = db.bd_busca_um(query, (codUsuario,))
     return ret
+
+def get_relatorio_cursos(data_i= None, data_f= None):
+    base_query = '''
+        select 
+            c.descricaoCurso as curso,
+            count(*) as numProjetos, 
+            year(dataAvaliacao) as ano, 
+            sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end) AS 'semestre 1',
+            sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre 2'
+        from projetos as p
+        natural join cursos as c
+        where (p.ativo = 1 and p.status = 1) {0}
+        group by c.codCurso, 3
+        order by 1, 3
+    '''
+    
+    if data_i and data_f:
+        query = base_query.format('and dataAvaliacao between %s and %s')
+        try:
+            ret = db.bd_busca(query, (data_i, data_f))
+        except ProgrammingError:
+            return None
+    else:
+        query = base_query.format('')
+        try:
+            ret = db.bd_busca(query)
+        except ProgrammingError:
+            return None
+    
+    __remove_decimais(ret)
+
+    return ret
+
+def __remove_decimais(obj):
+    for item in obj:
+        item['semestre 1'] = int(item['semestre 1'])
+        item['semestre 2'] = int(item['semestre 2'])
