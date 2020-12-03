@@ -3,9 +3,9 @@
 # Third
 from setuptools import find_packages, setup
 
-__version__ = '0.1.0'
-__description__ = 'Biblioteca de Trabalhos Cientificos'
-__long_description__ = 'Biblioteca de trabalhos cienteificos para estudantes'
+__version__ = '1.2.0'
+__description__ = 'Biblioteca de Trabalhos Acadêmicos'
+__long_description__ = 'Biblioteca Virtual de Trabalhos Acadêmicos Prof. Me. Silvio José Rosa'
 
 __author__ = 'Pedro Vitorio'
 __author_email__ = 'pedro@hotmail.com'
@@ -24,12 +24,12 @@ setup(
     license='MIT',
     description=__description__,
     long_description=__long_description__,
-    url='https://github.com/lucassimon/flask-api-users.git',
-    keywords='API, MongoDB',
+    url='http://www.bta.fateccarapicuiba.edu.br/',
+    keywords='API, Biblioteca, Trabalhos academicos, Fatec, Carapicuiba',
     include_package_data=True,
     zip_safe=False,
     classifiers=[
-        'Intended Audience :: Developers, Students',
+        'Intended Audience :: Students',
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
