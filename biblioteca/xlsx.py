@@ -1,3 +1,6 @@
+import json
+
+from json.decoder import JSONDecodeError
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill
@@ -74,6 +77,26 @@ def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= No
                 linha.append(get_enum_obj(LinguagemProjeto)[val])
             elif atributo == 'modalidade':
                 linha.append(get_enum_obj(ModalidadeProjeto)[val])
+            elif atributo == 'localPublicacao':
+                try:
+                    pub = json.loads(val)
+
+                    if isinstance(pub, list):
+                        texto = ''
+                        for item in pub:
+                            c = list(item.keys())
+                            if not texto:
+                                texto = item[c[0]]
+                            else:
+                                texto += f', {item[c[0]]}'
+                        linha.append(texto)
+                    elif isinstance(pub, dict):
+                        c = list(pub.keys())
+                        linha.append(pub[c[0]])
+                    else:
+                        linha.append('')
+                except JSONDecodeError:
+                    linha.append(val)   
             else:
                 linha.append(val)
             
