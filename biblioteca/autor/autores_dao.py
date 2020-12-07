@@ -1,4 +1,4 @@
-from mysql.connector.errors import IntegrityError
+from mysql.connector.errors import IntegrityError, ProgrammingError
 from biblioteca import db
 
 def busca_autores(nomeAutor=''):
@@ -56,6 +56,47 @@ def get_orientador_codAutor(codAutor):
         where uo.codAutor = (%s)
     '''
     return db.bd_busca_um(query, (codAutor,))
+
+def get_relatorio_autores(data_i=None, data_f=None):
+    base_query = '''
+        select 
+            a.nomeAutor as nomeDoAutor,
+            a.raAutor as raDoAutor,
+            a.email as emailDoAutor,
+            p.tituloProjeto as projeto, 
+            p.dataAvaliacao as dataDeAvaliacaoDoProjeto,
+            year(p.dataAvaliacao) as ano, 
+            c.abreviacao as curso,
+            o.nomeOrientador as orientador
+        from autores as a
+        join projeto_autor as pa
+        on a.codAutor = pa.codAutor
+        join projetos as p
+        on pa.codProjeto = p.codProjeto
+        join cursos as c
+        on c.codCurso = p.codCurso
+        join projeto_orientador as po
+        on po.codProjeto = p.codProjeto
+        join orientadores as o
+        on o.codOrientador = po.codOrientador
+        where (p.ativo = 1 and p.status = 1) and (po.tipoOrientador = 0) {0}
+        order by p.dataAvaliacao, p.tituloProjeto, a.nomeAutor, a.raAutor, c.descricaoCurso
+    '''
+
+    if data_i and data_f:
+        query = base_query.format('and (year(p.dataAvaliacao) between %s and %s)')
+        try:
+            ret = db.bd_busca(query, (data_i, data_f))
+        except ProgrammingError:
+            return None
+    else:
+        query = base_query.format('')
+        try:
+            ret = db.bd_busca(query)
+        except ProgrammingError:
+            return None
+    
+    return ret
 
 def cadastra_autor(nome, email, ra):
     query = 'insert into autores(nomeAutor, email, raAutor) values (%s, %s, %s)'

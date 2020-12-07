@@ -8,6 +8,7 @@ from openpyxl.styles import Font, PatternFill
 from biblioteca.projeto import projetos_dao
 from biblioteca.curso import cursos_dao
 from biblioteca.orientador import orientadores_dao
+from biblioteca.autor import autores_dao
 from biblioteca.extensions import (
     LinguagemProjeto,
     ModalidadeProjeto,
@@ -195,7 +196,47 @@ def get_orientadores_workbook(data_i= None, data_f= None):
         ws.column_dimensions[get_column_letter(i+1)].width = column_width
     
     return wb
+
+def get_autores_workbook(data_i=None, data_f=None):
+    autores = autores_dao.get_relatorio_autores(data_i=data_i, data_f=data_f)
+    if not autores:
+        return None
+
+    atributos = list(autores[0].keys())
+
+    wb = __generate_workbook(
+        title='Relatorio de Autores',
+        header= __generate_header(atributos)
+    )
+    ws = wb.active
+
+    column_widths = __get_base_column_widths(atributos)
+    for i, autor in enumerate(autores):
+        linha = []
+
+        for j, atributo in enumerate(atributos):
+            val = autor[atributo]
+            
+            linha.append(val)
+
+            tam_cell = (len(str(linha[j])) + 3)
+            if tam_cell > 80:
+                tam_cell = 80
+            
+            if len(column_widths) > j:
+                if tam_cell > column_widths[j]:
+                    column_widths[j] = tam_cell
+            else:
+                column_widths += [tam_cell]
+
+        ws.append(linha)
+
+    for i, column_width in enumerate(column_widths):
+        ws.column_dimensions[get_column_letter(i+1)].width = column_width
     
+    return wb
+
+
 def __generate_header(attr):
     ret = [separate_camel_case(key) for key in attr]
     return ret
