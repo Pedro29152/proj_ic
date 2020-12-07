@@ -12,7 +12,9 @@ from biblioteca.xlsx import (
     get_orientadores_workbook
 )
 from biblioteca.extensions import (
-    admin_token_required
+    admin_token_required,
+    get_enum_values,
+    AtributosEspeciaisProjeto
 )
 from biblioteca.responses import (
     get_bad_request,
@@ -37,13 +39,16 @@ class RelatorioProjetosResource(Resource):
                 atributos = []
 
         atributosEsp = request.args.get('atributosEspeciais')
+        default = get_enum_values(AtributosEspeciaisProjeto)
         if not atributosEsp:
-            atributosEsp = []
+            atributosEsp = default
         else:
             try:
                 atributosEsp = [int(i) for i in atributosEsp.split(',')]
+                if not atributosEsp:
+                    atributosEsp = default
             except ValueError:
-                atributosEsp = []
+                atributosEsp = default
 
         projs_wb = get_projs_workbook(proj_attr=atributos, proj_attr_esp=atributosEsp, data_i=dataInicial, data_f=dataFinal)
         if not projs_wb:

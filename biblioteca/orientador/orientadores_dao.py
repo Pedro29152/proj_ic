@@ -186,7 +186,7 @@ def get_relatorio_orientadores(data_i= None, data_f= None):
     base_query = '''
         select 
             o.nomeOrientador as nomeDoOrientador, 
-            count(*) as numProjetos, 
+            count(*) as quantidadeDeProjetos, 
             year(p.dataAvaliacao) as ano,
             sum(case when month(p.dataAvaliacao) between 1 and 7 then 1 else 0 end) AS 'semestre 1',
             sum(case when month(p.dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre 2'

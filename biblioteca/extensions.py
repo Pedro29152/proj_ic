@@ -409,3 +409,11 @@ def get_enum_obj(intenum, separate=True):
         else:
             obj[tipo.value] = tipo.name
     return obj
+
+def get_enum_values(intenum):
+    arr = []
+
+    for i, tipo in enumerate(intenum):
+        arr.append(tipo.value)
+
+    return arr

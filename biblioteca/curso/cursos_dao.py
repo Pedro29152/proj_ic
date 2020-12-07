@@ -136,7 +136,7 @@ def get_relatorio_cursos(data_i= None, data_f= None):
     base_query = '''
         select 
             c.descricaoCurso as curso,
-            count(*) as numProjetos, 
+            count(*) as quantidadeDeProjetos, 
             year(dataAvaliacao) as ano, 
             sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end) AS 'semestre 1',
             sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre 2'
