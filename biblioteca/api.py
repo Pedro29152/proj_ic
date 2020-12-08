@@ -107,6 +107,7 @@ from biblioteca.relatorios.resources import (
     RelatorioProjetosResource,
     RelatorioCursosResource,
     RelatorioOrientadoresResource,
+    RelatorioOrientadoresSelfResource,
     RelatorioAutoresResource
 )
 from .db import bd_busca   
@@ -150,6 +151,7 @@ def configure_api(app):
     api.add_resource(RelatorioProjetosResource, '/api/relatorios/projetos')
     api.add_resource(RelatorioCursosResource, '/api/relatorios/cursos')
     api.add_resource(RelatorioOrientadoresResource, '/api/relatorios/orientadores')
+    api.add_resource(RelatorioOrientadoresSelfResource, '/api/relatorios/orientador')
     api.add_resource(RelatorioAutoresResource, '/api/relatorios/autores')
 
     #Rotas de slide

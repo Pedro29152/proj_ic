@@ -6,6 +6,7 @@ from flask_restful import Resource, request
 from openpyxl.writer.excel import save_virtual_workbook
 
 from biblioteca import response_messages
+from biblioteca.orientador import orientadores_dao
 from biblioteca.xlsx import (
     get_projs_workbook,
     get_cursos_workbook,
@@ -14,6 +15,7 @@ from biblioteca.xlsx import (
 )
 from biblioteca.extensions import (
     admin_token_required,
+    professor_token_required,
     get_enum_values,
     AtributosEspeciaisProjeto
 )
@@ -23,6 +25,7 @@ from biblioteca.responses import (
 )
 
 class RelatorioProjetosResource(Resource):
+    @admin_token_required
     def get(self):
         dataInicial = (request.args.get('dataInicial'))
         dataFinal = (request.args.get('dataFinal'))
@@ -61,6 +64,7 @@ class RelatorioProjetosResource(Resource):
         return get_excel(projs_wb, 'Relatorio-Trabalhos-{0}'.format(data_str))
 
 class RelatorioCursosResource(Resource):
+    @admin_token_required
     def get(self):
         dataInicial = (request.args.get('dataInicial'))
         dataFinal = (request.args.get('dataFinal'))
@@ -78,6 +82,7 @@ class RelatorioCursosResource(Resource):
         return get_excel(cursos_wb, title='Relatorio-Cursos-{0}'.format(data_str))
 
 class RelatorioOrientadoresResource(Resource):
+    @admin_token_required
     def get(self):
         dataInicial = (request.args.get('dataInicial'))
         dataFinal = (request.args.get('dataFinal'))
@@ -94,7 +99,51 @@ class RelatorioOrientadoresResource(Resource):
 
         return get_excel(orientadores_wb, title='Relatorio-Orientadores-{0}'.format(data_str))
 
+class RelatorioOrientadoresSelfResource(Resource):
+    @professor_token_required
+    def get(self, user_info):
+        orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+        if not orientador:
+            return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
+
+        dataInicial = (request.args.get('dataInicial'))
+        dataFinal = (request.args.get('dataFinal'))
+
+        if (dataInicial and not dataFinal) or (not dataInicial and dataFinal):
+            return get_no_content()
+        
+        atributos = request.args.get('atributos')
+        if not atributos:
+            atributos = []
+        else:
+            try:
+                atributos = [int(i) for i in atributos.split(',')]
+            except ValueError:
+                atributos = []
+
+        atributosEsp = request.args.get('atributosEspeciais')
+        default = get_enum_values(AtributosEspeciaisProjeto)
+        if not atributosEsp:
+            atributosEsp = default
+        else:
+            try:
+                atributosEsp = [int(i) for i in atributosEsp.split(',')]
+                if not atributosEsp:
+                    atributosEsp = default
+            except ValueError:
+                atributosEsp = default
+
+        projs_wb = get_projs_workbook(proj_attr=atributos, proj_attr_esp=atributosEsp, data_i=dataInicial, data_f=dataFinal, has_filtro_orientador=True, codOrientador=orientador['codOrientador'])
+        if not projs_wb:
+            return get_bad_request(response_messages.NAO_FOI_POSSIVEL('gerar um relatorio com os parametros enviados'))
+
+        data = datetime.now()
+        data_str = f'{data.day}-{data.month}-{data.year}'
+
+        return get_excel(projs_wb, 'Relatorio-Trabalhos-{0}'.format(data_str))
+
 class RelatorioAutoresResource(Resource):
+    @admin_token_required
     def get(self):
         dataInicial = (request.args.get('dataInicial'))
         dataFinal = (request.args.get('dataFinal'))

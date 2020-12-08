@@ -27,8 +27,13 @@ DEFAULT_FONT = Font(
     )
 
 
-def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= None):
-    projs = projetos_dao.busca_projeto(proj_attr=proj_attr, proj_attr_esp=proj_attr_esp, data_i=data_i, data_f=data_f)
+def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= None, has_filtro_orientador=False, codOrientador=None):
+    if has_filtro_orientador:
+        if not codOrientador:
+            return None
+        projs = projetos_dao.busca_reltorio_projeto_orientador(codOrientador, proj_attr=proj_attr, proj_attr_esp=proj_attr_esp, data_i=data_i, data_f=data_f)
+    else:
+        projs = projetos_dao.busca_projeto(proj_attr=proj_attr, proj_attr_esp=proj_attr_esp, data_i=data_i, data_f=data_f)
     if not projs:
         return None
     

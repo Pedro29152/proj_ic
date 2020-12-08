@@ -3,6 +3,7 @@ from flask_restful import Resource, request
 
 from biblioteca import response_messages 
 from biblioteca.dashboard import dashboard_dao
+from biblioteca.extensions import admin_token_required
 from biblioteca.responses import (
     get_success,
     get_bad_request,
@@ -49,6 +50,7 @@ class CountProjetosCurso(Resource):
         return get_success(ret)
 
 class CountProjetosOrientador(Resource):
+    @admin_token_required
     def get(self):
         anoI, anoF = get_anoI_anoF()
         if anoF < anoI:
@@ -72,6 +74,7 @@ class CountProjetosOrientador(Resource):
         return get_success(ret)
 
 class CountProjetosFormandos(Resource):
+    @admin_token_required
     def get(self):
         anoI, anoF = get_anoI_anoF()
         if anoF < anoI:
@@ -83,6 +86,7 @@ class CountProjetosFormandos(Resource):
         return get_success(ret)
 
 class CountProjetoStatus(Resource):
+    @admin_token_required
     def get(self):
         anoI, anoF = get_anoI_anoF()
         if anoF < anoI:
@@ -105,6 +109,7 @@ class CountProjetoModalidade(Resource):
         return get_success(ret)
 
 class CountSolicitacoesRevisao(Resource):
+    @admin_token_required
     def get(self):
         anoI, anoF = get_anoI_anoF()
         if anoF < anoI:
@@ -116,6 +121,7 @@ class CountSolicitacoesRevisao(Resource):
         return get_success(ret)
 
 class CountUsuariosTipo(Resource):
+    @admin_token_required
     def get(self):
         ret = dashboard_dao.get_count_usuarios_tipo()
         if ret == None:

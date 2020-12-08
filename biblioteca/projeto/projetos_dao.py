@@ -206,6 +206,52 @@ def busca_projeto(proj_attr=[], proj_attr_esp=None, data_i= None, data_f= None):
 
     return ret
 
+def busca_reltorio_projeto_orientador(codOrientador, proj_attr=[], proj_attr_esp=None, data_i= None, data_f= None):
+    attr = busca_atributos_projeto()
+    keys = list(attr.keys())
+    atributos = list(set(proj_attr) & set(keys))
+
+    if len(atributos) > 0:
+        atrib = ', '.join([attr[a] for a in atributos])
+    else:
+        atrib = ', '.join([attr[a] for a in keys])
+    
+    if not (proj_attr_esp == None): 
+        attrEsp = get_enum_obj(AtributosEspeciaisProjeto)
+        keysEsp = list(attrEsp.keys())
+        atributosEsp = list(set(proj_attr_esp) & set(keysEsp))
+    else:
+        atributosEsp = None
+    
+    if data_i and data_f:
+        query = f'''
+            select codProjeto, codCurso, {atrib}
+            from projetos as p
+            natural join projeto_orientador as po
+            where (ativo = 1 and status = 1) and (and dataAvaliacao between %s and %s) and (po.codOrientador = %s and po.tipoOrientador = 0)
+            order by p.tituloProjeto, p.dataAvaliacao
+        '''
+        try:
+            ret = db.bd_busca(query, (data_i, data_f, codOrientador))
+        except ProgrammingError:
+            return None
+    else:
+        query = f'''
+            select codProjeto, codCurso, {atrib}
+            from projetos as p
+            natural join projeto_orientador as po
+            where (ativo = 1 and status = 1) and (po.codOrientador = %s and po.tipoOrientador = 0)
+            order by p.tituloProjeto, p.dataAvaliacao
+        '''
+        try:
+            ret = db.bd_busca(query, (codOrientador,))
+        except ProgrammingError:
+            return None
+
+    prenche_projetos(ret, attrs=atributosEsp)
+
+    return ret
+
 def busca_projeto_pag(pag):
     query = 'select * from projetos where ativo = 1 and status = 1 ' + __get_limit(pag)
 
