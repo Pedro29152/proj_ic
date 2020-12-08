@@ -15,8 +15,8 @@ def generate_message_html(assunto, receiver_email, html_message):
     htmlPart = MIMEText(generate_default_email(html_message).encode('utf-8'), 'html', 'UTF-8')
     msg.attach(htmlPart)
 
-    cpsPath = path.join(app.config['STATIC_FOLDER'], 'logos\\logo-cps.png')
-    fatecPath = path.join(app.config['STATIC_FOLDER'], 'logos\\logo-fatec.png')
+    cpsPath = path.join(app.config['STATIC_FOLDER'], 'logos', 'logo-cps.png')
+    fatecPath = path.join(app.config['STATIC_FOLDER'], 'logos', 'logo-fatec.png')
     
     with open(cpsPath, 'rb') as fpCps:
         imgCpsPart = MIMEImage(fpCps.read())

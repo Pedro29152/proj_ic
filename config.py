@@ -6,12 +6,10 @@ from os import getenv
 from datetime import timedelta
 
 class Config:
-    LINUX = True if getenv('LINUX').lower() == 'true' else False
-
     APP_ROOT = os.path.dirname(os.path.abspath(__file__))
     STATIC_FOLDER = os.path.join(APP_ROOT, 'static')
-    SLIDES_FOLDER = os.path.join(APP_ROOT, 'static/slides' if LINUX else 'static\\slides')
-    UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static/files' if LINUX else 'static\\files')
+    SLIDES_FOLDER = os.path.join(APP_ROOT, 'static', 'slides')
+    UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static', 'files')
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024
     PROPAGATE_EXCEPTIONS = True
 
