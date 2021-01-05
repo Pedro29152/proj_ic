@@ -5,12 +5,16 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
-def generate_message_html(assunto, receiver_email, html_message):
+def generate_message_html(assunto, receiver_email, html_message, cc=None, cco=None):
     assunto = 'NÃO RESPONDA - {}'.format(assunto)
     msg = MIMEMultipart('alternative')
     msg['Subject'] = assunto
     msg['From'] = getenv('MAILER_SENDER_EMAIL')
     msg['To'] = receiver_email
+    if cc:
+        msg['Cc'] = ','.join(cc)
+    if cco:
+        msg['Bcc'] = ','.join(cco)
 
     htmlPart = MIMEText(generate_default_email(html_message).encode('utf-8'), 'html', 'UTF-8')
     msg.attach(htmlPart)

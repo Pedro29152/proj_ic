@@ -256,6 +256,19 @@ def admin_token_required(f):
         return data
     return decorated
 
+def admin_token_required_user_info(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        success, data = check_tipo_usuario([
+            TiposUsuario.Administrador.value
+        ], has_user_info=True)
+
+        if(success):
+            kwargs.update(data)
+            return f(*args, **kwargs)
+        return data
+    return decorated
+
 def admin_is_user_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -281,6 +294,7 @@ def user_admin_token_required(f):
             return f(*args, **kwargs)
         return data
     return decorated
+
 
 def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has_user_info=False, id=None, has_is_secretaria=False):
     is_user = False

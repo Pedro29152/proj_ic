@@ -27,5 +27,8 @@ if __name__ == '__main__':
 
     # executa o servidor web do flask
     app.run(
-        host=ip, debug=debug, port=port, use_reloader=debug
+        host=ip, 
+        debug=debug, 
+        port=port, 
+        use_reloader=debug
     )

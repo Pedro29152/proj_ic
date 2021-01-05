@@ -563,6 +563,15 @@ def upload_projeto(user_info=None):
             proj = projetos_dao.grava_projeto(
                 projeto, is_secretaria=True
             )
+
+            for autor in projeto.autores:
+                enviar_email_permissao(
+                    autor, 
+                    projeto.curso.descricaoCurso, 
+                    projeto.tituloProjeto, 
+                    projeto.dataAvaliacao.split('-')[0]
+                )
+
     except Exception as ex:
         return get_erro(ex.__str__()), 400
 
@@ -586,11 +595,31 @@ def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
     
     if is_admin or is_secretaria:
         projetos_dao.aprovar_projeto(proj['codProjeto'])
+        
+        enviar_email_aprovacao(proj['autores'], proj['tituloProjeto'])
+        for autor in proj['autores']:
+            enviar_email_permissao(
+                autor,
+                proj['curso']['descricaoCurso'],
+                proj['tituloProjeto'],
+                proj['dataAvaliacao'].strftime('%Y')
+            )
+
         return get_ok(response_messages.TRABALHO_APROVADO()), 200
     elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
         curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
         if curso['abreviacao'] == proj['curso']['abreviacao']:
             projetos_dao.aprovar_projeto(proj['codProjeto'])
+            
+            enviar_email_aprovacao(proj['autores'], proj['tituloProjeto'])
+            for autor in proj['autores']:
+                enviar_email_permissao(
+                    autor,
+                    proj['curso']['descricaoCurso'],
+                    proj['tituloProjeto'],
+                    proj['dataAvaliacao'].strftime('%Y')
+                )
+
             return get_ok(response_messages.TRABALHO_APROVADO()), 200
         return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho'))
     else:
@@ -601,8 +630,14 @@ def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
         if projetos_dao.is_orientador_projeto_novo(proj['codProjeto'], orientador['codOrientador']):
             projetos_dao.aprovar_projeto(proj['codProjeto'])
 
+            enviar_email_aprovacao(proj['autores'], proj['tituloProjeto'])
             for autor in proj['autores']:
-                enviar_email_aprovacao(autor, proj['tituloProjeto'])
+                enviar_email_permissao(
+                    autor,
+                    proj['curso']['descricaoCurso'],
+                    proj['tituloProjeto'],
+                    proj['dataAvaliacao'].strftime('%Y')
+                )
 
             return get_ok(response_messages.TRABALHO_APROVADO()), 200
         return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho')), 400
@@ -615,12 +650,18 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
     if is_admin or is_secretaria:
         projetos_dao.recusar_projeto(proj['codProjeto'])
         os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
+
+        enviar_email_reprovacao(proj['autores'], proj['tituloProjeto'])
+
         return get_ok(response_messages.TRABALHO_REPROVADO()), 200
     elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
         curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
         if curso['abreviacao'] == proj['curso']['abreviacao']:
             projetos_dao.recusar_projeto(proj['codProjeto'])
             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
+
+            enviar_email_reprovacao(proj['autores'], proj['tituloProjeto'])
+
             return get_ok(response_messages.TRABALHO_REPROVADO()), 200
         return get_erro(response_messages.SEM_PERMICAO('reprovar este projeto'))
     else:
@@ -632,8 +673,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
             projetos_dao.recusar_projeto(proj['codProjeto'])
             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
 
-            for autor in proj['autores']:
-                enviar_email_reprovacao(autor, proj['tituloProjeto'])
+            enviar_email_reprovacao(proj['autores'], proj['tituloProjeto'])
 
             return get_ok(response_messages.TRABALHO_REPROVADO()), 200
         return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho')), 400
@@ -791,33 +831,86 @@ def get_count():
     count = projetos_dao.get_count()
     return get_res_count(count), 200
 
-def enviar_email_aprovacao(autor, titulo_projeto):
+def enviar_email_permissao(autor, curso, titulo, anoAvaliacao):
+    msg = mailer.generate_message_html(
+        'Termo de permissão de accesso ao documento',
+        os.getenv('MAILER_SENDER_EMAIL'),
+        '''
+            <div>
+                <h2>TERMO DE PERMISSÃO DE ACESSO AO DOCUMENTO</h2>
+                <p>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    Eu, <span><b>{0}</b></span>, RA <span><b>{1}</b></span>, 
+                    discente do Curso Superior de Tecnologia em <span><b>{2}</b></span>, 
+                    Trabalho Título <span><b>{3}</b></span>, Ano <span><b>{4}</b></span>.
+                    Na qualidade de titular dos direitos autorais do trabalho citado, em 
+                    consonância com a Lei nº 9610/98, autorizo a Fatec Carapicuíba a 
+                    disponibilizar gratuitamente, por tempo indeterminado, online, em 
+                    sua plataforma BTA-Biblioteca Virtual Prof. Me. Silvio José Rosa, 
+                    sem ressarcimento dos direitos autorais, o referido documento de 
+                    minha autoria. Concedo a BTA-Biblioteca Virtual Prof. Me. Silvio 
+                    José Rosa a disponibilização do conteúdo que julgar ser o mais 
+                    adequado, para possibilitar seu acesso por meio de áudio, visualização, 
+                    leitura, impressão e/ou download, conforme permissão aceita durante 
+                    upload do arquivo. Quaisquer medidas judiciais ou extrajudiciais 
+                    concernentes ao conteúdo serão de minha inteira responsabilidade.
+                </p>
+                <div>
+                    Carapicuíba, {5}
+                </div>         
+                <div>
+                    Hora: {6}
+                </div>
+            </div>
+        '''.format(
+            autor['nomeAutor'], 
+            autor['raAutor'],
+            curso,
+            titulo,
+            anoAvaliacao,
+            datetime.now().strftime('%d/%m/%Y'),
+            datetime.now().strftime('%H:%M:%S')
+        )
+    )
+    mailer.send_email(autor['email'], msg)
+
+def enviar_email_aprovacao(autores, titulo_projeto):
+    emails = []
+    for item in autores:
+        emails.append(item['email'])
+
     msg = mailer.generate_message_html(
         'BTA - Projeto Aceito',
-        autor['email'],
+        os.getenv('MAILER_SENDER_EMAIL'),
         '''
             <h2>Seu projeto foi aceito.</h2>
 
-            <p>Olá, {0}.</p>
+            <p>Olá.</p>
 
-            <p>O seu projeto: <b>{1}</b>, foi aceito na Biblioteca de Trabalhos Acadêmicos e, a partir de agora estará visível para todos.</p>
-        '''.format(autor['nomeAutor'], titulo_projeto)
+            <p>O seu projeto: <b>{0}</b>, foi aceito na Biblioteca de Trabalhos Acadêmicos e, a partir de agora estará visível para todos.</p>
+        '''.format(titulo_projeto),
+        cco=emails
     )
-    mailer.send_email(autor['email'], msg)
+    mailer.send_email(emails, msg)
 
-def enviar_email_reprovacao(autor, titulo_projeto):
+def enviar_email_reprovacao(autores, titulo_projeto):
+    emails = []
+    for item in autores:
+        emails.append(item['email'])
+    
     msg = mailer.generate_message_html(
         'BTA - Projeto Recusado',
-        autor['email'],
+        os.getenv('MAILER_SENDER_EMAIL'),
         '''
             <h2>Seu projeto foi recusado.</h2>
 
-            <p>Olá, {0}.</p>
+            <p>Olá.</p>
 
             <p>O seu projeto: <b>{1}</b>, foi recusado e não será exposto publicamente na Biblioteca de Trabalhos Acadêmicos.</p>
-        '''.format(autor['nomeAutor'], titulo_projeto)
+        '''.format(titulo_projeto),
+        cco=emails
     )
-    mailer.send_email(autor['email'], msg)
+    mailer.send_email(emails, msg)
 
 def __allowed_file(filename):
     return '.' in filename and \
@@ -900,4 +993,3 @@ def __get_nome_arquivo_projeto(titulo_projeto, nome_arquivo, curso):
         )
     )
     return filename.upper()
-

@@ -67,6 +67,9 @@ class Autores:
         if not is_valid_email(self.email):
             raise AttributeError('O campo "email" dever ser um email valido')
 
+    def __getitem__(self, attr):
+        return getattr(self, attr)
+    
     def tenta_gravar_autor(self, codProjeto):
         try:
             db.bd_gravar(
