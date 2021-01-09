@@ -166,8 +166,8 @@ def generate_default_email(inner_html):
             </section>
             <section class="bg-gray py-10px w-100">
                 <div class="w-75 mx-auto text-center">
-                    <p>SISTEMA SIGA/Centro Paula Souza/Faculdade de Tecnologia de Carapicuíba
-                        ISENÇÃO DE RESPONSABILIDADE: O conteúdo desta mensagem foi produzida eletronicamente através do sistema BTA, e enviado pelo usuário do sistema que o assina. 
+                    <p>
+                        Centro Paula Souza/Faculdade de Tecnologia de Carapicuíba: ISENÇÃO DE RESPONSABILIDADE: O conteúdo desta mensagem foi produzida eletronicamente através do sistema BTA, e enviado pelo usuário do sistema que o assina. 
                     </p>
                     <p>
                         O conteúdo foi adaptado para se adequar a pessoa que o recebe, e o texto final definido pelo próprio usuário do sistema que o assina. 

@@ -3,7 +3,6 @@
 # Python
 import os
 from os import getenv
-from datetime import timedelta
 
 class Config:
     APP_ROOT = os.path.dirname(os.path.abspath(__file__))
