@@ -1,9 +1,10 @@
+from biblioteca.orientador.orientadores_dao import get_orientador_codUsuario
 from datetime import datetime
 from flask_restful import Resource, request
 
 from biblioteca import response_messages 
 from biblioteca.dashboard import dashboard_dao
-from biblioteca.extensions import admin_token_required
+from biblioteca.extensions import admin_token_required, professor_token_required
 from biblioteca.responses import (
     get_success,
     get_bad_request,
@@ -68,6 +69,23 @@ class CountProjetosOrientador(Resource):
                     oris = tuple()
                     break
 
+        ret = dashboard_dao.get_count_projetos_orientador(anoI, anoF, orientadores= oris)
+        if ret == None:
+            return get_no_content()
+        return get_success(ret)
+
+class CountProjetosOrientadorSelf(Resource):
+    @professor_token_required
+    def get(self, user_info):
+        anoI, anoF = get_anoI_anoF()
+        if anoF < anoI:
+            return get_no_content()
+
+        orientador = get_orientador_codUsuario(user_info['codUsuario'])
+        if not orientador:
+            return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
+
+        oris = tuple([orientador['raOrientador']])
         ret = dashboard_dao.get_count_projetos_orientador(anoI, anoF, orientadores= oris)
         if ret == None:
             return get_no_content()

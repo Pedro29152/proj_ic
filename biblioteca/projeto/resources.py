@@ -694,7 +694,7 @@ def desativa_projeto(codProjeto):
     return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
 
 def ativa_projeto(codProjeto):
-    if projetos_dao.get_projeto(codProjeto):
+    if projetos_dao.get_projeto_inativo(codProjeto):
         projetos_dao.ativa_projeto(codProjeto)
 
         return get_ok(response_messages.ENTIDADE_ATIVADA('Trabalho')), 200
@@ -870,9 +870,10 @@ def enviar_email_permissao(autor, curso, titulo, anoAvaliacao):
             anoAvaliacao,
             datetime.now().strftime('%d/%m/%Y'),
             datetime.now().strftime('%H:%M:%S')
-        )
+        ),
+        cco=[os.getenv('CONTACT_EMAIL')]
     )
-    mailer.send_email(autor['email'], msg)
+    mailer.send_email(os.getenv('CONTACT_EMAIL'), msg)
 
 def enviar_email_aprovacao(autores, titulo_projeto):
     emails = []
@@ -889,9 +890,9 @@ def enviar_email_aprovacao(autores, titulo_projeto):
 
             <p>O seu projeto: <b>{0}</b>, foi aceito na Biblioteca de Trabalhos Acadêmicos e, a partir de agora estará visível para todos.</p>
         '''.format(titulo_projeto),
-        cco=emails
+        cco=os.getenv('CONTACT_EMAIL')
     )
-    mailer.send_email(emails, msg)
+    mailer.send_email(os.getenv('CONTACT_EMAIL'), msg)
 
 def enviar_email_reprovacao(autores, titulo_projeto):
     emails = []
@@ -908,9 +909,9 @@ def enviar_email_reprovacao(autores, titulo_projeto):
 
             <p>O seu projeto: <b>{1}</b>, foi recusado e não será exposto publicamente na Biblioteca de Trabalhos Acadêmicos.</p>
         '''.format(titulo_projeto),
-        cco=emails
+        cco=os.getenv('CONTACT_EMAIL')
     )
-    mailer.send_email(emails, msg)
+    mailer.send_email(os.getenv('CONTACT_EMAIL'), msg)
 
 def __allowed_file(filename):
     return '.' in filename and \

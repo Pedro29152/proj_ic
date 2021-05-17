@@ -207,7 +207,7 @@ def SOLICITACAO_REVISAO_ENVIADA():
     )
 def ORIENTACAO_NECESSARIA():
     return get_msg(
-        'Você precisa orientar este projeto para efetuar esta ação', 
+        'Você precisa orientar este trabalho para efetuar esta ação', 
         'You need to be the advisor of this work to perform this action'
     )
 def NAO_PODE_ALTERAR_PROJETO():

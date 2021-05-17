@@ -220,7 +220,7 @@ def solicitar_revisao(codProjeto, professor_user_info):
     
     proj = projetos_dao.get_projeto_novo(codProjeto, True)
     if not proj:
-        return get_erro(response_messages.NAO_ENCONTRADO('Projeto')), 404
+        return get_erro(response_messages.NAO_ENCONTRADO('Trabalho')), 404
 
     try:
         mensagem = request.form['mensagem']

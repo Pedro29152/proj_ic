@@ -543,8 +543,6 @@ def recuperar_senha():
 
     novaSenha = generate_random_password()
     codUsuario = int(usuario['codUsuario'])
-    usuario_dao.edita_senha(codUsuario, novaSenha)
-
     mailer.send_email(
         usuario['email'],
         mailer.generate_message_html(
@@ -561,5 +559,6 @@ def recuperar_senha():
             '''.format(usuario['nome'], usuario['nomeUsuario'], novaSenha)
         )
     )
+    usuario_dao.edita_senha(codUsuario, novaSenha)
 
     return get_ok(response_messages.EMAIL_ENVIADO_SENHA_NOVA()), 200

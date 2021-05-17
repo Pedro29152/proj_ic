@@ -97,6 +97,7 @@ from biblioteca.dashboard.resources import (
     CountProjetosAnos,
     CountProjetosCurso,
     CountProjetosOrientador,
+    CountProjetosOrientadorSelf,
     CountProjetosFormandos,
     CountProjetoStatus,
     CountProjetoModalidade,
@@ -141,6 +142,7 @@ def configure_api(app):
     api.add_resource(CountProjetosSemestre, '/api/dashboard/projetospelosemestre')
     api.add_resource(CountProjetosCurso, '/api/dashboard/projetosporcurso')
     api.add_resource(CountProjetosOrientador, '/api/dashboard/projetospororientador')
+    api.add_resource(CountProjetosOrientadorSelf, '/api/dashboard/projetospororientadorself')
     api.add_resource(CountProjetosFormandos, '/api/dashboard/formandosporcurso')
     api.add_resource(CountProjetoStatus, '/api/dashboard/projetosporstatus')
     api.add_resource(CountProjetoModalidade, '/api/dashboard/projetospormodalidade')
