@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import sys
+
 from os import getenv
 from os.path import dirname, isfile, join, abspath
 
@@ -21,14 +23,29 @@ from biblioteca import create_app
 app = create_app(getenv('FLASK_ENV') or 'default')
 
 if __name__ == '__main__':
-    ip = '0.0.0.0'
-    port = app.config['APP_PORT']
-    debug = app.config['DEBUG']
+    conf = {
+        'ip': '0.0.0.0',
+        'port': app.config['APP_PORT'],
+        'debug': app.config['DEBUG']
+    }
+
+    if len(sys.argv) > 1:
+        comandos = {}
+
+        for i, arg in enumerate(sys.argv):
+            if i == 0:
+                continue
+            
+            if arg[:2] == '--':
+                param = arg[2:].split('=')
+                comandos[param[0]] = param[1]
+
+        conf = {**conf, **comandos}
 
     # executa o servidor web do flask
     app.run(
-        host=ip, 
-        debug=debug, 
-        port=port, 
-        use_reloader=debug
+        host = conf['ip'], 
+        debug = conf['debug'], 
+        port = conf['port'], 
+        use_reloader = conf['debug']
     )
