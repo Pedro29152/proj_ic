@@ -113,7 +113,7 @@ from biblioteca.relatorios.resources import (
 )
 from .db import bd_busca   
 
-# Criamos uma classe que extende de Resource
+# Clase que retorna a tela de index da API
 class Index(Resource):
     def get(self):
         return {
@@ -126,7 +126,7 @@ api = Api()
 
 def configure_api(app):
 
-    # adicionamos na rota '/' a sua classe correspondente Index
+    # region Rotas gerais
     api.add_resource(Index, '/api')
     api.add_resource(AllCountsResource, '/api/allcounts')
     api.add_resource(ContatoResource, '/api/contato')
@@ -135,8 +135,9 @@ def configure_api(app):
     api.add_resource(GetStatusProjetoEnumResource, '/api/enum/statusprojeto')
     api.add_resource(GetLinguagemProjetoEnumResource, '/api/enum/linguagemprojeto')
     api.add_resource(GetModalidadeProjetoEnumResource, '/api/enum/modalidadeprojeto')
-
-    #Rotas de dashboard
+    #endregion
+    
+    #region Rotas de dashboard
     api.add_resource(GetAnos, '/api/dashboard/anos')
     api.add_resource(CountProjetosAnos, '/api/dashboard/projetospeloano')
     api.add_resource(CountProjetosSemestre, '/api/dashboard/projetospelosemestre')
@@ -148,41 +149,47 @@ def configure_api(app):
     api.add_resource(CountProjetoModalidade, '/api/dashboard/projetospormodalidade')
     api.add_resource(CountSolicitacoesRevisao, '/api/dashboard/solicitacoes')
     api.add_resource(CountUsuariosTipo, '/api/dashboard/usuarios')
+    #endregion
 
-    #Rotas de relatorios
+    #region Rotas de relatorios
     api.add_resource(RelatorioProjetosResource, '/api/relatorios/projetos')
     api.add_resource(RelatorioCursosResource, '/api/relatorios/cursos')
     api.add_resource(RelatorioOrientadoresResource, '/api/relatorios/orientadores')
     api.add_resource(RelatorioOrientadoresSelfResource, '/api/relatorios/orientador')
     api.add_resource(RelatorioAutoresResource, '/api/relatorios/autores')
+    #endregion
 
-    #Rotas de slide
+    #region Rotas de slide
     api.add_resource(BuscarSlidesResource, '/api/slides')
     api.add_resource(SlideIdResource, '/api/slides/<int:id>')
+    #endregion
 
-    #Rotas de curso
+    #region Rotas de curso
     api.add_resource(CursoResource, '/api/cursos')
     api.add_resource(TodosCursosResource, '/api/cursos/todos')
     api.add_resource(CountCursosResource, '/api/cursos/count')
     api.add_resource(CursoIdResource, '/api/cursos/<int:id>')
     api.add_resource(AtivaCursoResource, '/api/cursos/ativar/<int:id>')
     api.add_resource(DesativaCursoResource, '/api/cursos/desativar/<int:id>')
+    #endregion
 
-    #Rotas de orientador
+    #region Rotas de orientador
     api.add_resource(OrientadorResource, '/api/orientadores')
     api.add_resource(OrientadorIdResource, '/api/orientadores/<int:id>')
     api.add_resource(TodosOrientadoresResource, '/api/orientadores/todos')
     api.add_resource(AtivaOrientadorResource, '/api/orientadores/ativar/<int:id>')
     api.add_resource(DesativaOrientadorResource, '/api/orientadores/desativar/<int:id>')
     api.add_resource(CountOrientadoresResource, '/api/orientadores/count')
+    #endregion
 
-    #Rotas de revisao
+    #region Rotas de revisao
     api.add_resource(SolicitarRevisaoResource, '/api/revisoes/solicitarrevisao/<int:id>')
     api.add_resource(VerificarRevisoesResource, '/api/revisoes/verificarrevisao')
     api.add_resource(BuscarRevisoesResource,'/api/revisoes')
     api.add_resource(GetRevisaoResource, '/api/revisoes/<int:id>')
+    #endregion
 
-    #Rotas de projetos
+    #region Rotas de projetos
     api.add_resource(BuscaProjetoResource, '/api/projetos/<string:id>', 
                                            '/api/projetos') #id: titulo, curso, descricao, orientador, autor e palavrasChave
     api.add_resource(BuscaRankingResource, '/api/projetos/ranking')
@@ -210,10 +217,13 @@ def configure_api(app):
     api.add_resource(AlteraProjetoAlunoResource, '/api/projetos/editar/aluno/<int:id>')
     api.add_resource(AlteraLocalPublicacaoResource, '/api/projetos/editar/publicacao/<int:id>')
     api.add_resource(CountProjetosResource, '/api/projetos/count')
+    #endregion
 
-    #Rotas de autorizacao
+    #region Rotas de autorizacao
     api.add_resource(LoginResource, '/api/auth/login')
-    #Rotas de usuario
+    #endregion
+
+    #region Rotas de usuario
     api.add_resource(BuscaUsuariosResource, '/api/usuarios/buscar')
     api.add_resource(BuscaUsuariosInativosResource, '/api/usuarios/buscar/inativos')
     api.add_resource(BuscaUsuariosOrientadosResource, '/api/usuarios/buscar/orientador')
@@ -232,11 +242,13 @@ def configure_api(app):
     api.add_resource(AlterarUsuarioResource, '/api/usuarios/edit')
     api.add_resource(RecuperaraSenha, '/api/usuarios/recuperarsenha')
     api.add_resource(GetUsuarioProprioREsource, '/api/usuarios/self')
+    #endregion
 
-    #Rotas de autor
+    #region Rotas de autor
     api.add_resource(BuscaAlunosResource, '/api/autores')
     api.add_resource(GetAlunoResource, '/api/autores/<int:id>')
     api.add_resource(GetSelfAlunoResource, '/api/usuario/info')
+    #endregion
 
     # inicializamos a api com as configurações do flask vinda por parâmetro
     api.init_app(app)

@@ -1,6 +1,7 @@
 import json
 
 from json.decoder import JSONDecodeError
+from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill
@@ -16,18 +17,28 @@ from biblioteca.extensions import (
     get_enum_obj
 )
 
-DEFAULT_FILL = PatternFill(
+HEADER_FILL = PatternFill(
         fill_type= "solid",
         fgColor='b3605d'
     )
-DEFAULT_FONT = Font(
+HEADER_FONT = Font(
         size=18,
         bold=True,
         color='ffffff'
     )
 
+INFO_FILL = PatternFill(
+        fill_type= "solid",
+        fgColor='c3706d'
+    )
+INFO_FONT = Font(
+        size=22,
+        bold=True,
+        color='ffffff'
+    )
 
-def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= None, has_filtro_orientador=False, codOrientador=None):
+
+def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= None, has_filtro_orientador=False, codOrientador=None, user=None):
     if has_filtro_orientador:
         if not codOrientador:
             return None
@@ -40,14 +51,33 @@ def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= No
     atributos = list(projs[0].keys())
     atributos.remove('codProjeto')
     atributos.remove('codCurso')
+    
+    
+    info = [
+        'FATEC de Carapicuíba',
+        'Gerado por: {}'.format(user['nome']),
+        'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
+    ]
+
+    header = __generate_header(atributos)
+
+    column_widths = __format_column_widths( 
+        __get_base_column_widths_info(info), 
+        __get_base_column_widths_header(header),
+        __get_base_column_widths(atributos)
+    )
+
+    dif = len(header) - len(info)
+    for i in range(dif if dif > 0 else 0):
+        info.append('')
 
     wb = __generate_workbook(
         title='Relatorio Trabalhos',
-        header= __generate_header(atributos)
+        info=info,
+        header=header
     )
     ws = wb.active
-    
-    column_widths = __get_base_column_widths(atributos)
+
     for i, projeto in enumerate(projs):
         linha = []
 
@@ -123,20 +153,38 @@ def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= No
     
     return wb
 
-def get_cursos_workbook(data_i= None, data_f= None):
+def get_cursos_workbook(data_i= None, data_f= None, user=None):
     cursos = cursos_dao.get_relatorio_cursos(data_i=data_i, data_f=data_f)
     if not cursos:
         return None
 
     atributos = list(cursos[0].keys())
 
+    info = [
+        'FATEC de Carapicuíba',
+        'Gerado por: {}'.format(user['nome']),
+        'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
+    ]
+    
+    header = __generate_header(atributos)
+
+    column_widths = __format_column_widths( 
+        __get_base_column_widths_info(info), 
+        __get_base_column_widths_header(header),
+        __get_base_column_widths(atributos)
+    )
+
+    dif = len(header) - len(info)
+    for i in range(dif if dif > 0 else 0):
+        info.append('')
+
     wb = __generate_workbook(
         title='Relatorio Cursos',
+        info=info,
         header= __generate_header(atributos)
     )
     ws = wb.active
 
-    column_widths = __get_base_column_widths(atributos)
     for i, curso in enumerate(cursos):
         linha = []
         
@@ -162,20 +210,37 @@ def get_cursos_workbook(data_i= None, data_f= None):
     
     return wb
 
-def get_orientadores_workbook(data_i= None, data_f= None):
+def get_orientadores_workbook(data_i= None, data_f= None, user=None):
     orientadores = orientadores_dao.get_relatorio_orientadores(data_i=data_i, data_f=data_f)
     if not orientadores:
         return None
 
     atributos = list(orientadores[0].keys())
 
+    info = [
+        'FATEC de Carapicuíba',
+        'Gerado por: {}'.format(user['nome']),
+        'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
+    ]
+    
+    header = __generate_header(atributos)
+
+    column_widths = __format_column_widths( 
+        __get_base_column_widths_info(info), 
+        __get_base_column_widths_header(header),
+        __get_base_column_widths(atributos)
+    )
+
+    dif = len(header) - len(info)
+    for i in range(dif if dif > 0 else 0):
+        info.append('')
+
     wb = __generate_workbook(
         title='Relatorio Orientadores',
+        info=info,
         header= __generate_header(atributos)
     )
     ws = wb.active
-
-    column_widths = __get_base_column_widths(atributos)
 
     for i, orientador in enumerate(orientadores):
         linha = []
@@ -202,20 +267,38 @@ def get_orientadores_workbook(data_i= None, data_f= None):
     
     return wb
 
-def get_autores_workbook(data_i=None, data_f=None):
+def get_autores_workbook(data_i=None, data_f=None, user=None):
     autores = autores_dao.get_relatorio_autores(data_i=data_i, data_f=data_f)
     if not autores:
         return None
 
     atributos = list(autores[0].keys())
 
+    info = [
+        'FATEC de Carapicuíba',
+        'Gerado por: {}'.format(user['nome']),
+        'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
+    ]
+    
+    header = __generate_header(atributos)
+
+    column_widths = __format_column_widths( 
+        __get_base_column_widths_info(info), 
+        __get_base_column_widths_header(header),
+        __get_base_column_widths(atributos)
+    )
+
+    dif = len(header) - len(info)
+    for i in range(dif if dif > 0 else 0):
+        info.append('')
+
     wb = __generate_workbook(
         title='Relatorio de Autores',
+        info=info,
         header= __generate_header(atributos)
     )
     ws = wb.active
 
-    column_widths = __get_base_column_widths(atributos)
     for i, autor in enumerate(autores):
         linha = []
 
@@ -241,23 +324,79 @@ def get_autores_workbook(data_i=None, data_f=None):
     
     return wb
 
-
 def __generate_header(attr):
     ret = [separate_camel_case(key) for key in attr]
     return ret
 
-def __generate_workbook(title='', header='', header_font=DEFAULT_FONT, header_fill=DEFAULT_FILL):
+def __generate_workbook(title=None, header=None, info=None, header_font=HEADER_FONT, header_fill=HEADER_FILL, info_font=INFO_FONT, info_fill=INFO_FILL):
     wb = Workbook()
     ws = wb.active
-    if title != '':
-        ws.title = title
-    ws.append(header)
 
-    for cell in ws['1:1']:
-        cell.font = header_font
-        cell.fill = header_fill
+    if title != None:
+        ws.title = title
+    linha = 1
+
+    if info:
+        ws.append(info)
+
+        for cell in ws['{0}:{0}'.format(linha)]:
+            cell.font = info_font
+            cell.fill = info_fill
+        
+        linha += 1
+
+    if header:
+        ws.append(header)
+
+        for cell in ws['{0}:{0}'.format(linha)]:
+            cell.font = header_font
+            cell.fill = header_fill
+
+        linha += 1
 
     return wb
 
 def __get_base_column_widths(attrs):
     return [(len(separate_camel_case(att)) + 3) * 1.6 for att in attrs]
+
+def __get_base_column_widths_header(attrs):
+    return [(len(separate_camel_case(att)) + 3) * 1.7 for att in attrs]
+
+def __get_base_column_widths_info(attrs):
+    return [(len(separate_camel_case(att)) + 3) * 1.9 for att in attrs]
+
+def __format_column_widths(arr1, arr2, arr3):
+    def getMaior(i1, i2, i3):
+        maior = i1
+        if i2 > maior:
+            maior = i2
+        if i3 > maior:
+            maior = i3
+
+        return maior
+
+    tam1 = len(arr1)
+    tam2 = len(arr2)
+    tam3 = len(arr3)
+
+    tam = getMaior(tam1, tam2, tam3)
+    ret = list()
+
+    for i in range(tam):
+        try:
+            i1 = arr1[i]
+        except:
+            i1 = 0
+            
+        try:
+            i2 = arr2[i]
+        except:
+            i2 = 0
+
+        try:
+            i3 = arr3[i]
+        except:
+            i3 = 0
+
+        ret.append(getMaior(i1, i2, i3))
+    return ret
