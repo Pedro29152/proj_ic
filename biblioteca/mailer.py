@@ -4,9 +4,10 @@ from os import getenv, path
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
+from email.mime.application import MIMEApplication
 
-def generate_message_html(assunto, receiver_email, html_message, cc=None, cco=None):
-    assunto = 'NÃO RESPONDA - {}'.format(assunto)
+def generate_message_html(assunto, receiver_email, html_message, cc=None, cco=None, pdf_attachment=[]):
+    assunto = '[NÃO RESPONDA] BTA - {}'.format(assunto)
     msg = MIMEMultipart('alternative')
     msg['Subject'] = assunto
     msg['From'] = getenv('MAILER_SENDER_EMAIL')
@@ -31,6 +32,12 @@ def generate_message_html(assunto, receiver_email, html_message, cc=None, cco=No
         imgFatecPart = MIMEImage(fpFatec.read())
         imgFatecPart.add_header('Content-ID', '<{}>'.format('logo-fatec.png'))
         msg.attach(imgFatecPart)
+
+    for item in pdf_attachment:
+        with open(item[0], "rb") as f:
+            attach = MIMEApplication(f.read(), _subtype="pdf")
+            attach.add_header('Content-Disposition','attachment', filename=str(item[1]))
+            msg.attach(attach)
 
     return msg.as_string()
 
@@ -129,6 +136,10 @@ def generate_default_email(inner_html):
 
             .aling-center{
                 text-align: center;
+            }
+
+            .aling-justify{
+                text-align: justify;
             }
 
             .d-block{

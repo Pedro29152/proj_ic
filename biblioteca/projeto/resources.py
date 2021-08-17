@@ -15,6 +15,7 @@ from biblioteca.usuarios import usuario_orientado_dao
 from biblioteca.curso import cursos_dao
 from biblioteca.orientador import orientadores_dao
 from biblioteca.autor import autores_dao, projeto_autor_dao
+from biblioteca.pdf_generator import TermoCompromisso
 from biblioteca.responses import (
     get_data,
     get_falha,
@@ -832,48 +833,45 @@ def get_count():
     return get_res_count(count), 200
 
 def enviar_email_permissao(autor, curso, titulo, anoAvaliacao):
+    emails = [autor['email'], os.getenv('CONTACT_EMAIL')]
+
+    path_termo = os.path.join(app.config['STATIC_FOLDER'], 'termos', 'termo.txt')
+    nome_arquivo_pdf = 'termo_autorizacao.pdf'
+    arquivo_pdf = (os.path.join(app.config['STATIC_FOLDER'], 'termos', nome_arquivo_pdf), nome_arquivo_pdf)
+    
+    with open(path_termo,'rb') as file_termo:
+        txt = file_termo.read().decode('UTF-8').format(
+            autor['nomeAutor'], 
+            autor['raAutor'], 
+            curso, 
+            titulo, 
+            anoAvaliacao)
+
+        termo = TermoCompromisso()
+        termo.create("TERMO DE PERMISSÃO DE ACESSO AO DOCUMENTO", txt)
+        termo.output(arquivo_pdf[0])
+    
     msg = mailer.generate_message_html(
         'Termo de permissão de accesso ao documento',
         os.getenv('MAILER_SENDER_EMAIL'),
         '''
             <div>
                 <h2>TERMO DE PERMISSÃO DE ACESSO AO DOCUMENTO</h2>
-                <p>
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    Eu, <span><b>{0}</b></span>, RA <span><b>{1}</b></span>, 
-                    discente do Curso Superior de Tecnologia em <span><b>{2}</b></span>, 
-                    Trabalho Título <span><b>{3}</b></span>, Ano <span><b>{4}</b></span>.
-                    Na qualidade de titular dos direitos autorais do trabalho citado, em 
-                    consonância com a Lei nº 9610/98, autorizo a Fatec Carapicuíba a 
-                    disponibilizar gratuitamente, por tempo indeterminado, online, em 
-                    sua plataforma BTA-Biblioteca Virtual Prof. Me. Silvio José Rosa, 
-                    sem ressarcimento dos direitos autorais, o referido documento de 
-                    minha autoria. Concedo a BTA-Biblioteca Virtual Prof. Me. Silvio 
-                    José Rosa a disponibilização do conteúdo que julgar ser o mais 
-                    adequado, para possibilitar seu acesso por meio de áudio, visualização, 
-                    leitura, impressão e/ou download, conforme permissão aceita durante 
-                    upload do arquivo. Quaisquer medidas judiciais ou extrajudiciais 
-                    concernentes ao conteúdo serão de minha inteira responsabilidade.
+                <p class="aling-justify">
+                    Segue em anexo Termo de Permissão de Acesso, do autor {} portador do RA {}, ao projeto {} do curso {} publicado no ano {}.
                 </p>
-                <div>
-                    Carapicuíba, {5}
-                </div>         
-                <div>
-                    Hora: {6}
-                </div>
             </div>
         '''.format(
             autor['nomeAutor'], 
             autor['raAutor'],
-            curso,
             titulo,
+            curso,
             anoAvaliacao,
-            datetime.now().strftime('%d/%m/%Y'),
-            datetime.now().strftime('%H:%M:%S')
         ),
-        cco=[os.getenv('CONTACT_EMAIL')]
+        cco=emails,
+        pdf_attachment=[arquivo_pdf]
     )
-    mailer.send_email(os.getenv('CONTACT_EMAIL'), msg)
+    mailer.send_email(emails, msg)
 
 def enviar_email_aprovacao(autores, titulo_projeto):
     emails = []
@@ -881,7 +879,7 @@ def enviar_email_aprovacao(autores, titulo_projeto):
         emails.append(item['email'])
 
     msg = mailer.generate_message_html(
-        'BTA - Projeto Aceito',
+        'Projeto Aceito',
         os.getenv('MAILER_SENDER_EMAIL'),
         '''
             <h2>Seu projeto foi aceito.</h2>
@@ -890,9 +888,10 @@ def enviar_email_aprovacao(autores, titulo_projeto):
 
             <p>O seu projeto: <b>{0}</b>, foi aceito na Biblioteca de Trabalhos Acadêmicos e, a partir de agora estará visível para todos.</p>
         '''.format(titulo_projeto),
-        cco=os.getenv('CONTACT_EMAIL')
+        cco=emails
     )
-    mailer.send_email(os.getenv('CONTACT_EMAIL'), msg)
+
+    mailer.send_email(emails, msg)
 
 def enviar_email_reprovacao(autores, titulo_projeto):
     emails = []
@@ -900,7 +899,7 @@ def enviar_email_reprovacao(autores, titulo_projeto):
         emails.append(item['email'])
     
     msg = mailer.generate_message_html(
-        'BTA - Projeto Recusado',
+        'Projeto Recusado',
         os.getenv('MAILER_SENDER_EMAIL'),
         '''
             <h2>Seu projeto foi recusado.</h2>
@@ -909,9 +908,10 @@ def enviar_email_reprovacao(autores, titulo_projeto):
 
             <p>O seu projeto: <b>{1}</b>, foi recusado e não será exposto publicamente na Biblioteca de Trabalhos Acadêmicos.</p>
         '''.format(titulo_projeto),
-        cco=os.getenv('CONTACT_EMAIL')
+        cco=emails
     )
-    mailer.send_email(os.getenv('CONTACT_EMAIL'), msg)
+
+    mailer.send_email(emails, msg)
 
 def __allowed_file(filename):
     return '.' in filename and \

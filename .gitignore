@@ -172,6 +172,7 @@ dmypy.json
 
 static/files/*
 static/slides/*
+static/termos/termo_autorizacao.pdf
 
 !static/files/.gitkeep 
 !static/slides/.gitkeep

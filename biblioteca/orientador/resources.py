@@ -247,7 +247,7 @@ def verificar_revisoes(user_info):
 
 def enviar_email_revisao(autor, titulo_projeto, mensagem):
     msg = mailer.generate_message_html(
-        'BTA - Solicitação de Revisão',
+        'Solicitação de Revisão',
         autor['email'],
         '''
             <h2>Houve uma solocitação de revisão.</h2>

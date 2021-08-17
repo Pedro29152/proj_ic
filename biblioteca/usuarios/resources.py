@@ -280,7 +280,7 @@ def cadastro_professor(existente=True):
     if usuario_dao.add_orientador(user, password, nome, email, codOrientador):
         
         msg = mailer.generate_message_html(
-            'BTA - Nova conta de Orientador',
+            'Nova conta de Orientador',
             email,
             '''
                 <h2>Você foi cadastrado no sistema BTA</h2>
@@ -337,7 +337,7 @@ def cadastro_aluno(professor_user_info):
     if usuario_dao.add_aluno(ra, password, nome, email, autor['codAutor'], orientador['codOrientador'], codCurso):
 
         msg = mailer.generate_message_html(
-            'BTA - Nova conta de Autor',
+            'Nova conta de Autor',
             email,
             '''
                 <h2>Você foi cadastrado no sistema BTA</h2>
@@ -546,7 +546,7 @@ def recuperar_senha():
     mailer.send_email(
         usuario['email'],
         mailer.generate_message_html(
-            'Recuperação de senha - BTA',
+            'Recuperação de senha',
             usuario['email'], 
             '''
                 <h2>Sua senha foi redefinida.</h2>
