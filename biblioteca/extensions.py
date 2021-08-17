@@ -431,3 +431,12 @@ def get_enum_values(intenum):
         arr.append(tipo.value)
 
     return arr
+
+def get_maior(*args):
+        maior = 0
+        
+        for arg in args:
+            if arg > maior:
+                maior = arg
+        
+        return maior

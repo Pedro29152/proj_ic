@@ -14,7 +14,8 @@ from biblioteca.extensions import (
     LinguagemProjeto,
     ModalidadeProjeto,
     separate_camel_case, 
-    get_enum_obj
+    get_enum_obj,
+    get_maior
 )
 
 HEADER_FILL = PatternFill(
@@ -366,20 +367,7 @@ def __get_base_column_widths_info(attrs):
     return [(len(separate_camel_case(att)) + 3) * 1.9 for att in attrs]
 
 def __format_column_widths(arr1, arr2, arr3):
-    def getMaior(i1, i2, i3):
-        maior = i1
-        if i2 > maior:
-            maior = i2
-        if i3 > maior:
-            maior = i3
-
-        return maior
-
-    tam1 = len(arr1)
-    tam2 = len(arr2)
-    tam3 = len(arr3)
-
-    tam = getMaior(tam1, tam2, tam3)
+    tam = get_maior(len(arr1), len(arr2), len(arr3))
     ret = list()
 
     for i in range(tam):
@@ -387,16 +375,14 @@ def __format_column_widths(arr1, arr2, arr3):
             i1 = arr1[i]
         except:
             i1 = 0
-            
         try:
             i2 = arr2[i]
         except:
             i2 = 0
-
         try:
             i3 = arr3[i]
         except:
             i3 = 0
 
-        ret.append(getMaior(i1, i2, i3))
+        ret.append(get_maior(i1, i2, i3))
     return ret
