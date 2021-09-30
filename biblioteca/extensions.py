@@ -360,7 +360,11 @@ def get_token_data():
     except IndexError:
         raise Exception(response_messages.TOKEN_NAO_ENVIADO())
 
-    data = jwt.decode(token, app.config['SECRET_KEY'])
+    data = jwt.decode(
+        token, 
+        app.config['SECRET_KEY'], 
+        algorithms=['HS256']
+    )
     if(not is_valid(data)):
         raise Exception(response_messages.TOKEN_EXPIRADO())
     return data

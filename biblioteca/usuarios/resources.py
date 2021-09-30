@@ -185,11 +185,15 @@ def login():
             'ext': extDt
         }
 
-        token = jwt.encode(token_data,
-            current_app.config['SECRET_KEY'])
+        token = jwt.encode(
+            token_data,
+            current_app.config['SECRET_KEY'],
+            algorithm='HS256'
+        )
 
         ret = get_ok("Usuario logado com sucesso")
-        ret['token'] = token.decode('utf-8')
+        ret['token'] = token
+        #ret['token'] = token.decode('utf-8')
         ret['data'] = token_data
         return ret, 200
     return get_erro(response_messages.USUARIO_SENHA_INCORRETOS()), 401
