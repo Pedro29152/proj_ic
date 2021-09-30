@@ -1,6 +1,6 @@
 from mysql.connector.errors import DataError, IntegrityError
 
-from biblioteca import db
+from biblioteca.db import Db
 from biblioteca.extensions import is_valid_email
 
 class Projetos:
@@ -53,10 +53,11 @@ class PalavrasChave:
         self.projeto = projeto
 
     def grava_palavra_chave(self, codProjeto):
-        db.bd_gravar("INSERT INTO palavras_chave(palavraChave, codProjeto) values(%s,%s)",
-            (self.palavraChave, codProjeto))
+        with Db() as db:
+            query = "INSERT INTO palavras_chave(palavraChave, codProjeto) values(%s,%s)"
+            db.gravar_autocommit(query, (self.palavraChave, codProjeto))
 
-        return True
+            return True
 
 class Autores:
     def __init__(self, raAutor='', nomeAutor='', email=''):        
@@ -71,12 +72,14 @@ class Autores:
         return getattr(self, attr)
     
     def tenta_gravar_autor(self, codProjeto):
-        try:
-            db.bd_gravar(
-                "INSERT INTO autores(raAutor, nomeAutor, email) values(%s,%s,%s)",
-                (self.raAutor, self.nomeAutor, self.email)
-            )
-        except IntegrityError:
-            pass
+        with Db() as db:
+            try:
+                query = 'INSERT INTO autores(raAutor, nomeAutor, email) values(%s,%s,%s)'
+                db.gravar_autocommit(query, (self.raAutor, self.nomeAutor, self.email))
+            except IntegrityError:
+                db.rollback()
+            except Exception as ex:
+                db.rollback()
+                raise ex
 
-        return db.bd_busca_um("select codAutor from autores where raAutor = %s",(self.raAutor,))['codAutor']
+            return db.busca_um("select codAutor from autores where raAutor = %s",(self.raAutor,))['codAutor']

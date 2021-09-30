@@ -12,7 +12,7 @@ class Config:
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024
     PROPAGATE_EXCEPTIONS = True
 
-    SECRET_KEY = getenv('SECRET_KEY') or '%juuj@420#@69*!@)#@$6352@$$257523766hatusgdyta##'
+    SECRET_KEY = getenv('SECRET_KEY')
     APP_PORT = int(getenv('APP_PORT'))
     DEBUG = eval(getenv('DEBUG').title())
 

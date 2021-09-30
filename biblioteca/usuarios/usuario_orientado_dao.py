@@ -1,43 +1,51 @@
-from biblioteca import db
+from biblioteca.db import Db
 
 def edita_orientador_projeto_novo(codProjeto, codOrientador):
-    query = 'update usuario_orientado set codOrientador = (%s) where codProjeto = (%s)'
-    query2 = 'update projeto_orientador set codOrientador = (%s) where codProjeto = (%s)'
-    db.bd_gravar(query, (codOrientador, codProjeto))
-    db.bd_gravar(query2, (codOrientador, codProjeto))
+    with Db() as db:
+        query = 'update usuario_orientado set codOrientador = (%s) where codProjeto = (%s)'
+        query2 = 'update projeto_orientador set codOrientador = (%s) where codProjeto = (%s)'
+
+        db.gravar(query, (codOrientador, codProjeto))
+        db.gravar(query2, (codOrientador, codProjeto))
+        db.commit()
 
 def get_usuario_orientado(codOrientador, codUsuario):
-    query = '''
-        select * from usuario_orientado 
-        where codOrientador = (%s) and codUsuario = (%s)
-    '''
-    ret = db.bd_busca_um(query, (codOrientador, codUsuario))
-    return ret
+    with Db() as db:
+        query = '''
+            select * from usuario_orientado 
+            where codOrientador = (%s) and codUsuario = (%s)
+        '''
+        ret = db.busca_um(query, (codOrientador, codUsuario))
+        return ret
 
 def get_usuario_orientado_aluno(codUsuario):
-    query = '''
-        select * from usuario_orientado where codUsuario = (%s)
-    '''
-    return db.bd_busca_um(query, (codUsuario,))
+    with Db() as db:
+        query = '''
+            select * from usuario_orientado where codUsuario = (%s)
+        '''
+        return db.busca_um(query, (codUsuario,))
 
 def get_usuario_orientado_codProjeto_codOrientador(codProjeto, codOrientador):
-    query = '''
-        select * from usuario_orientado where codProjeto = (%s) and codOrientador = (%s)
-    '''
-    ret = db.bd_busca_um(query, (codProjeto, codOrientador))
-    return ret
+    with Db() as db:
+        query = '''
+            select * from usuario_orientado where codProjeto = (%s) and codOrientador = (%s)
+        '''
+        ret = db.busca_um(query, (codProjeto, codOrientador))
+        return ret
 
 def get_usuario_codProjeto(codProjeto):
-    query = '''
-        select u.* from usuarios as u 
-        natural join usuario_orientado as uo 
-        where uo.codProjeto = (%s)
-    '''
-    ret = db.bd_busca_um(query, (codProjeto,))
-    return ret
+    with Db() as db:
+        query = '''
+            select u.* from usuarios as u 
+            natural join usuario_orientado as uo 
+            where uo.codProjeto = (%s)
+        '''
+        ret = db.busca_um(query, (codProjeto,))
+        return ret
 
 def add_projeto(codUsuario, codProjeto):
-    query = '''
-        update usuario_orientado set codProjeto = (%s) where codUsuario = (%s)
-    '''
-    db.bd_gravar(query, (codProjeto, codUsuario))
+    with Db() as db:
+        query = '''
+            update usuario_orientado set codProjeto = (%s) where codUsuario = (%s)
+        '''
+        db.gravar_autocommit(query, (codProjeto, codUsuario))

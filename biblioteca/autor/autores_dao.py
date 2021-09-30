@@ -1,120 +1,140 @@
 from mysql.connector.errors import IntegrityError, ProgrammingError
-from biblioteca import db
+from biblioteca.db import Db
+
 
 def busca_autores(nomeAutor=''):
-    if not nomeAutor:
-        nomeAutor = ''
-    nomeAutor = '%{}%'.format(nomeAutor)
-    query = '''
-        SELECT *
-        FROM autores
-        WHERE nomeAutor like (%s)
-        '''
-    ret = db.bd_busca(
-        query,
-        (nomeAutor,)
-    )
-    return ret
+    with Db() as db:
+        if not nomeAutor:
+            nomeAutor = ''
+        nomeAutor = '%{}%'.format(nomeAutor)
+        query = '''
+            SELECT *
+            FROM autores
+            WHERE nomeAutor like (%s)
+            '''
+        ret = db.busca(
+            query,
+            (nomeAutor,)
+        )
+        return ret
+
 
 def get_autor(codAluno):
-    query = 'select * from autores where codAutor = (%s)'
-    ret = db.bd_busca_um(query, (codAluno,))
-    return ret
+    with Db() as db:
+        query = 'select * from autores where codAutor = (%s)'
+        ret = db.busca_um(query, (codAluno,))
+        return ret
+
 
 def busca_autores_proj(codProjeto):
-    query = '''
-        SELECT autores.nomeAutor, autores.raAutor, autores.email
-        FROM autores 
-        NATURAL JOIN projeto_autor pa 
-        WHERE pa.codProjeto = (%s)
-    '''
-    ret = db.bd_busca(query, (codProjeto,))
-    return ret
+    with Db() as db:
+        query = '''
+            SELECT autores.nomeAutor, autores.raAutor, autores.email
+            FROM autores 
+            NATURAL JOIN projeto_autor pa 
+            WHERE pa.codProjeto = (%s)
+        '''
+        ret = db.busca(query, (codProjeto,))
+        return ret
+
 
 def get_autor_ra(ra):
-    query = 'select * from autores where raAutor = (%s)'
-    ret = db.bd_busca_um(query, (ra,))
-    return ret
+    with Db() as db:
+        query = 'select * from autores where raAutor = (%s)'
+        ret = db.busca_um(query, (ra,))
+        return ret
+
 
 def get_autor_codUsuario(codUsuario):
-    query = '''
-        select distinct a.*
-        from autores as a 
-        join usuario_orientado as uo 
-        on uo.codAutor = a.codAutor 
-        join usuarios as u 
-        on u.codUsuario = uo.codUsuario 
-        where u.codUsuario = (%s) and u.ativo = 1
-    '''
-    return db.bd_busca_um(query, (codUsuario,))
+    with Db() as db:
+        query = '''
+            select distinct a.*
+            from autores as a 
+            join usuario_orientado as uo 
+            on uo.codAutor = a.codAutor 
+            join usuarios as u 
+            on u.codUsuario = uo.codUsuario 
+            where u.codUsuario = (%s) and u.ativo = 1
+        '''
+        return db.busca_um(query, (codUsuario,))
+
 
 def get_orientador_codAutor(codAutor):
-    query = '''
-        select o.* from usuario_orientado as uo
-        join orientadores as o 
-        on uo.codOrientador = o.codOrientador 
-        where uo.codAutor = (%s)
-    '''
-    return db.bd_busca_um(query, (codAutor,))
+    with Db() as db:
+        query = '''
+            select o.* from usuario_orientado as uo
+            join orientadores as o 
+            on uo.codOrientador = o.codOrientador 
+            where uo.codAutor = (%s)
+        '''
+        return db.busca_um(query, (codAutor,))
+
 
 def get_relatorio_autores(data_i=None, data_f=None):
-    base_query = '''
-        select 
-            a.nomeAutor as nomeDoAutor,
-            a.raAutor as raDoAutor,
-            a.email as emailDoAutor,
-            p.tituloProjeto as projeto, 
-            p.dataAvaliacao as dataDeAvaliacaoDoProjeto,
-            year(p.dataAvaliacao) as ano, 
-            c.abreviacao as curso,
-            o.nomeOrientador as orientador
-        from autores as a
-        join projeto_autor as pa
-        on a.codAutor = pa.codAutor
-        join projetos as p
-        on pa.codProjeto = p.codProjeto
-        join cursos as c
-        on c.codCurso = p.codCurso
-        join projeto_orientador as po
-        on po.codProjeto = p.codProjeto
-        join orientadores as o
-        on o.codOrientador = po.codOrientador
-        where (p.ativo = 1 and p.status = 1) and (po.tipoOrientador = 0) {0}
-        order by p.dataAvaliacao, p.tituloProjeto, a.nomeAutor, a.raAutor, c.descricaoCurso
-    '''
+    with Db() as db:
+        base_query = '''
+            select 
+                a.nomeAutor as nomeDoAutor,
+                a.raAutor as raDoAutor,
+                a.email as emailDoAutor,
+                p.tituloProjeto as projeto, 
+                p.dataAvaliacao as dataDeAvaliacaoDoProjeto,
+                year(p.dataAvaliacao) as ano, 
+                c.abreviacao as curso,
+                o.nomeOrientador as orientador
+            from autores as a
+            join projeto_autor as pa
+            on a.codAutor = pa.codAutor
+            join projetos as p
+            on pa.codProjeto = p.codProjeto
+            join cursos as c
+            on c.codCurso = p.codCurso
+            join projeto_orientador as po
+            on po.codProjeto = p.codProjeto
+            join orientadores as o
+            on o.codOrientador = po.codOrientador
+            where (p.ativo = 1 and p.status = 1) and (po.tipoOrientador = 0) {0}
+            order by p.dataAvaliacao, p.tituloProjeto, a.nomeAutor, a.raAutor, c.descricaoCurso
+        '''
 
-    if data_i and data_f:
-        query = base_query.format('and (year(p.dataAvaliacao) between %s and %s)')
-        try:
-            ret = db.bd_busca(query, (data_i, data_f))
-        except ProgrammingError:
-            return None
-    else:
-        query = base_query.format('')
-        try:
-            ret = db.bd_busca(query)
-        except ProgrammingError:
-            return None
-    
-    return ret
+        if data_i and data_f:
+            query = base_query.format(
+                'and (year(p.dataAvaliacao) between %s and %s)')
+            try:
+                ret = db.busca(query, (data_i, data_f))
+            except ProgrammingError:
+                return None
+        else:
+            query = base_query.format('')
+            try:
+                ret = db.busca(query)
+            except ProgrammingError:
+                return None
+
+        return ret
+
 
 def cadastra_autor(nome, email, ra):
-    query = 'insert into autores(nomeAutor, email, raAutor) values (%s, %s, %s)'
-    try:
-        db.bd_gravar(query, (nome, email.lower(), ra))
-        return get_autor_ra(ra)
-    except IntegrityError:
-        return None
+    with Db() as db:
+        query = 'insert into autores(nomeAutor, email, raAutor) values (%s, %s, %s)'
+        try:
+            db.gravar_autocommit(query, (nome, email.lower(), ra))
+            return get_autor_ra(ra)
+        except IntegrityError:
+            db.rollback()
+            return None
+
 
 def is_aluno_valido(codUsuario):
-    query = '''
-        select distinct u.codUsuario
-        from usuarios as u 
-        join usuario_orientado as uo 
-        on u.codUsuario = uo.codUsuario 
-        join autores as a 
-        on a.codAutor = uo.codAutor 
-        where uo.dataValidade > now() and u.codUsuario = (%s) 
-    '''
-    ret = db.bd_busca_um(query, (codUsuario,))
-    return ret
+    with Db() as db:
+        query = '''
+            select distinct u.codUsuario
+            from usuarios as u 
+            join usuario_orientado as uo 
+            on u.codUsuario = uo.codUsuario 
+            join autores as a 
+            on a.codAutor = uo.codAutor 
+            where uo.dataValidade > now() and u.codUsuario = (%s) 
+        '''
+        ret = db.busca_um(query, (codUsuario,))
+        return ret

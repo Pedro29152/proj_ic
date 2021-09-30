@@ -4,7 +4,7 @@ from os import getenv
 from flask import current_app as app
 from mysql.connector.errors import DataError, IntegrityError, ProgrammingError
 
-from biblioteca import db, response_messages
+from biblioteca.db import Db, response_messages
 from biblioteca.ext_dao import palavras_chave_dao
 from biblioteca.autor import autores_dao, projeto_autor_dao
 from biblioteca.curso import cursos_dao
@@ -165,103 +165,106 @@ def busca_projeto_tipo_pag(tipo, query = '', ordem = 0, crescente = True, pag = 
     return ret
 
 def busca_projeto(proj_attr=[], proj_attr_esp=None, data_i= None, data_f= None):
-    attr = busca_atributos_projeto()
-    keys = list(attr.keys())
-    atributos = list(set(proj_attr) & set(keys))
+    with Db() as db:
+        attr = busca_atributos_projeto()
+        keys = list(attr.keys())
+        atributos = list(set(proj_attr) & set(keys))
 
-    if len(atributos) > 0:
-        atrib = ', '.join([attr[a] for a in atributos])
-    else:
-        atrib = ', '.join([attr[a] for a in keys])
-    
-    if not (proj_attr_esp == None): 
-        attrEsp = get_enum_obj(AtributosEspeciaisProjeto)
-        keysEsp = list(attrEsp.keys())
-        atributosEsp = list(set(proj_attr_esp) & set(keysEsp))
-    else:
-        atributosEsp = None
-    
-    if data_i and data_f:
-        query = f'''
-            select codProjeto, codCurso, {atrib}
-            from projetos
-            where (ativo = 1 and status = 1) and dataAvaliacao between %s and %s
-        '''
-        try:
-            ret = db.bd_busca(query, (data_i, data_f))
-        except ProgrammingError:
-            return None
-    else:
-        query = f'''
-            select codProjeto, codCurso, {atrib}
-            from projetos
-            where (ativo = 1 and status = 1)
-        '''
-        try:
-            ret = db.bd_busca(query)
-        except ProgrammingError:
-            return None
+        if len(atributos) > 0:
+            atrib = ', '.join([attr[a] for a in atributos])
+        else:
+            atrib = ', '.join([attr[a] for a in keys])
+        
+        if not (proj_attr_esp == None): 
+            attrEsp = get_enum_obj(AtributosEspeciaisProjeto)
+            keysEsp = list(attrEsp.keys())
+            atributosEsp = list(set(proj_attr_esp) & set(keysEsp))
+        else:
+            atributosEsp = None
+        
+        if data_i and data_f:
+            query = f'''
+                select codProjeto, codCurso, {atrib}
+                from projetos
+                where (ativo = 1 and status = 1) and dataAvaliacao between %s and %s
+            '''
+            try:
+                ret = db.busca(query, (data_i, data_f))
+            except ProgrammingError:
+                return None
+        else:
+            query = f'''
+                select codProjeto, codCurso, {atrib}
+                from projetos
+                where (ativo = 1 and status = 1)
+            '''
+            try:
+                ret = db.busca(query)
+            except ProgrammingError:
+                return None
 
-    prenche_projetos(ret, attrs=atributosEsp)
+        prenche_projetos(ret, attrs=atributosEsp)
 
-    return ret
+        return ret
 
 def busca_reltorio_projeto_orientador(codOrientador, proj_attr=[], proj_attr_esp=None, data_i= None, data_f= None):
-    attr = busca_atributos_projeto()
-    keys = list(attr.keys())
-    atributos = list(set(proj_attr) & set(keys))
+    with Db() as db:
+        attr = busca_atributos_projeto()
+        keys = list(attr.keys())
+        atributos = list(set(proj_attr) & set(keys))
 
-    if len(atributos) > 0:
-        atrib = ', '.join([attr[a] for a in atributos])
-    else:
-        atrib = ', '.join([attr[a] for a in keys])
-    
-    if not (proj_attr_esp == None): 
-        attrEsp = get_enum_obj(AtributosEspeciaisProjeto)
-        keysEsp = list(attrEsp.keys())
-        atributosEsp = list(set(proj_attr_esp) & set(keysEsp))
-    else:
-        atributosEsp = None
-    
-    if data_i and data_f:
-        query = f'''
-            select codProjeto, codCurso, {atrib}
-            from projetos as p
-            natural join projeto_orientador as po
-            where (ativo = 1 and status = 1) and (and dataAvaliacao between %s and %s) and (po.codOrientador = %s and po.tipoOrientador = 0)
-            order by p.tituloProjeto, p.dataAvaliacao
-        '''
-        try:
-            ret = db.bd_busca(query, (data_i, data_f, codOrientador))
-        except ProgrammingError:
-            return None
-    else:
-        query = f'''
-            select codProjeto, codCurso, {atrib}
-            from projetos as p
-            natural join projeto_orientador as po
-            where (ativo = 1 and status = 1) and (po.codOrientador = %s and po.tipoOrientador = 0)
-            order by p.tituloProjeto, p.dataAvaliacao
-        '''
-        try:
-            ret = db.bd_busca(query, (codOrientador,))
-        except ProgrammingError:
-            return None
+        if len(atributos) > 0:
+            atrib = ', '.join([attr[a] for a in atributos])
+        else:
+            atrib = ', '.join([attr[a] for a in keys])
+        
+        if not (proj_attr_esp == None): 
+            attrEsp = get_enum_obj(AtributosEspeciaisProjeto)
+            keysEsp = list(attrEsp.keys())
+            atributosEsp = list(set(proj_attr_esp) & set(keysEsp))
+        else:
+            atributosEsp = None
+        
+        if data_i and data_f:
+            query = f'''
+                select codProjeto, codCurso, {atrib}
+                from projetos as p
+                natural join projeto_orientador as po
+                where (ativo = 1 and status = 1) and (and dataAvaliacao between %s and %s) and (po.codOrientador = %s and po.tipoOrientador = 0)
+                order by p.tituloProjeto, p.dataAvaliacao
+            '''
+            try:
+                ret = db.busca(query, (data_i, data_f, codOrientador))
+            except ProgrammingError:
+                return None
+        else:
+            query = f'''
+                select codProjeto, codCurso, {atrib}
+                from projetos as p
+                natural join projeto_orientador as po
+                where (ativo = 1 and status = 1) and (po.codOrientador = %s and po.tipoOrientador = 0)
+                order by p.tituloProjeto, p.dataAvaliacao
+            '''
+            try:
+                ret = db.busca(query, (codOrientador,))
+            except ProgrammingError:
+                return None
 
-    prenche_projetos(ret, attrs=atributosEsp)
+        prenche_projetos(ret, attrs=atributosEsp)
 
-    return ret
+        return ret
 
 def busca_projeto_pag(pag):
-    query = 'select * from projetos where ativo = 1 and status = 1 ' + __get_limit(pag)
+    with Db() as db:
+        query = 'select * from projetos where ativo = 1 and status = 1 ' + __get_limit(pag)
 
-    ret = db.bd_busca(
-        query,None
-    )
+        ret = db.busca(
+            query,None
+        )
 
-    prenche_projetos(ret)
+        prenche_projetos(ret)
 
-    return ret
+        return ret
 
 def busca_projeto_ranking(titulo, tipo, ordem):
     titulo = '%{}%'.format(titulo)
@@ -294,120 +297,130 @@ def busca_projeto_ranking_pag(titulo, tipo, ordem, pag):
     return __busca_projeto_full(query, (titulo,))
 
 def busca_projeto_orientador(codOrientador):
-    query = '''
-        select p.*
-        from projetos as p
-        natural join projeto_orientador
-        where ativo = 1 and status = 1 and codOrientador = (%s)
-    '''
-    ret = db.bd_busca(query, (codOrientador,))
+    with Db() as db:
+        query = '''
+            select p.*
+            from projetos as p
+            natural join projeto_orientador
+            where ativo = 1 and status = 1 and codOrientador = (%s)
+        '''
+        ret = db.busca(query, (codOrientador,))
 
-    if ret:
-        prenche_projetos(ret)
+        if ret:
+            prenche_projetos(ret)
 
-    return ret
+        return ret
 
 def busca_projeto_orientador_novo(codOrientador):
-    query = '''
-        select distinct p.*
-        from projetos as p
-        natural join projeto_orientador as po
-        natural join usuario_orientado as uo
-        where p.ativo = 1 and p.status = 0 and po.codOrientador = (%s) and uo.dataValidade >= current_timestamp()
-    '''
-    ret = db.bd_busca(query, (codOrientador,))
-    
-    if ret:
-        prenche_projetos(ret)
+    with Db() as db:
+        query = '''
+            select distinct p.*
+            from projetos as p
+            natural join projeto_orientador as po
+            natural join usuario_orientado as uo
+            where p.ativo = 1 and p.status = 0 and po.codOrientador = (%s) and uo.dataValidade >= current_timestamp()
+        '''
+        ret = db.busca(query, (codOrientador,))
+        
+        if ret:
+            prenche_projetos(ret)
 
-    return ret
+        return ret
 
 def busca_projetos_codCurso(codCurso):
-    query = '''
-        select p.* from projetos as p
-        natural join cursos as c 
-        where p.ativo = 1 and p.status = 1 and p.codCurso = (%s)
-    '''
-    ret = db.bd_busca(query, (codCurso,))
+    with Db() as db:
+        query = '''
+            select p.* from projetos as p
+            natural join cursos as c 
+            where p.ativo = 1 and p.status = 1 and p.codCurso = (%s)
+        '''
+        ret = db.busca(query, (codCurso,))
 
-    prenche_projetos(ret)
+        prenche_projetos(ret)
 
-    return ret
+        return ret
 
 def get_projeto_orientador(codOrientador, codProjeto):
-    query = '''
-        select p.*
-        from projetos as p
-        natural join projeto_orientador
-        where ativo = 1 and status = 1 and codOrientador = (%s) and codProjeto = (%s)
-    '''
-    ret = db.bd_busca_um(query, (codOrientador, codProjeto))
+    with Db() as db:
+        query = '''
+            select p.*
+            from projetos as p
+            natural join projeto_orientador
+            where ativo = 1 and status = 1 and codOrientador = (%s) and codProjeto = (%s)
+        '''
+        ret = db.busca_um(query, (codOrientador, codProjeto))
 
-    return ret
+        return ret
 
 def busca_projeto_orientador_publico(codOrientador):
-    query = '''
-        select p.*
-        from projetos as p
-        natural join projeto_orientador
-        where (ativo = 1 and status = 1) and codOrientador = (%s)
-    '''
-    ret = db.bd_busca(query, (codOrientador,))
+    with Db() as db:
+        query = '''
+            select p.*
+            from projetos as p
+            natural join projeto_orientador
+            where (ativo = 1 and status = 1) and codOrientador = (%s)
+        '''
+        ret = db.busca(query, (codOrientador,))
 
-    prenche_projetos(ret)
+        prenche_projetos(ret)
 
-    return ret
+        return ret
 
 def busca_projeto_inativo():
-    query = '''
-        select * from projetos where ativo = 0 and status = 1
-    '''
-    ret = db.bd_busca(query, None)
+    with Db() as db:
+        query = '''
+            select * from projetos where ativo = 0 and status = 1
+        '''
+        ret = db.busca(query, None)
 
-    if ret:
-        prenche_projetos(ret)
+        if ret:
+            prenche_projetos(ret)
 
-    return ret
+        return ret
 
 def busca_todos_projetos():
-    query = '''
-        select * from projetos where status = 1
-    '''
-    ret = db.bd_busca(query, None)
+    with Db() as db:
+        query = '''
+            select * from projetos where status = 1
+        '''
+        ret = db.busca(query, None)
 
-    if ret:
-        prenche_projetos(ret)
+        if ret:
+            prenche_projetos(ret)
 
-    return ret
+        return ret
 
 def buscar_projetos_codCurso_novo(codCurso, is_full=False):
-    query = '''
-        select * from projetos 
-        where codCurso = (%s) and ativo = 1 and status = 0
-    ''' 
-    ret = db.bd_busca(query, (codCurso,))
-    if is_full and ret:
-        prenche_projetos(ret)
-    return ret
+    with Db() as db:
+        query = '''
+            select * from projetos 
+            where codCurso = (%s) and ativo = 1 and status = 0
+        ''' 
+        ret = db.busca(query, (codCurso,))
+        if is_full and ret:
+            prenche_projetos(ret)
+        return ret
 
 def get_cod_projeto_titulo(titulo):
-    query = 'SELECT codProjeto FROM projetos WHERE tituloProjeto = (%s) ORDER BY codProjeto DESC'
+    with Db() as db:
+        query = 'SELECT codProjeto FROM projetos WHERE tituloProjeto = (%s) ORDER BY codProjeto DESC'
 
-    val = db.bd_busca_um(
-        query, 
-        (titulo,)
-    )
+        val = db.busca_um(
+            query, 
+            (titulo,)
+        )
 
-    return val['codProjeto']
+        return val['codProjeto']
 
 def get_count(codOrientador=None):
-    if codOrientador:
-        query = 'select count(*) as projetos from projetos natural join projeto_orientador where ativo = 1 and codOrientador = (%s)'
-        ret = db.bd_busca_um(query, (codOrientador,))
-    else:
-        query = 'select count(*) as projetos from projetos where ativo = 1'
-        ret = db.bd_busca_um(query, None)
-    return ret['projetos']
+    with Db() as db:
+        if codOrientador:
+            query = 'select count(*) as projetos from projetos natural join projeto_orientador where ativo = 1 and codOrientador = (%s)'
+            ret = db.busca_um(query, (codOrientador,))
+        else:
+            query = 'select count(*) as projetos from projetos where ativo = 1'
+            ret = db.busca_um(query, None)
+        return ret['projetos']
 
 def __ordena(ordem, crescente):
     cres = ''
@@ -433,11 +446,21 @@ def __ordena(ordem, crescente):
 
 
 def grava_projeto(projeto, is_secretaria=True):
-    if is_secretaria:
-        db.bd_gravar(
-            'insert into projetos'+
-            '(tituloProjeto, subtitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, status, linguagem, modalidade, localPublicacao)'+
-            'values(%s,%s,%s,%s,%s,%s,1,%s,%s,%s)',
+    with Db() as db:
+        if is_secretaria:
+            query = '''
+                insert into projetos 
+                (tituloProjeto, subtitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, status, linguagem, modalidade, localPublicacao) 
+                values(%s,%s,%s,%s,%s,%s,1,%s,%s,%s)
+            '''
+        else:
+            query = '''
+                insert into projetos 
+                (tituloProjeto, subtitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, linguagem, modalidade, localPublicacao) 
+                values(%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            '''
+        
+        db.gravar_autocommit(query,
             (projeto.tituloProjeto,
             projeto.subTitulo,
             projeto.descricao, 
@@ -448,220 +471,226 @@ def grava_projeto(projeto, is_secretaria=True):
             projeto.modalidade,
             projeto.localPublicacao)
         )
-    else:
-        db.bd_gravar(
-            'insert into projetos'+
-            '(tituloProjeto, subtitulo, descricao, nomeArquivo, dataAvaliacao, codCurso, linguagem, modalidade, localPublicacao)'+
-            'values(%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-            (projeto.tituloProjeto,
-            projeto.subTitulo,
-            projeto.descricao, 
-            projeto.nomeArquivo, 
-            projeto.dataAvaliacao,
-            projeto.curso.codCurso,
-            projeto.linguagem,
-            projeto.modalidade,
-            projeto.localPublicacao)
-        )
 
-    projeto.codProjeto = get_cod_projeto_titulo(projeto.tituloProjeto)
-    
-    for aut in projeto.autores:
-        try:
-            codAutor = aut.tenta_gravar_autor(projeto.codProjeto)
-        except DataError:
-            deleta_projeto(projeto.codProjeto)
-            raise Exception(response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
-        try:
-            projeto_autor_dao.grava_autor_proj(projeto.codProjeto, codAutor)
-        except IntegrityError:
-            deleta_projeto(projeto.codProjeto)
-            raise Exception(response_messages.SEM_PERMICAO('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
+        projeto.codProjeto = get_cod_projeto_titulo(projeto.tituloProjeto)
+        
+        for aut in projeto.autores:
+            try:
+                codAutor = aut.tenta_gravar_autor(projeto.codProjeto)
+            except DataError:
+                deleta_projeto(projeto.codProjeto)
+                raise Exception(response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
+            try:
+                projeto_autor_dao.grava_autor_proj(projeto.codProjeto, codAutor)
+            except IntegrityError:
+                deleta_projeto(projeto.codProjeto)
+                raise Exception(response_messages.SEM_PERMICAO('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
 
-    for palavra in projeto.palavrasChave:
-        palavra.grava_palavra_chave(projeto.codProjeto)
+        for palavra in projeto.palavrasChave:
+            palavra.grava_palavra_chave(projeto.codProjeto)
 
-    __grava_proj_ori(projeto.codProjeto, projeto.orientador.codOrientador, TiposOrientador.Principal.value)
-    if projeto.coOrientador:
-        __grava_proj_ori(projeto.codProjeto, projeto.coOrientador.codOrientador, TiposOrientador.CoOrientador.value)
+        __grava_proj_ori(projeto.codProjeto, projeto.orientador.codOrientador, TiposOrientador.Principal.value)
+        if projeto.coOrientador:
+            __grava_proj_ori(projeto.codProjeto, projeto.coOrientador.codOrientador, TiposOrientador.CoOrientador.value)
 
 
-    return projeto
+        return projeto
 
 def deleta_projeto(codProjeto):
-    query = 'delete from projetos where codProjeto = (%s)'
-    db.bd_gravar(query, (codProjeto,))
+    with Db() as db:
+        query = 'delete from projetos where codProjeto = (%s)'
+        db.gravar_autocommit(query, (codProjeto,))
 
 def get_projeto_novo(codProjeto, is_full=False):
-    query = 'select * from projetos where codProjeto = (%s) and status = 0'
-    proj = db.bd_busca_um(query,(codProjeto,))
-    if is_full and proj:
-        prenche_projeto(proj)
-    return proj
+    with Db() as db:
+        query = 'select * from projetos where codProjeto = (%s) and status = 0'
+        proj = db.busca_um(query,(codProjeto,))
+        if is_full and proj:
+            prenche_projeto(proj)
+        return proj
 
 def get_projeto_novo_codAutor(codAutor, is_full=False):
-    query = '''
-        select p.* from projetos as p 
-        natural join projeto_autor 
-        where codAutor = (%s) and status = 0
-    '''
-    proj = db.bd_busca_um(query,(codAutor,))
-    if is_full and proj:
-        prenche_projeto(proj)
-    return proj
+    with Db() as db:
+        query = '''
+            select p.* from projetos as p 
+            natural join projeto_autor 
+            where codAutor = (%s) and status = 0
+        '''
+        proj = db.busca_um(query,(codAutor,))
+        if is_full and proj:
+            prenche_projeto(proj)
+        return proj
 
 def get_projeto_novo_codOrientador(codOrientador, is_full=False):
-    query = '''
-        select p.* from projetos as p 
-        natural join projeto_orientador 
-        where codOrientador = (%s) and status = 0
-    '''
-    proj = db.bd_busca_um(query,(codOrientador,))
-    if is_full and proj:
-        prenche_projeto(proj)
-    return proj
+    with Db() as db:
+        query = '''
+            select p.* from projetos as p 
+            natural join projeto_orientador 
+            where codOrientador = (%s) and status = 0
+        '''
+        proj = db.busca_um(query,(codOrientador,))
+        if is_full and proj:
+            prenche_projeto(proj)
+        return proj
 
 def get_projeto_novo_codCurso(codCurso, is_full=False):
-    query = '''
-        select * from projetos 
-        where codCurso = (%s) and status = 0
-    '''
-    proj = db.bd_busca_um(query,(codCurso,))
-    if is_full and proj:
-        prenche_projeto(proj)
-    return proj
+    with Db() as db:
+        query = '''
+            select * from projetos 
+            where codCurso = (%s) and status = 0
+        '''
+        proj = db.busca_um(query,(codCurso,))
+        if is_full and proj:
+            prenche_projeto(proj)
+        return proj
 
 def get_projeto(codProjeto, is_full=False):
-    query = 'select * from projetos where codProjeto = (%s) and ativo = 1 and status = 1'
-    proj = db.bd_busca_um(query,(codProjeto,))
-    if is_full and proj:
-        prenche_projeto(proj)
-    return proj
+    with Db() as db:
+        query = 'select * from projetos where codProjeto = (%s) and ativo = 1 and status = 1'
+        proj = db.busca_um(query,(codProjeto,))
+        if is_full and proj:
+            prenche_projeto(proj)
+        return proj
 
 def get_projeto_inativo(codProjeto):
-    query = '''
-        select * from projetos where codProjeto = (%s) and ativo = 0 and status = 1
-    '''
-    ret = db.bd_busca_um(query, (codProjeto,))
+    with Db() as db:
+        query = '''
+            select * from projetos where codProjeto = (%s) and ativo = 0 and status = 1
+        '''
+        ret = db.busca_um(query, (codProjeto,))
 
-    if ret:
-        prenche_projeto(ret)
+        if ret:
+            prenche_projeto(ret)
 
-    return ret
+        return ret
 
 def get_projeto_codUsuarioOrientado(codUsuarioOrientado):
-    query = '''
-        select * from projetos as p
-        join usuario_orientado as uo
-        on uo.codProjeto = p.codProjeto
-        where codUsuarioOrientado = (%s)
-    '''
-    ret = db.bd_busca_um(query, (codUsuarioOrientado,))
+    with Db() as db:
+        query = '''
+            select * from projetos as p
+            join usuario_orientado as uo
+            on uo.codProjeto = p.codProjeto
+            where codUsuarioOrientado = (%s)
+        '''
+        ret = db.busca_um(query, (codUsuarioOrientado,))
 
-    if ret:
-        prenche_projeto(ret)
-    
-    return ret
+        if ret:
+            prenche_projeto(ret)
+        
+        return ret
 
 def desativa_projeto(codProjeto):
-    query = 'update projetos set ativo = 0 where codProjeto = (%s)'
+    with Db() as db:
+        query = 'update projetos set ativo = 0 where codProjeto = (%s)'
 
-    db.bd_gravar(query, (codProjeto,))
+        db.gravar_autocommit(query, (codProjeto,))
 
 def ativa_projeto(codProjeto):
-    query = 'update projetos set ativo = 1 where codProjeto = (%s)'
+    with Db() as db:
+        query = 'update projetos set ativo = 1 where codProjeto = (%s)'
 
-    db.bd_gravar(query, (codProjeto,))
+        db.gravar_autocommit(query, (codProjeto,))
 
 def aprovar_projeto(codProjeto):
-    query = '''
-        update projetos set status = 1 where codProjeto = (%s)
-    '''
-    db.bd_gravar(query, (codProjeto,))
+    with Db() as db:
+        query = '''
+            update projetos set status = 1 where codProjeto = (%s)
+        '''
+        db.gravar_autocommit(query, (codProjeto,))
 
-    user = usuario_orientado_dao.get_usuario_codProjeto(codProjeto)
-    if user:
-        if user['tipoUsuario'] == TiposUsuario.Aluno.value:
-            usuario_dao.desativar_aluno(user['codUsuario'])
-        else:
-            usuario_dao.desativa_usuario(user['codUsuario'])
+        user = usuario_orientado_dao.get_usuario_codProjeto(codProjeto)
+        if user:
+            if user['tipoUsuario'] == TiposUsuario.Aluno.value:
+                usuario_dao.desativar_aluno(user['codUsuario'])
+            else:
+                usuario_dao.desativa_usuario(user['codUsuario'])
 
 def recusar_projeto(codProjeto):
-    query = '''
-        update projetos set status = 2 where codProjeto = (%s)
-    '''
-    db.bd_gravar(query, (codProjeto,))
-    
-    user = usuario_orientado_dao.get_usuario_codProjeto(codProjeto)
-    if user:    
-        if user['tipoUsuario'] == TiposUsuario.Aluno.value:
-            usuario_dao.desativar_aluno(user['codUsuario'])
-        else:
-            usuario_dao.desativa_usuario(user['codUsuario'])
+    with Db() as db:
+        query = '''
+            update projetos set status = 2 where codProjeto = (%s)
+        '''
+        db.gravar_autocommit(query, (codProjeto,))
+        
+        user = usuario_orientado_dao.get_usuario_codProjeto(codProjeto)
+        if user:    
+            if user['tipoUsuario'] == TiposUsuario.Aluno.value:
+                usuario_dao.desativar_aluno(user['codUsuario'])
+            else:
+                usuario_dao.desativa_usuario(user['codUsuario'])
 
 def edita_titulo(codProjeto, titulo):
-    query = 'update projetos set tituloProjeto = (%s) where codProjeto = (%s)'
+    with Db() as db:
+        query = 'update projetos set tituloProjeto = (%s) where codProjeto = (%s)'
 
-    db.bd_gravar(query, (titulo, codProjeto))
+        db.gravar_autocommit(query, (titulo, codProjeto))
 
 def edita_descricao(codProjeto, descricao):
-    query = 'update projetos set descricao = (%s) where codProjeto = (%s)'
+    with Db() as db:
+        query = 'update projetos set descricao = (%s) where codProjeto = (%s)'
 
-    db.bd_gravar(query, (descricao, codProjeto))
+        db.gravar_autocommit(query, (descricao, codProjeto))
 
 def edita_subtitulo(codProjeto, subtitulo):
-    query = 'update projetos set subtitulo = (%s) where codProjeto = (%s)'
+    with Db() as db:
+        query = 'update projetos set subtitulo = (%s) where codProjeto = (%s)'
 
-    db.bd_gravar(query, (subtitulo, codProjeto))
+        db.gravar_autocommit(query, (subtitulo, codProjeto))
 
 def edita_publicacao(codProjeto, localPublicacao):
-    query = 'update projetos set localPublicacao = (%s) where codProjeto = (%s)'
+    with Db() as db:
+        query = 'update projetos set localPublicacao = (%s) where codProjeto = (%s)'
 
-    db.bd_gravar(query, (localPublicacao, codProjeto))
+        db.gravar_autocommit(query, (localPublicacao, codProjeto))
 
 def is_ativo_filename(filename):
-    query = 'select codProjeto from projetos where nomeArquivo = (%s) and ativo = 1 and not status = 2 '
+    with Db() as db:
+        query = 'select codProjeto from projetos where nomeArquivo = (%s) and ativo = 1 and not status = 2 '
 
-    ret = db.bd_busca_um(query, (filename,))
+        ret = db.busca_um(query, (filename,))
 
-    if ret:
-        return ret['codProjeto']
-    return None
+        if ret:
+            return ret['codProjeto']
+        return None
 
 def is_valid_project(codAutor):
-    query = '''
-        select * from projeto_autor 
-        natural join projetos 
-        where codAutor = (%s) and (status = 0)
-    '''
-    res = db.bd_busca_um(query, (codAutor,))
+    with Db() as db:
+        query = '''
+            select * from projeto_autor 
+            natural join projetos 
+            where codAutor = (%s) and (status = 0)
+        '''
+        res = db.busca_um(query, (codAutor,))
 
-    if res:
-        return False
-    return True
+        if res:
+            return False
+        return True
 
 def is_orientador_projeto_novo(codProjeto, codOrientador):
-    query = '''
-        select distinct p.codProjeto 
-        from orientadores as o 
-        natural join projeto_orientador as po 
-        join projetos as p 
-        on p.codProjeto = po.codProjeto 
-        where p.codProjeto = (%s) and o.codOrientador = (%s) and p.status = 0
-    '''
-    if db.bd_busca_um(query, (codProjeto, codOrientador)):
-        return True
-    return False
+    with Db() as db:
+        query = '''
+            select distinct p.codProjeto 
+            from orientadores as o 
+            natural join projeto_orientador as po 
+            join projetos as p 
+            on p.codProjeto = po.codProjeto 
+            where p.codProjeto = (%s) and o.codOrientador = (%s) and p.status = 0
+        '''
+        if db.busca_um(query, (codProjeto, codOrientador)):
+            return True
+        return False
 
 def download_file(codProjeto):
-    query = 'UPDATE projetos SET numDownloads = numDownloads + 1 WHERE codProjeto = (%s)'
+    with Db() as db:
+        query = 'UPDATE projetos SET numDownloads = numDownloads + 1 WHERE codProjeto = (%s)'
 
-    db.bd_gravar(query, (codProjeto,))
+        db.gravar_autocommit(query, (codProjeto,))
 
 def add_view(codProjeto):
-    query = 'UPDATE projetos SET numVisitas = numVisitas + 1 WHERE codProjeto = (%s)'
+    with Db() as db:
+        query = 'UPDATE projetos SET numVisitas = numVisitas + 1 WHERE codProjeto = (%s)'
 
-    db.bd_gravar(query, (codProjeto,))
+        db.gravar_autocommit(query, (codProjeto,))
 
 def prenche_projetos(ret, attrs=None):
     for item in ret:
@@ -687,22 +716,25 @@ def prenche_projeto(ret, attrs=None):
             ret['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
 
 def reprova_projetos_invalidos():
-    query = '''
-        select p.codProjeto, p.nomeArquivo
-        from usuario_orientado as uo
-        natural join projetos as p
-        where status = 0 and dataValidade <= current_timestamp()
-    '''
-    ret = db.bd_busca(query, None)
+    with Db() as db:
+        query = '''
+            select p.codProjeto, p.nomeArquivo
+            from usuario_orientado as uo
+            natural join projetos as p
+            where status = 0 and dataValidade <= current_timestamp()
+        '''
+        ret = db.busca(query, None)
 
-    for proj in ret:
-        recusar_projeto(proj['codProjeto'])
-        try:
-            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
-        except FileNotFoundError:
-            pass
+        for proj in ret:
+            recusar_projeto(proj['codProjeto'])
+            try:
+                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
+            except FileNotFoundError:
+                pass
 
 def busca_atributos_projeto(separate_camel_case=False):
+    db = Db(database='information_schema')
+    
     query = '''
         select c.ordinal_position as idx, c.column_name as coluna
         from information_schema.tables t
@@ -713,7 +745,7 @@ def busca_atributos_projeto(separate_camel_case=False):
         and (not (c.ordinal_position in (1,10,11,12)))
         order by t.table_name, c.ordinal_position
     '''.format(getenv('MYSQL_DATABASE'))
-    ret = db.bd_busca_information_schema(query)
+    ret = db.busca(query)
     obj = {}
     for attr in ret:
         if separate_camel_case:
@@ -723,9 +755,10 @@ def busca_atributos_projeto(separate_camel_case=False):
     return obj
 
 def __grava_proj_ori(codProjeto, codOrientador, tipo):
-    query = 'insert into projeto_orientador values(%s, %s, %s)'
+    with Db() as db:
+        query = 'insert into projeto_orientador values(%s, %s, %s)'
 
-    db.bd_gravar(query, (codOrientador, codProjeto, tipo))
+        db.gravar_autocommit(query, (codOrientador, codProjeto, tipo))
 
 def __get_limit(pag, tam = 20):
     fi = 1 + ((pag - 1) * tam)
@@ -734,8 +767,9 @@ def __get_limit(pag, tam = 20):
     return ' LIMIT {}, {}'.format(fi, ff)
 
 def __busca_projeto_full(query, *args):
-    ret = db.bd_busca(query, *args)
+    with Db() as db:
+        ret = db.busca(query, *args)
 
-    prenche_projetos(ret)
-    
-    return ret
+        prenche_projetos(ret)
+        
+        return ret

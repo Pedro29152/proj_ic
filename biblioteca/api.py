@@ -110,8 +110,7 @@ from biblioteca.relatorios.resources import (
     RelatorioOrientadoresResource,
     RelatorioOrientadoresSelfResource,
     RelatorioAutoresResource
-)
-from .db import bd_busca   
+)   
 
 # Clase que retorna a tela de index da API
 class Index(Resource):

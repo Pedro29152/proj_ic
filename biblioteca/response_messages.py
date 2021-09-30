@@ -25,7 +25,6 @@ def get_msg(msg_pt, msg_en):
     elif lang == Lang.EnUs.value:
         return msg_en
 
-#AUTORIZACAO
 def ACESSO_EXPIRADO():
     return get_msg(
         'Seu acesso está expirado', 
@@ -169,6 +168,11 @@ def SEM_PERMICAO(acao):
         'Voce nao pode {0}'.format(acao), 
         'You cannot {0}'.format(acao)
     )
+def CONEXAO_FECHADA():
+    return get_msg(
+        'Conexão fechada',
+        'Connection closed'
+    )
 
 def DADOS_PARAMETRO_INVALIDOS(parametros):
     return get_msg(
@@ -219,5 +223,5 @@ def NAO_PODE_ALTERAR_PROJETO():
 def NOVA_ROTA_CADASTRO(entidade, uri):
     return get_msg(
         'Para cadastrar um {0} utilize a rota {1}'.format(entidade, uri),
-        'To record a {0} user the route {1}'.format(entidade, uri)
+        'To create a {0} use the route {1}'.format(entidade, uri)
     )

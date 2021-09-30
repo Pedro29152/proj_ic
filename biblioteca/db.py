@@ -1,80 +1,73 @@
 from mysql import connector
 from os import getenv
+from . import response_messages
 
-def __conecta():
-    conn = connector.connect(
-        user=getenv('MYSQL_USER'), 
-        password=getenv('MYSQL_PASSWORD'),
-        database=getenv('MYSQL_DATABASE')
-    )
+class Db:
+    def __init__(self, host=None, user=None, password=None, database=None):
+        self.host = host if host else getenv('MYSQL_HOST')
+        self.user = user if user else getenv('MYSQL_USER')
+        self.password = password if password else getenv('MYSQL_PASSWORD')
+        self.database = database if database else getenv('MYSQL_DATABASE')
 
-    cursor = conn.cursor(dictionary=True)
+        self.__conn, self.__cursor = self.__conecta()
+        self.__closed = False
 
-    return conn, cursor
+    def __conecta(self):
+        conn = connector.connect(
+            host=self.host,
+            user=self.user, 
+            password=self.password,
+            database=self.database
+        )
 
-def bd_busca(query, *args):
-    conn, cursor = __conecta()
-    try:
-        cursor.execute(query, *args)
+        cursor = conn.cursor(dictionary=True)
 
-        val = cursor.fetchall()
-    finally:
-        conn.close()
+        return conn, cursor
 
-    return val
+    def busca(self, query, *args):
+        if self.__closed:
+            raise ValueError(response_messages.CONEXAO_FECHADA)
 
-def bd_busca_um(query, *args):
-    conn, cursor = __conecta()
-    try:
-        cursor.execute(query, *args)
+        self.__cursor.execute(query, *args)
 
-        val = cursor.fetchone()
+        val = self.__cursor.fetchall()
 
-    finally:
-        conn.close()
+        return val
 
-    return val
+    def busca_um(self, query, *args):
+        if self.__closed:
+            raise ValueError(response_messages.CONEXAO_FECHADA)
 
-def bd_gravar(query, *args):
-    conn, cursor = __conecta()
-    try:
-        cursor.execute(query, *args)
-        conn.commit()
-    
-    finally:
-        conn.close()
+        self.__cursor.execute(query, *args)
 
+        val = self.__cursor.fetchone()
 
-def __conecta_information_schema():
-    conn = connector.connect(
-        user=getenv('MYSQL_USER'), 
-        password=getenv('MYSQL_PASSWORD'),
-        database='information_schema'
-    )
+        return val
 
-    cursor = conn.cursor(dictionary=True)
+    def commit(self):
+        if self.__closed:
+            raise ValueError(response_messages.CONEXAO_FECHADA)
+        
+        self.__conn.commit()
 
-    return conn, cursor
+    def gravar(self, query, *args):
+        self.__cursor.execute(query, *args)
 
-def bd_busca_information_schema(query, *args):
-    conn, cursor = __conecta_information_schema()
-    try:
-        cursor.execute(query, *args)
+    def gravar_autocommit(self, query, *args):
+        self.gravar(query, *args)
+        self.__conn.commit()
 
-        val = cursor.fetchall()
-    finally:
-        conn.close()
+    def rollback(self):
+        if self.__closed:
+            raise ValueError(response_messages.CONEXAO_FECHADA)
+        
+        self.__conn.rollback()        
 
-    return val
+    def close(self):
+        self.__conn.close()
+        self.__closed = True
 
-def bd_busca_um_information_schema(query, *args):
-    conn, cursor = __conecta_information_schema()
-    try:
-        cursor.execute(query, *args)
-
-        val = cursor.fetchone()
-
-    finally:
-        conn.close()
-
-    return val
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
