@@ -14,7 +14,7 @@ from biblioteca.db import Db
 from biblioteca import mailer, response_messages
 from biblioteca.usuarios import usuario_orientado_dao
 from biblioteca.curso import cursos_dao
-from biblioteca.orientador import orientadores_dao
+from biblioteca.orientador.orientadores_dao import OrientadoresDAO
 from biblioteca.autor import autores_dao, projeto_autor_dao
 from biblioteca.pdf_generator import TermoCompromisso
 from biblioteca.responses import (
@@ -77,22 +77,28 @@ class BuscaRankingResource(Resource):
 class BuscarProjetosOrientador(Resource):
     @professor_token_required
     def get(self, user_info):
-        orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
-        if not orientador:
-            return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
+        with Db() as db:
+            orientadoresDao = OrientadoresDAO(db)
+                
+            orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
+            if not orientador:
+                return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
-        res, cod = busca_projetos_orientador(orientador['codOrientador'])
-        return get_response_code(res, cod)
+            res, cod = busca_projetos_orientador(orientador['codOrientador'])
+            return get_response_code(res, cod)
 
 class BuscarProjetosOrientadorNovo(Resource):
     @professor_token_required
     def get(self, user_info):
-        orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
-        if not orientador:
-            return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
+        with Db() as db:
+            orientadoresDao = OrientadoresDAO(db)
+                
+            orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
+            if not orientador:
+                return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
-        res, cod = busca_projetos_orientador_novo(orientador['codOrientador'])
-        return get_response_code(res, cod)
+            res, cod = busca_projetos_orientador_novo(orientador['codOrientador'])
+            return get_response_code(res, cod)
 
 class BuscarProjetosCurso(Resource):
     @coordenador_token_required
@@ -109,9 +115,10 @@ class GetProjetoNovo(Resource):
     def get(self, user_info, id):
         with Db() as db:
             projetosDao = ProjetosDAO(db)
+            orientadoresDao = OrientadoresDAO(db)
 
             if user_info['tipoUsuario'] == TiposUsuario.Professor.value:
-                orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+                orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
                 if not orientador:
                     return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
@@ -160,12 +167,15 @@ class GetProjetoInativoResource(Resource):
 
 class BuscarProjetosOrientadorId(Resource):
     def get(self, id):
-        orientador = orientadores_dao.get_orientador_codigo(id, False)
-        if not orientador:
-            return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
+        with Db() as db:
+            orientadoresDao = OrientadoresDAO(db)
+                
+            orientador = orientadoresDao.get_orientador_codigo(id, False)
+            if not orientador:
+                return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
-        res, cod = busca_projetos_orientador_publico(orientador['codOrientador'])
-        return get_response_code(res, cod)
+            res, cod = busca_projetos_orientador_publico(orientador['codOrientador'])
+            return get_response_code(res, cod)
 
 class BuscarAtributosProjetoResource(Resource):
     @admin_token_required
@@ -245,12 +255,15 @@ class AlteraProjetoAlunoResource(Resource):
 class AlteraLocalPublicacaoResource(Resource):
     @professor_token_required
     def put(self, user_info, id):
-        orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
-        if not orientador:
-            return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
+        with Db() as db:
+            orientadoresDao = OrientadoresDAO(db)
+                
+            orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
+            if not orientador:
+                return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
-        status, cod = edita_publicacao(id, orientador['codOrientador'])
-        return get_response_code(status, cod)
+            status, cod = edita_publicacao(id, orientador['codOrientador'])
+            return get_response_code(status, cod)
 
 class GetProjetoResource(Resource):
     def get(self, id):
@@ -284,6 +297,7 @@ class DownloadArquivoProjetoNovoResource(Resource):
     def get(self, filename, user_info):
         with Db() as db:
             projetosDao = ProjetosDAO(db)
+            orientadoresDao = OrientadoresDAO(db)
 
             attatch = False
             if request.args.get('as_attachment'):
@@ -305,7 +319,7 @@ class DownloadArquivoProjetoNovoResource(Resource):
 
                         return f
             elif user_info['tipoUsuario'] == TiposUsuario.Professor.value:
-                orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+                orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
                 if not orientador:
                     return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
                 proj = projetosDao.get_projeto_novo_codOrientador(orientador['codOrientador'])
@@ -473,87 +487,88 @@ def check_file():
     return get_erro(response_messages.ERRO_INESPERADO()), 500
 
 def upload_projeto(user_info=None):
-    try:
-        titulo = request.form['titulo']
-        descricao = request.form['descricao']
-        subTitulo = request.form['subTitulo']
-        dataAvaliacao = request.form['dataAvaliacao']
-        linguagem = int(request.form['linguagem'])
-        modalidade = int(request.form['modalidade'])
-        raCoOrientador = request.form['raCoOrientador']
-        localPublicacao = request.form['localPublicacao']
-        if user_info == None:
-            raOrientador = request.form['raOrientador']
-            codCurso = request.form['codCurso']
-        else:
-            orientador = orientadores_dao.get_orientador_orientando_codUsuario(user_info['codUsuario'])
-            curso = cursos_dao.get_curso_codUsuario(user_info['codUsuario'])
-            if not (orientador and curso):
-                return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
-            raOrientador = orientador.raOrientador
-            codCurso = curso['codCurso']
-            
-        autores = request.form['autores']
-        palavras = request.form['palavras_chave']
-    except BadRequestKeyError:
-        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "localPublicacao", {}"descricao", "dataAvaliacao", "modalidade", "subTitulo", "autores", "linguagem", "raCoOrientador" e "palavras_chave"'.format('"raOrientador", "codCurso", ' if user_info==None else ''))), 400
-    except ValueError:
-        return get_erro(response_messages.VALIDACAO_DEVEM('"linguagem" e "modalidade"', 'ser do tipo inteiro')), 400
-
-    if not(titulo and raOrientador and dataAvaliacao and codCurso):
-        return get_erro(response_messages.ATRIBUTO_OBRIGATORIO('"titulo", {}"dataAvaliacao" e "linguagem"'.format('"raOrientador", "codCurso", ' if user_info==None else ''))), 400
-    if not (linguagem) in range(LinguagemProjeto.Espanhol.value + 1):
-        return get_falha(response_messages.VALIDACAO_DEVE('linguagem','ser um campo de numeros entre 0 e 2')), 400
-    if not (modalidade) in range(ModalidadeProjeto.GDD.value + 1):
-        return get_falha(response_messages.VALIDACAO_DEVE('modalidade', 'ser um campo de numeros entre 0 e 2')), 400
-
-    projeto = Projetos(
-        tituloProjeto = titulo,
-        subTitulo = subTitulo,
-        descricao = descricao,
-        dataAvaliacao = dataAvaliacao,
-        linguagem = linguagem,
-        modalidade = modalidade,
-        localPublicacao = localPublicacao,
-        autores = [], 
-        palavrasChave = [],
-        curso = cursos_dao.get_curso_codCurso(codCurso),
-        orientador = orientadores_dao.get_orientador(raOrientador),
-        coOrientador = orientadores_dao.get_orientador(raCoOrientador)
-    )
-    
-    if not projeto.curso:
-        return get_erro(response_messages.VALIDACAO_DEVE('curso', 'conter um código de curso existente')), 400
-    if raOrientador == raCoOrientador:
-        return get_erro(response_messages.VALIDACAO_DEVE('orientador', 'ser diferente do coOrientador')), 400
-    if not projeto.orientador:
-        return get_falha(response_messages.ATRIBUTO_INVALIDO('raOrientador')), 400
-    if raCoOrientador:
-        if not projeto.coOrientador:
-            return get_falha(response_messages.ATRIBUTO_INVALIDO('raCoOrientador')), 400
-    
-    try:
-        autores_obj = json.loads(autores)
-    except JSONDecodeError:
-        return get_erro(response_messages.VALIDACAO_DEVE('autores', 'ser um array contendo objetos JSON com os atributos: "nome", "ra" e "email"')), 400
-    try:
-        palavras_obj = json.loads(palavras)
-    except JSONDecodeError:
-        return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ser um array contendo objetos JSON com o atributo: "palavra"')), 400
-
-    if len(autores_obj) < 1:
-        return get_erro(response_messages.VALIDACAO_DEVE('autores', 'ter no mínimo 1 autor')), 400
-    if len(autores_obj) > 5:
-        return get_erro(response_messages.VALIDACAO_DEVE('autores', 'ter no máximo 5 autores')), 400
-
-    if len(palavras_obj) < 1:
-        return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ter no mínimo 1 palavra-chave')), 400
-    if len(palavras_obj) > 5:
-        return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ter no máximo 5 palavras-chave')), 400 
-    
     with Db() as db:
         projetosDao = ProjetosDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
             
+        try:
+            titulo = request.form['titulo']
+            descricao = request.form['descricao']
+            subTitulo = request.form['subTitulo']
+            dataAvaliacao = request.form['dataAvaliacao']
+            linguagem = int(request.form['linguagem'])
+            modalidade = int(request.form['modalidade'])
+            raCoOrientador = request.form['raCoOrientador']
+            localPublicacao = request.form['localPublicacao']
+            if user_info == None:
+                raOrientador = request.form['raOrientador']
+                codCurso = request.form['codCurso']
+            else:
+                orientador = orientadoresDao.get_orientador_orientando_codUsuario(user_info['codUsuario'])
+                curso = cursos_dao.get_curso_codUsuario(user_info['codUsuario'])
+                if not (orientador and curso):
+                    return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
+                raOrientador = orientador.raOrientador
+                codCurso = curso['codCurso']
+                
+            autores = request.form['autores']
+            palavras = request.form['palavras_chave']
+        except BadRequestKeyError:
+            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "localPublicacao", {}"descricao", "dataAvaliacao", "modalidade", "subTitulo", "autores", "linguagem", "raCoOrientador" e "palavras_chave"'.format('"raOrientador", "codCurso", ' if user_info==None else ''))), 400
+        except ValueError:
+            return get_erro(response_messages.VALIDACAO_DEVEM('"linguagem" e "modalidade"', 'ser do tipo inteiro')), 400
+
+        if not(titulo and raOrientador and dataAvaliacao and codCurso):
+            return get_erro(response_messages.ATRIBUTO_OBRIGATORIO('"titulo", {}"dataAvaliacao" e "linguagem"'.format('"raOrientador", "codCurso", ' if user_info==None else ''))), 400
+        if not (linguagem) in range(LinguagemProjeto.Espanhol.value + 1):
+            return get_falha(response_messages.VALIDACAO_DEVE('linguagem','ser um campo de numeros entre 0 e 2')), 400
+        if not (modalidade) in range(ModalidadeProjeto.GDD.value + 1):
+            return get_falha(response_messages.VALIDACAO_DEVE('modalidade', 'ser um campo de numeros entre 0 e 2')), 400
+
+        projeto = Projetos(
+            tituloProjeto = titulo,
+            subTitulo = subTitulo,
+            descricao = descricao,
+            dataAvaliacao = dataAvaliacao,
+            linguagem = linguagem,
+            modalidade = modalidade,
+            localPublicacao = localPublicacao,
+            autores = [], 
+            palavrasChave = [],
+            curso = cursos_dao.get_curso_codCurso(codCurso),
+            orientador = orientadoresDao.get_orientador(raOrientador),
+            coOrientador = orientadoresDao.get_orientador(raCoOrientador)
+        )
+        
+        if not projeto.curso:
+            return get_erro(response_messages.VALIDACAO_DEVE('curso', 'conter um código de curso existente')), 400
+        if raOrientador == raCoOrientador:
+            return get_erro(response_messages.VALIDACAO_DEVE('orientador', 'ser diferente do coOrientador')), 400
+        if not projeto.orientador:
+            return get_falha(response_messages.ATRIBUTO_INVALIDO('raOrientador')), 400
+        if raCoOrientador:
+            if not projeto.coOrientador:
+                return get_falha(response_messages.ATRIBUTO_INVALIDO('raCoOrientador')), 400
+        
+        try:
+            autores_obj = json.loads(autores)
+        except JSONDecodeError:
+            return get_erro(response_messages.VALIDACAO_DEVE('autores', 'ser um array contendo objetos JSON com os atributos: "nome", "ra" e "email"')), 400
+        try:
+            palavras_obj = json.loads(palavras)
+        except JSONDecodeError:
+            return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ser um array contendo objetos JSON com o atributo: "palavra"')), 400
+
+        if len(autores_obj) < 1:
+            return get_erro(response_messages.VALIDACAO_DEVE('autores', 'ter no mínimo 1 autor')), 400
+        if len(autores_obj) > 5:
+            return get_erro(response_messages.VALIDACAO_DEVE('autores', 'ter no máximo 5 autores')), 400
+
+        if len(palavras_obj) < 1:
+            return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ter no mínimo 1 palavra-chave')), 400
+        if len(palavras_obj) > 5:
+            return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ter no máximo 5 palavras-chave')), 400 
+        
         if user_info:
             lider = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
             if not lider:
@@ -588,7 +603,6 @@ def upload_projeto(user_info=None):
             except KeyError:
                 return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'conter o campo "palavra"')), 400
 
-
         file = request.files['file']
         filename = __get_nome_arquivo_projeto(titulo, file.filename, projeto.curso.abreviacao)
         
@@ -612,7 +626,6 @@ def upload_projeto(user_info=None):
                         projeto.tituloProjeto, 
                         projeto.dataAvaliacao.split('-')[0]
                     )
-
         except Exception as ex:
             return get_erro(ex.__str__()), 400
 
@@ -632,6 +645,7 @@ def upload_projeto(user_info=None):
 def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
     with Db() as db:
         projetosDao = ProjetosDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
             
         proj = projetosDao.get_projeto_novo(codProjeto, True)
         if not proj:
@@ -667,7 +681,7 @@ def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
                 return get_ok(response_messages.TRABALHO_APROVADO()), 200
             return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho'))
         else:
-            orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+            orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
             if not orientador:
                 return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
 
@@ -689,6 +703,7 @@ def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
 def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
     with Db() as db:
         projetosDao = ProjetosDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
             
         proj = projetosDao.get_projeto_novo(codProjeto, True)
         if not proj:
@@ -712,7 +727,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
                 return get_ok(response_messages.TRABALHO_REPROVADO()), 200
             return get_erro(response_messages.SEM_PERMICAO('reprovar este projeto'))
         else:
-            orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+            orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
             if not orientador:
                 return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
 

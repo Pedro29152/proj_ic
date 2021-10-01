@@ -11,10 +11,6 @@ from biblioteca.curso import cursos_dao
 from biblioteca.usuarios import usuario_orientado_dao
 from biblioteca.usuarios import usuario_dao
 from biblioteca.orientador import orientadores_dao
-from biblioteca.responses import (
-    get_erro,
-    get_ok
-)
 from biblioteca.extensions import (
     TiposUsuario,
     TiposOrientador,
@@ -68,6 +64,7 @@ class ProjetosDAO:
     def __init__(self, db):
         self.db = db
         self.usuarioDao = usuario_dao.UsuarioDAO(self.db)
+        self.orientadoresDao = orientadores_dao.OrientadoresDAO(self.db)
 
     def busca_projeto_tipo(self, tipo, query = '', ordem = 0, crescente = True):
         queryBase = query
@@ -669,23 +666,25 @@ class ProjetosDAO:
             self.prenche_projeto(item, attrs=attrs)
 
     def prenche_projeto(self, ret, attrs=None):
-        if attrs == None:
-            ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
-            ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
-            ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
-            ret['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
-        else:
-            if AtributosEspeciaisProjeto.Autores.value in attrs:
+            
+                
+            if attrs == None:
                 ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
-
-            if AtributosEspeciaisProjeto.PalavrasChave.value in attrs:
                 ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
-
-            if AtributosEspeciaisProjeto.Curso.value in attrs:
                 ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
+                ret['orientadores'] = self.orientadoresDao.busca_orientadores_codProjeto(ret['codProjeto'])
+            else:
+                if AtributosEspeciaisProjeto.Autores.value in attrs:
+                    ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
 
-            if AtributosEspeciaisProjeto.Orientadores.value in attrs:
-                ret['orientadores'] = orientadores_dao.busca_orientadores_codProjeto(ret['codProjeto'])
+                if AtributosEspeciaisProjeto.PalavrasChave.value in attrs:
+                    ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
+
+                if AtributosEspeciaisProjeto.Curso.value in attrs:
+                    ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
+
+                if AtributosEspeciaisProjeto.Orientadores.value in attrs:
+                    ret['orientadores'] = self.orientadoresDao.busca_orientadores_codProjeto(ret['codProjeto'])
 
     def reprova_projetos_invalidos(self, ):
         query = '''

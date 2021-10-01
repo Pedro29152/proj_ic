@@ -7,7 +7,7 @@ from biblioteca.db import Db
 from biblioteca import mailer, response_messages
 from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.projeto.projetos_dao import ProjetosDAO
-from biblioteca.orientador import orientadores_dao
+from biblioteca.orientador.orientadores_dao import OrientadoresDAO
 from biblioteca.curso import cursos_dao
 from biblioteca.responses import (
     get_data,
@@ -34,11 +34,12 @@ class AllCountsResource(Resource):
         with Db() as db:
             usuarioDao = UsuarioDAO(db)
             projetosDao = ProjetosDAO(db)
+            orientadoresDao = OrientadoresDAO(db)
 
             if (user_info['tipoUsuario'] == TiposUsuario.Aluno.value):
                 return get_unauthorized(response_messages.SEM_AUTORIZACAO())
             if (user_info['tipoUsuario'] == TiposUsuario.Professor.value):
-                orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+                orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
                 if not orientador:
                     return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
@@ -54,7 +55,7 @@ class AllCountsResource(Resource):
             if (user_info['tipoUsuario'] == TiposUsuario.Secretaria.value):
                 usuarios_count = usuarioDao.get_count()
                 projetos_count = projetosDao.get_count()
-                orientadores_count = orientadores_dao.get_count()
+                orientadores_count = orientadoresDao.get_count()
                 cursos_count = cursos_dao.get_count()
 
                 return get_data({
@@ -68,7 +69,7 @@ class AllCountsResource(Resource):
             if (user_info['tipoUsuario'] == TiposUsuario.Administrador.value):
                 usuarios_count = usuarioDao.get_count()
                 projetos_count = projetosDao.get_count()
-                orientadores_count = orientadores_dao.get_count()
+                orientadores_count = orientadoresDao.get_count()
                 cursos_count = cursos_dao.get_count()
 
                 return get_data({

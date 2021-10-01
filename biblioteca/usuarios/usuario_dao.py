@@ -2,13 +2,13 @@ from mysql.connector.errors import DatabaseError
 from werkzeug.security import check_password_hash, generate_password_hash
 from mysql.connector.errors import IntegrityError
 from datetime import datetime, timedelta
-from biblioteca.db import Db
 from biblioteca.orientador import orientadores_dao
 from biblioteca import extensions
 
 class UsuarioDAO:
     def __init__(self, db):
         self.db = db
+        self.orientadoresDao = orientadores_dao.OrientadoresDAO(self.db)
 
     def verifica_usr(self, usuario, senha):
         senhaR = self.busca_senha_nome(usuario)
@@ -255,24 +255,25 @@ class UsuarioDAO:
         self.db.gravar_autocommit(query,(codUsuario,))
         
         if usr['tipoUsuario'] == extensions.TiposUsuario.Professor.value:
-            orientador = orientadores_dao.get_orientador_orientando_codUsuario(codUsuario)
+            orientador = self.orientadoresDao.get_orientador_orientando_codUsuario(codUsuario)
             if orientador:
-                orientadores_dao.desativa_orientador(orientador['codOrientador'])
+                self.orientadoresDao.desativa_orientador(orientador['codOrientador'])
 
     def desativar_aluno(self, codUsuario):
         query = 'update usuarios set ativo = 0, email = null where codUsuario = (%s)'
         self.db.gravar_autocommit(query, (codUsuario,))
 
     def desativa_usuario(self, codUsuario):
+        
         usr = self.get_usuario_ativo(codUsuario)
 
         query = 'update usuarios set ativo = 0 where codUsuario = (%s)'
         self.db.gravar_autocommit(query, (codUsuario,))
 
         if usr['tipoUsuario'] == extensions.TiposUsuario.Professor.value:
-            orientador = orientadores_dao.get_orientador_codUsuario(codUsuario)
+            orientador = self.orientadoresDao.get_orientador_codUsuario(codUsuario)
             if orientador:
-                orientadores_dao.desativa_orientador(orientador['codOrientador'])
+                self.orientadoresDao.desativa_orientador(orientador['codOrientador'])
 
     def ativa_usuario(self, codUsuario):
         query = 'update usuarios set ativo = 1 where codUsuario = (%s)'

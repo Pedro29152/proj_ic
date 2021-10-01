@@ -8,8 +8,8 @@ from openpyxl.styles import Font, PatternFill
 
 from biblioteca.db import Db
 from biblioteca.projeto.projetos_dao import ProjetosDAO
+from biblioteca.orientador.orientadores_dao import OrientadoresDAO
 from biblioteca.curso import cursos_dao
-from biblioteca.orientador import orientadores_dao
 from biblioteca.autor import autores_dao
 from biblioteca.extensions import (
     LinguagemProjeto,
@@ -216,61 +216,64 @@ def get_cursos_workbook(data_i= None, data_f= None, user=None):
     return wb
 
 def get_orientadores_workbook(data_i= None, data_f= None, user=None):
-    orientadores = orientadores_dao.get_relatorio_orientadores(data_i=data_i, data_f=data_f)
-    if not orientadores:
-        return None
+    with Db() as db:
+        orientadoresDao = OrientadoresDAO(db)
 
-    atributos = list(orientadores[0].keys())
+        orientadores = orientadoresDao.get_relatorio_orientadores(data_i=data_i, data_f=data_f)
+        if not orientadores:
+            return None
 
-    info = [
-        'FATEC de Carapicuíba',
-        'Gerado por: {}'.format(user['nome']),
-        'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
-    ]
-    
-    header = __generate_header(atributos)
+        atributos = list(orientadores[0].keys())
 
-    column_widths = __format_column_widths( 
-        __get_base_column_widths_info(info), 
-        __get_base_column_widths_header(header),
-        __get_base_column_widths(atributos)
-    )
+        info = [
+            'FATEC de Carapicuíba',
+            'Gerado por: {}'.format(user['nome']),
+            'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
+        ]
+        
+        header = __generate_header(atributos)
 
-    dif = len(header) - len(info)
-    for i in range(dif if dif > 0 else 0):
-        info.append('')
+        column_widths = __format_column_widths( 
+            __get_base_column_widths_info(info), 
+            __get_base_column_widths_header(header),
+            __get_base_column_widths(atributos)
+        )
 
-    wb = __generate_workbook(
-        title='Relatorio Orientadores',
-        info=info,
-        header= __generate_header(atributos)
-    )
-    ws = wb.active
+        dif = len(header) - len(info)
+        for i in range(dif if dif > 0 else 0):
+            info.append('')
 
-    for i, orientador in enumerate(orientadores):
-        linha = []
+        wb = __generate_workbook(
+            title='Relatorio Orientadores',
+            info=info,
+            header= __generate_header(atributos)
+        )
+        ws = wb.active
 
-        for j, atributo in enumerate(atributos):
-            val = orientador[atributo]
-            
-            linha.append(val)
+        for i, orientador in enumerate(orientadores):
+            linha = []
 
-            tam_cell = (len(str(linha[j])) + 3)
-            if tam_cell > 80:
-                tam_cell = 80
-            
-            if len(column_widths) > j:
-                if tam_cell > column_widths[j]:
-                    column_widths[j] = tam_cell
-            else:
-                column_widths += [tam_cell]
+            for j, atributo in enumerate(atributos):
+                val = orientador[atributo]
+                
+                linha.append(val)
 
-        ws.append(linha)
+                tam_cell = (len(str(linha[j])) + 3)
+                if tam_cell > 80:
+                    tam_cell = 80
+                
+                if len(column_widths) > j:
+                    if tam_cell > column_widths[j]:
+                        column_widths[j] = tam_cell
+                else:
+                    column_widths += [tam_cell]
 
-    for i, column_width in enumerate(column_widths):
-        ws.column_dimensions[get_column_letter(i+1)].width = column_width
-    
-    return wb
+            ws.append(linha)
+
+        for i, column_width in enumerate(column_widths):
+            ws.column_dimensions[get_column_letter(i+1)].width = column_width
+        
+        return wb
 
 def get_autores_workbook(data_i=None, data_f=None, user=None):
     autores = autores_dao.get_relatorio_autores(data_i=data_i, data_f=data_f)

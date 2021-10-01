@@ -8,10 +8,10 @@ from datetime import datetime, timedelta
 from biblioteca.db import Db
 from biblioteca import mailer, response_messages
 from biblioteca.orientador.schemas import Orientadores
-from biblioteca.orientador import orientadores_dao
+from biblioteca.projeto.projetos_dao import ProjetosDAO
+from biblioteca.orientador.orientadores_dao import OrientadoresDAO
 from biblioteca.autor import autores_dao
 from biblioteca.curso import cursos_dao
-from biblioteca.projeto.projetos_dao import ProjetosDAO
 from biblioteca.extensions import (
     secretaria_token_required,
     admin_token_required,
@@ -270,6 +270,7 @@ def cadastro_professor(existente=True):
 
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
 
         if not existente:
             try:
@@ -289,10 +290,10 @@ def cadastro_professor(existente=True):
             except IntegrityError:
                 return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou ra')), 400
         else:
-            if not orientadores_dao.exists(codOrientador):
+            if not orientadoresDao.exists(codOrientador):
                 return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
                 
-        orientador = orientadores_dao.get_orientador_codigo(codOrientador, False)
+        orientador = orientadoresDao.get_orientador_codigo(codOrientador, False)
         user = orientador['raOrientador']
         password = generate_random_password()
         if usuarioDao.add_orientador(user, password, nome, email, codOrientador):
@@ -316,7 +317,7 @@ def cadastro_professor(existente=True):
                 response_messages.ENTIDADE_GRAVADA('Usuario')
             ), 201
         if not existente:
-            orientadores_dao.deleta_orientador(codOrientador)
+            orientadoresDao.deleta_orientador(codOrientador)
         return get_erro(response_messages.ERRO_INTEGRIDADE('Nome de usuario ou email')), 400
 
 def cadastro_aluno(professor_user_info):
@@ -337,6 +338,7 @@ def cadastro_aluno(professor_user_info):
     
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
 
         curso = cursos_dao.get_curso_codCurso(codCurso, False)
         if not curso:
@@ -350,7 +352,7 @@ def cadastro_aluno(professor_user_info):
                     return get_erro(response_messages.ERRO_INTEGRIDADE('Autor')), 400
             except DataError:
                 return get_erro(response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres')), 400
-        orientador = orientadores_dao.get_orientador_codUsuario(professor_user_info['codUsuario'])
+        orientador = orientadoresDao.get_orientador_codUsuario(professor_user_info['codUsuario'])
         if not orientador:
             return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
         
@@ -438,8 +440,9 @@ def busca_usuarios():
 def buscar_usuarios_orientados(user_info):
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
 
-        orientador = orientadores_dao.get_orientador_codUsuario(user_info['codUsuario'])
+        orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
         if not orientador:
             return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
 
@@ -541,6 +544,7 @@ def edita_usuario(codUsuario, is_admin, is_user):
 def altera_orientador_aluno(codProjeto, user_info):
     with Db() as db:
         projetosDao = ProjetosDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
             
         proj = projetosDao.get_projeto_novo(codProjeto, True)
         if not proj:
@@ -560,7 +564,7 @@ def altera_orientador_aluno(codProjeto, user_info):
         if not util.is_cod_valido(codOrientador):
             return get_erro(response_messages.VALIDACAO_DEVE('codOrientador', 'ser um numero inteiro')), 400
 
-        orientador = orientadores_dao.get_orientador_codigo(codOrientador, False)
+        orientador = orientadoresDao.get_orientador_codigo(codOrientador, False)
         if not orientador:
             return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
         if not orientador['codUsuario']:

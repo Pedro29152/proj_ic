@@ -1,4 +1,3 @@
-from biblioteca.db import Db
 
 class SlideDAO:
     def __init__(self, db):
