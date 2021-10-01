@@ -5,10 +5,10 @@ from .schemas import Orientadores
 from mysql.connector.errors import ProgrammingError
 
 class OrientadoresDAO:
-    def __init__(self, db):
+    def __init__(self, db, projetosDaoArg=None, usuariosDaoArg=None):
         self.db = db
-        self.projetosDao = projetos_dao.ProjetosDAO(db)
-        self.usuarioDao = usuario_dao.UsuarioDAO(db)
+        self.usuarioDao = usuariosDaoArg if usuariosDaoArg else usuario_dao.UsuarioDAO(db, self)
+        self.projetosDao = projetosDaoArg if projetosDaoArg else projetos_dao.ProjetosDAO(db, usuarioDaoArg=self.usuarioDao, orientadoresDaoArg=self)
 
     def get_orientador(self, raOrientador):
         query = 'select * from orientadores where raOrientador = (%s) and ativo = 1'

@@ -139,7 +139,7 @@ def cadastro_orientador():
     except BadRequestKeyError:
         return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"')), 400
     except IntegrityError:
-        return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou raAutor')), 400
+        return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou raOrientador')), 400
 
 def edita_orientador(codOrientador):
     with Db() as db:

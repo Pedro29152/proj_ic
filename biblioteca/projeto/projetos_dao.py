@@ -60,11 +60,10 @@ QUERY_MODALIDADE = '''
     '''
 
 class ProjetosDAO:
-    
-    def __init__(self, db):
+    def __init__(self, db, usuarioDaoArg=None, orientadoresDaoArg=None):
         self.db = db
-        self.usuarioDao = usuario_dao.UsuarioDAO(self.db)
-        self.orientadoresDao = orientadores_dao.OrientadoresDAO(self.db)
+        self.orientadoresDao = orientadoresDaoArg if orientadoresDaoArg else orientadores_dao.OrientadoresDAO(self.db, projetosDaoArg=self)
+        self.usuarioDao = usuarioDaoArg if usuarioDaoArg else usuario_dao.UsuarioDAO(self.db, orientadoresDao=self.orientadoresDao)
 
     def busca_projeto_tipo(self, tipo, query = '', ordem = 0, crescente = True):
         queryBase = query

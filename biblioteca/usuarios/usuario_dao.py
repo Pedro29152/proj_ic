@@ -6,9 +6,9 @@ from biblioteca.orientador import orientadores_dao
 from biblioteca import extensions
 
 class UsuarioDAO:
-    def __init__(self, db):
+    def __init__(self, db, orientadoresDao=None):
         self.db = db
-        self.orientadoresDao = orientadores_dao.OrientadoresDAO(self.db)
+        self.orientadoresDao = orientadoresDao if orientadoresDao else orientadores_dao.OrientadoresDAO(self.db, usuariosDaoArg=self)
 
     def verifica_usr(self, usuario, senha):
         senhaR = self.busca_senha_nome(usuario)
