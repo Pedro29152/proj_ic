@@ -12,10 +12,10 @@ from mysql.connector.errors import IntegrityError
 
 from biblioteca.db import Db
 from biblioteca import mailer, response_messages
-from biblioteca.usuarios.usuario_orientado_dao import UsuarioOrientadoDAO
-from biblioteca.curso import cursos_dao
-from biblioteca.orientador.orientadores_dao import OrientadoresDAO
+from biblioteca.curso.cursos_dao import CursosDAO
 from biblioteca.autor.projeto_autor_dao import ProjetoAutorDAO
+from biblioteca.orientador.orientadores_dao import OrientadoresDAO
+from biblioteca.usuarios.usuario_orientado_dao import UsuarioOrientadoDAO
 from biblioteca.autor import autores_dao
 from biblioteca.pdf_generator import TermoCompromisso
 from biblioteca.responses import (
@@ -104,12 +104,15 @@ class BuscarProjetosOrientadorNovo(Resource):
 class BuscarProjetosCurso(Resource):
     @coordenador_token_required
     def get(self, user_info):
-        curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
-        if not curso:
-            return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
+        with Db() as db:
+            cursosDao = CursosDAO(db)
 
-        res, cod = busca_projetos_curso(curso['codCurso'])
-        return get_response_code(res, cod)
+            curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+            if not curso:
+                return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
+
+            res, cod = busca_projetos_curso(curso['codCurso'])
+            return get_response_code(res, cod)
 
 class GetProjetoNovo(Resource):
     @aluno_professor_coordenador_token_required
@@ -117,6 +120,7 @@ class GetProjetoNovo(Resource):
         with Db() as db:
             projetosDao = ProjetosDAO(db)
             orientadoresDao = OrientadoresDAO(db)
+            cursosDao = CursosDAO(db)
 
             if user_info['tipoUsuario'] == TiposUsuario.Professor.value:
                 orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
@@ -137,7 +141,7 @@ class GetProjetoNovo(Resource):
                     return get_response_code(proj, 200)
                 return get_not_found(response_messages.NAO_ENCONTRADO('Trabalho'))
             elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
-                curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+                curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
                 if not curso:
                     return get_erro(response_messages.USUARIO_NAO_RELACIONADO_CURSO()), 400
                     
@@ -299,6 +303,7 @@ class DownloadArquivoProjetoNovoResource(Resource):
         with Db() as db:
             projetosDao = ProjetosDAO(db)
             orientadoresDao = OrientadoresDAO(db)
+            cursosDao = CursosDAO(db)
 
             attatch = False
             if request.args.get('as_attachment'):
@@ -336,7 +341,7 @@ class DownloadArquivoProjetoNovoResource(Resource):
 
                         return f
             elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
-                curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+                curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
                 if not curso:
                     return get_erro(response_messages.USUARIO_NAO_RELACIONADO_CURSO()), 400
                 proj = projetosDao.get_projeto_novo_codCurso(curso['codCurso'])
@@ -492,6 +497,7 @@ def upload_projeto(user_info=None):
         projetosDao = ProjetosDAO(db)
         orientadoresDao = OrientadoresDAO(db)
         usuarioOrientadoDao = UsuarioOrientadoDAO(db)
+        cursosDao = CursosDAO(db)
             
         try:
             titulo = request.form['titulo']
@@ -507,7 +513,7 @@ def upload_projeto(user_info=None):
                 codCurso = request.form['codCurso']
             else:
                 orientador = orientadoresDao.get_orientador_orientando_codUsuario(user_info['codUsuario'])
-                curso = cursos_dao.get_curso_codUsuario(user_info['codUsuario'])
+                curso = cursosDao.get_curso_codUsuario(user_info['codUsuario'])
                 if not (orientador and curso):
                     return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
                 raOrientador = orientador.raOrientador
@@ -537,7 +543,7 @@ def upload_projeto(user_info=None):
             localPublicacao = localPublicacao,
             autores = [], 
             palavrasChave = [],
-            curso = cursos_dao.get_curso_codCurso(codCurso),
+            curso = cursosDao.get_curso_codCurso(codCurso),
             orientador = orientadoresDao.get_orientador(raOrientador),
             coOrientador = orientadoresDao.get_orientador(raCoOrientador)
         )
@@ -648,6 +654,7 @@ def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
     with Db() as db:
         projetosDao = ProjetosDAO(db)
         orientadoresDao = OrientadoresDAO(db)
+        cursosDao = CursosDAO(db)
             
         proj = projetosDao.get_projeto_novo(codProjeto, True)
         if not proj:
@@ -667,7 +674,7 @@ def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
 
             return get_ok(response_messages.TRABALHO_APROVADO()), 200
         elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
-            curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+            curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
             if curso['abreviacao'] == proj['curso']['abreviacao']:
                 projetosDao.aprovar_projeto(proj['codProjeto'])
                 
@@ -706,6 +713,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
     with Db() as db:
         projetosDao = ProjetosDAO(db)
         orientadoresDao = OrientadoresDAO(db)
+        cursosDao = CursosDAO(db)
             
         proj = projetosDao.get_projeto_novo(codProjeto, True)
         if not proj:
@@ -719,7 +727,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
 
             return get_ok(response_messages.TRABALHO_REPROVADO()), 200
         elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
-            curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+            curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
             if curso['abreviacao'] == proj['curso']['abreviacao']:
                 projetosDao.recusar_projeto(proj['codProjeto'])
                 os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))

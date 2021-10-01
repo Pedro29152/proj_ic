@@ -11,10 +11,10 @@ from .usuario_dao import UsuarioDAO
 from biblioteca.db import Db
 from biblioteca import mailer, response_messages
 from biblioteca.orientador.schemas import Orientadores
+from biblioteca.curso.cursos_dao import CursosDAO
 from biblioteca.projeto.projetos_dao import ProjetosDAO
 from biblioteca.orientador.orientadores_dao import OrientadoresDAO
 from biblioteca.autor import autores_dao
-from biblioteca.curso import cursos_dao
 from biblioteca.extensions import (
     secretaria_token_required,
     admin_token_required,
@@ -339,8 +339,9 @@ def cadastro_aluno(professor_user_info):
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
         orientadoresDao = OrientadoresDAO(db)
+        cursosDao = CursosDAO(db)
 
-        curso = cursos_dao.get_curso_codCurso(codCurso, False)
+        curso = cursosDao.get_curso_codCurso(codCurso, False)
         if not curso:
             return get_falha(response_messages.NAO_ENCONTRADO('Curso')), 400
 
@@ -546,11 +547,12 @@ def altera_orientador_aluno(codProjeto, user_info):
         projetosDao = ProjetosDAO(db)
         orientadoresDao = OrientadoresDAO(db)
         usuarioOrientadoDao = UsuarioOrientadoDAO(db)
+        cursosDao = CursosDAO(db)
             
         proj = projetosDao.get_projeto_novo(codProjeto, True)
         if not proj:
             return get_erro(response_messages.NAO_ENCONTRADO('Trabalho')), 404
-        curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+        curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
         if not curso:
             return get_erro(response_messages.SEM_PERMICAO('ter acesso a esta ação')), 400
 

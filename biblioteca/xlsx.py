@@ -9,7 +9,7 @@ from openpyxl.styles import Font, PatternFill
 from biblioteca.db import Db
 from biblioteca.projeto.projetos_dao import ProjetosDAO
 from biblioteca.orientador.orientadores_dao import OrientadoresDAO
-from biblioteca.curso import cursos_dao
+from biblioteca.curso.cursos_dao import CursosDAO
 from biblioteca.autor import autores_dao
 from biblioteca.extensions import (
     LinguagemProjeto,
@@ -159,61 +159,64 @@ def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= No
         return wb
 
 def get_cursos_workbook(data_i= None, data_f= None, user=None):
-    cursos = cursos_dao.get_relatorio_cursos(data_i=data_i, data_f=data_f)
-    if not cursos:
-        return None
-
-    atributos = list(cursos[0].keys())
-
-    info = [
-        'FATEC de Carapicuíba',
-        'Gerado por: {}'.format(user['nome']),
-        'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
-    ]
-    
-    header = __generate_header(atributos)
-
-    column_widths = __format_column_widths( 
-        __get_base_column_widths_info(info), 
-        __get_base_column_widths_header(header),
-        __get_base_column_widths(atributos)
-    )
-
-    dif = len(header) - len(info)
-    for i in range(dif if dif > 0 else 0):
-        info.append('')
-
-    wb = __generate_workbook(
-        title='Relatorio Cursos',
-        info=info,
-        header= __generate_header(atributos)
-    )
-    ws = wb.active
-
-    for i, curso in enumerate(cursos):
-        linha = []
+    with Db() as db:
+        cursosDao = CursosDAO(db)
         
-        for j, atributo in enumerate(atributos):
-            val = curso[atributo]
+        cursos = cursosDao.get_relatorio_cursos(data_i=data_i, data_f=data_f)
+        if not cursos:
+            return None
+
+        atributos = list(cursos[0].keys())
+
+        info = [
+            'FATEC de Carapicuíba',
+            'Gerado por: {}'.format(user['nome']),
+            'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
+        ]
+        
+        header = __generate_header(atributos)
+
+        column_widths = __format_column_widths( 
+            __get_base_column_widths_info(info), 
+            __get_base_column_widths_header(header),
+            __get_base_column_widths(atributos)
+        )
+
+        dif = len(header) - len(info)
+        for i in range(dif if dif > 0 else 0):
+            info.append('')
+
+        wb = __generate_workbook(
+            title='Relatorio Cursos',
+            info=info,
+            header= __generate_header(atributos)
+        )
+        ws = wb.active
+
+        for i, curso in enumerate(cursos):
+            linha = []
             
-            linha.append(val)
+            for j, atributo in enumerate(atributos):
+                val = curso[atributo]
+                
+                linha.append(val)
 
-            tam_cell = (len(str(linha[j])) + 3)
-            if tam_cell > 80:
-                tam_cell = 80
-            
-            if len(column_widths) > j:
-                if tam_cell > column_widths[j]:
-                    column_widths[j] = tam_cell
-            else:
-                column_widths += [tam_cell]
+                tam_cell = (len(str(linha[j])) + 3)
+                if tam_cell > 80:
+                    tam_cell = 80
+                
+                if len(column_widths) > j:
+                    if tam_cell > column_widths[j]:
+                        column_widths[j] = tam_cell
+                else:
+                    column_widths += [tam_cell]
 
-        ws.append(linha)
+            ws.append(linha)
 
-    for i, column_width in enumerate(column_widths):
-        ws.column_dimensions[get_column_letter(i+1)].width = column_width
-    
-    return wb
+        for i, column_width in enumerate(column_widths):
+            ws.column_dimensions[get_column_letter(i+1)].width = column_width
+        
+        return wb
 
 def get_orientadores_workbook(data_i= None, data_f= None, user=None):
     with Db() as db:

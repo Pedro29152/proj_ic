@@ -20,7 +20,7 @@ from biblioteca.extensions import (
     generate_random_password,
     TiposUsuario
 )
-from . import cursos_dao
+from .cursos_dao import CursosDAO
 from .schemas import Cursos
 
 class CursoResource(Resource):
@@ -47,17 +47,23 @@ class CursoIdResource(Resource):
 
 class AtivaCursoResource(Resource):
     @secretaria_token_required
-    def post(self, id):    
-        cursos_dao.ativa_curso(id)
+    def post(self, id):
+        with Db() as db:
+            cursosDao = CursosDAO(db)
 
-        return get_ok(response_messages.ENTIDADE_ATIVADA('Curso'))
+            cursosDao.ativa_curso(id)
+
+            return get_ok(response_messages.ENTIDADE_ATIVADA('Curso'))
 
 class DesativaCursoResource(Resource):
     @secretaria_token_required
-    def post(self, id):    
-        cursos_dao.desativa_curso(id)
+    def post(self, id):
+        with Db() as db:
+            cursosDao = CursosDAO(db)
+                
+            cursosDao.desativa_curso(id)
 
-        return get_ok(response_messages.ENTIDADE_DESATIVADA('Curso'))
+            return get_ok(response_messages.ENTIDADE_DESATIVADA('Curso'))
 
 class TodosCursosResource(Resource):
     @secretaria_token_required
@@ -68,9 +74,12 @@ class TodosCursosResource(Resource):
 class CountCursosResource(Resource):
     @secretaria_token_required
     def get(self):
-        count = cursos_dao.get_count()
+        with Db() as db:
+            cursosDao = CursosDAO(db)
 
-        return get_count_res(count)
+            count = cursosDao.get_count()
+
+            return get_count_res(count)
 
 
 def cadastro_curso():
@@ -92,6 +101,7 @@ def cadastro_curso():
 
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
+        cursosDao = CursosDAO(db)
 
         user = usuarioDao.add_usr(username, password, TiposUsuario.Coordenador.value, nome, email)
         if not user:
@@ -122,25 +132,29 @@ def cadastro_curso():
 
             return get_ok(response_messages.ENTIDADE_GRAVADA('Curso')), 201
         except IntegrityError:
-            if not cursos_dao.is_ativo(curso):
-                cursos_dao.reativa_curso(curso)
+            if not cursosDao.is_ativo(curso):
+                cursosDao.reativa_curso(curso)
                 return get_ok('O curso ja existia, porem esta inativo. O curso foi reativado com os dados novos'), 400
             else:
                 usuarioDao.deleta_usuario(user['codUsuario'])
                 return get_erro(response_messages.ERRO_INTEGRIDADE('Nome ou breviacao')), 400
 
 def buscar_cursos():
-        cursos = cursos_dao.busca_cursos()
-        
-        if cursos:
-            return get_data(cursos), 200
-        return None, 204
+        with Db() as db:
+            cursosDao = CursosDAO(db)
+
+            cursos = cursosDao.busca_cursos()
+            
+            if cursos:
+                return get_data(cursos), 200
+            return None, 204
 
 def get_curso(codCurso):
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
+        cursosDao = CursosDAO(db)
 
-        curso = cursos_dao.get_curso_codCurso(codCurso, False)
+        curso = cursosDao.get_curso_codCurso(codCurso, False)
         coord = usuarioDao.get_user_coordenador(curso['codCurso'])
         curso.update(coord)
         if not curso:
@@ -148,33 +162,38 @@ def get_curso(codCurso):
         return curso, 200
 
 def edita_curso(codCurso):
-    curso = cursos_dao.get_curso_codCurso(codCurso)
-    if not curso:
-        return get_erro(response_messages.NAO_ENCONTRADO('Codigo de curso')), 404
+    with Db() as db:
+        cursosDao = CursosDAO(db)
 
-    try:
-        descricaoCurso = request.form['nomeCurso'] 
-        abreviacao = request.form['abreviacao']
+        curso = cursosDao.get_curso_codCurso(codCurso)
+        if not curso:
+            return get_erro(response_messages.NAO_ENCONTRADO('Codigo de curso')), 404
 
-        if descricaoCurso:
-            curso.descricaoCurso = descricaoCurso
-        if abreviacao:
-            curso.abreviacao = abreviacao
+        try:
+            descricaoCurso = request.form['nomeCurso'] 
+            abreviacao = request.form['abreviacao']
 
-        curso.edita_curso()
-        
-        return get_ok(response_messages.ENTIDADE_EDITADA('Curso')), 200
+            if descricaoCurso:
+                curso.descricaoCurso = descricaoCurso
+            if abreviacao:
+                curso.abreviacao = abreviacao
 
-    except AttributeError as ex:
-        return get_erro(ex.__str__()), 400
-    except BadRequestKeyError:
-        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeCurso" e "abreviacao"')), 400
-    except IntegrityError:
-        return get_erro(response_messages.ERRO_INTEGRIDADE('Abreviacao ou Nome do Curso')), 400
+            curso.edita_curso()
+            
+            return get_ok(response_messages.ENTIDADE_EDITADA('Curso')), 200
+
+        except AttributeError as ex:
+            return get_erro(ex.__str__()), 400
+        except BadRequestKeyError:
+            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeCurso" e "abreviacao"')), 400
+        except IntegrityError:
+            return get_erro(response_messages.ERRO_INTEGRIDADE('Abreviacao ou Nome do Curso')), 400
 
 def buscar_todos_cursos():
-        cursos = cursos_dao.busca_cursos_inativo()
-    
+    with Db() as db:
+        cursosDao = CursosDAO(db)
+
+        cursos = cursosDao.busca_cursos_inativo()
         if cursos:
             return get_data(cursos), 200
         return None, 204

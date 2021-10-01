@@ -60,13 +60,14 @@ QUERY_MODALIDADE = '''
     '''
 
 class ProjetosDAO:
-    def __init__(self, db, usuarioDaoArg=None, orientadoresDaoArg=None, usuarioOrientadoDaoArg=None, palavrasChaveDao=None, projetoAutorDaoArg=None):
+    def __init__(self, db, usuarioDaoArg=None, orientadoresDaoArg=None, usuarioOrientadoDaoArg=None, palavrasChaveDao=None, projetoAutorDaoArg=None, cursosDaoArg=None):
         self.db = db
         self.orientadoresDao = orientadoresDaoArg if orientadoresDaoArg else orientadores_dao.OrientadoresDAO(self.db, projetosDaoArg=self)
         self.usuarioDao = usuarioDaoArg if usuarioDaoArg else usuario_dao.UsuarioDAO(self.db, orientadoresDao=self.orientadoresDao)
         self.usuarioOrientadoDao = usuarioOrientadoDaoArg if usuarioOrientadoDaoArg else usuario_orientado_dao.UsuarioOrientadoDAO(self.db)
         self.palavrasChaveDao = palavrasChaveDao if palavrasChaveDao else palavras_chave_dao.PalavrasChaveDAO(self.db)
         self.projetoAutorDao = projetoAutorDaoArg if projetoAutorDaoArg else projeto_autor_dao.ProjetoAutorDAO(self.db)
+        self.cursosDao = cursosDaoArg if cursosDaoArg else cursos_dao.CursosDAO(self.db)
 
     def busca_projeto_tipo(self, tipo, query = '', ordem = 0, crescente = True):
         queryBase = query
@@ -673,7 +674,7 @@ class ProjetosDAO:
         if attrs == None:
             ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
             ret['palavrasChave'] = self.palavrasChaveDao.busca_palavras_chave(ret['codProjeto'])
-            ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
+            ret['curso'] = self.cursosDao.get_all_curso_cod(ret['codCurso'])
             ret['orientadores'] = self.orientadoresDao.busca_orientadores_codProjeto(ret['codProjeto'])
         else:
             if AtributosEspeciaisProjeto.Autores.value in attrs:
@@ -683,7 +684,7 @@ class ProjetosDAO:
                 ret['palavrasChave'] = self.palavrasChaveDao.busca_palavras_chave(ret['codProjeto'])
 
             if AtributosEspeciaisProjeto.Curso.value in attrs:
-                ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
+                ret['curso'] = self.cursosDao.get_all_curso_cod(ret['codCurso'])
 
             if AtributosEspeciaisProjeto.Orientadores.value in attrs:
                 ret['orientadores'] = self.orientadoresDao.busca_orientadores_codProjeto(ret['codProjeto'])

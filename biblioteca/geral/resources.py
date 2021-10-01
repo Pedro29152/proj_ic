@@ -8,7 +8,7 @@ from biblioteca import mailer, response_messages
 from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.projeto.projetos_dao import ProjetosDAO
 from biblioteca.orientador.orientadores_dao import OrientadoresDAO
-from biblioteca.curso import cursos_dao
+from biblioteca.curso.cursos_dao import CursosDAO
 from biblioteca.responses import (
     get_data,
     get_unauthorized,
@@ -35,6 +35,7 @@ class AllCountsResource(Resource):
             usuarioDao = UsuarioDAO(db)
             projetosDao = ProjetosDAO(db)
             orientadoresDao = OrientadoresDAO(db)
+            cursosDao = CursosDAO(db)
 
             if (user_info['tipoUsuario'] == TiposUsuario.Aluno.value):
                 return get_unauthorized(response_messages.SEM_AUTORIZACAO())
@@ -45,7 +46,7 @@ class AllCountsResource(Resource):
 
                 usuarios_count = usuarioDao.get_count(codOrientador=orientador['codOrientador'])
                 projetos_count = projetosDao.get_count(codOrientador=orientador['codOrientador'])
-                cursos_count = cursos_dao.get_count()
+                cursos_count = cursosDao.get_count()
 
                 return get_data({
                     'usuariosCount': usuarios_count,
@@ -56,7 +57,7 @@ class AllCountsResource(Resource):
                 usuarios_count = usuarioDao.get_count()
                 projetos_count = projetosDao.get_count()
                 orientadores_count = orientadoresDao.get_count()
-                cursos_count = cursos_dao.get_count()
+                cursos_count = cursosDao.get_count()
 
                 return get_data({
                     'usuariosCount': usuarios_count,
@@ -70,7 +71,7 @@ class AllCountsResource(Resource):
                 usuarios_count = usuarioDao.get_count()
                 projetos_count = projetosDao.get_count()
                 orientadores_count = orientadoresDao.get_count()
-                cursos_count = cursos_dao.get_count()
+                cursos_count = cursosDao.get_count()
 
                 return get_data({
                     'usuariosCount': usuarios_count,
