@@ -6,7 +6,7 @@ from os import getenv
 from biblioteca.db import Db
 from biblioteca import mailer, response_messages
 from biblioteca.usuarios.usuario_dao import UsuarioDAO
-from biblioteca.projeto import projetos_dao
+from biblioteca.projeto.projetos_dao import ProjetosDAO
 from biblioteca.orientador import orientadores_dao
 from biblioteca.curso import cursos_dao
 from biblioteca.responses import (
@@ -33,6 +33,8 @@ class AllCountsResource(Resource):
     def get(self, user_info):
         with Db() as db:
             usuarioDao = UsuarioDAO(db)
+            projetosDao = ProjetosDAO(db)
+
             if (user_info['tipoUsuario'] == TiposUsuario.Aluno.value):
                 return get_unauthorized(response_messages.SEM_AUTORIZACAO())
             if (user_info['tipoUsuario'] == TiposUsuario.Professor.value):
@@ -41,7 +43,7 @@ class AllCountsResource(Resource):
                     return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
                 usuarios_count = usuarioDao.get_count(codOrientador=orientador['codOrientador'])
-                projetos_count = projetos_dao.get_count(codOrientador=orientador['codOrientador'])
+                projetos_count = projetosDao.get_count(codOrientador=orientador['codOrientador'])
                 cursos_count = cursos_dao.get_count()
 
                 return get_data({
@@ -51,7 +53,7 @@ class AllCountsResource(Resource):
                 })
             if (user_info['tipoUsuario'] == TiposUsuario.Secretaria.value):
                 usuarios_count = usuarioDao.get_count()
-                projetos_count = projetos_dao.get_count()
+                projetos_count = projetosDao.get_count()
                 orientadores_count = orientadores_dao.get_count()
                 cursos_count = cursos_dao.get_count()
 
@@ -65,7 +67,7 @@ class AllCountsResource(Resource):
                 return "WIP"
             if (user_info['tipoUsuario'] == TiposUsuario.Administrador.value):
                 usuarios_count = usuarioDao.get_count()
-                projetos_count = projetos_dao.get_count()
+                projetos_count = projetosDao.get_count()
                 orientadores_count = orientadores_dao.get_count()
                 cursos_count = cursos_dao.get_count()
 

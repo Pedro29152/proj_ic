@@ -4,6 +4,8 @@ from biblioteca.projeto import projetos_dao
 
 def get_count_projetos_semestre(ano, semestre):
     with Db() as db:
+        projetosDao = projetos_dao.ProjetosDAO(db)
+
         if not __valid_int(ano):
             return None
         if not __valid_int(semestre):
@@ -12,7 +14,7 @@ def get_count_projetos_semestre(ano, semestre):
         semestre = int(semestre)
         ano = int(ano)
         
-        projetos_dao.reprova_projetos_invalidos()
+        projetosDao.reprova_projetos_invalidos()
 
         dataQuery = ''
         if semestre == 1:
@@ -37,6 +39,8 @@ def get_count_projetos_semestre(ano, semestre):
 
 def get_count_projetos_semestres(anoI, anoF):
     with Db() as db:
+        projetosDao = projetos_dao.ProjetosDAO(db)
+
         if not __valid_int(anoI):
             return None
         if not __valid_int(anoF):
@@ -48,7 +52,7 @@ def get_count_projetos_semestres(anoI, anoF):
         if anoI > anoF:
             return None
 
-        projetos_dao.reprova_projetos_invalidos()
+        projetosDao.reprova_projetos_invalidos()
 
         query = '''
             SELECT
@@ -70,7 +74,9 @@ def get_count_projetos_semestres(anoI, anoF):
 
 def get_count_projetos_curso(anoI, anoF):
     with Db() as db:
-        projetos_dao.reprova_projetos_invalidos()
+        projetosDao = projetos_dao.ProjetosDAO(db)
+
+        projetosDao.reprova_projetos_invalidos()
 
         query = '''
             SELECT
@@ -97,7 +103,9 @@ def get_count_projetos_curso(anoI, anoF):
 
 def get_count_projetos_orientador(anoI, anoF, orientadores= tuple()):
     with Db() as db:
-        projetos_dao.reprova_projetos_invalidos()
+        projetosDao = projetos_dao.ProjetosDAO(db)
+
+        projetosDao.reprova_projetos_invalidos()
 
         baseQuery = '''
             SELECT
@@ -137,7 +145,9 @@ def get_count_projetos_orientador(anoI, anoF, orientadores= tuple()):
 
 def get_count_projetos_formandos_curso(anoI, anoF):
     with Db() as db:
-        projetos_dao.reprova_projetos_invalidos()
+        projetosDao = projetos_dao.ProjetosDAO(db)
+
+        projetosDao.reprova_projetos_invalidos()
 
         query =  '''
             SELECT
@@ -166,7 +176,9 @@ def get_count_projetos_formandos_curso(anoI, anoF):
 
 def get_count_projetos_status(anoI, anoF):
     with Db() as db:
-        projetos_dao.reprova_projetos_invalidos()
+        projetosDao = projetos_dao.ProjetosDAO(db)
+
+        projetosDao.reprova_projetos_invalidos()
         
         query = '''
             select
@@ -192,7 +204,9 @@ def get_count_projetos_status(anoI, anoF):
 
 def get_count_projetos_modalidade(anoI, anoF):
     with Db() as db:
-        projetos_dao.reprova_projetos_invalidos()
+        projetosDao = projetos_dao.ProjetosDAO(db)
+        
+        projetosDao.reprova_projetos_invalidos()
 
         query = '''
             select 

@@ -124,24 +124,28 @@ def busca_orientadores_nome(nome):
 
 def buscar_revisoes():
     with Db() as db:
+        projetosDao = projetos_dao.ProjetosDAO(db)
+
         query = '''
             select * from solicitacoes_revisao
         '''
         ret = db.busca(query, None)
 
         for revisao in ret:
-            revisao['projeto'] = projetos_dao.get_projeto_codUsuarioOrientado(revisao['codUsuarioOrientado'])
+            revisao['projeto'] = projetosDao.get_projeto_codUsuarioOrientado(revisao['codUsuarioOrientado'])
         return ret
 
 def get_revisao(codSolicitacao):
     with Db() as db:
+        projetosDao = projetos_dao.ProjetosDAO(db)
+
         query = '''
             select * from solicitacoes_revisao 
             where codSolicitacao = (%s)
         '''
         ret = db.busca_um(query, (codSolicitacao,))
         if ret:
-            ret['projeto'] = projetos_dao.get_projeto_codUsuarioOrientado(ret['codUsuarioOrientado'])
+            ret['projeto'] = projetosDao.get_projeto_codUsuarioOrientado(ret['codUsuarioOrientado'])
 
         return ret
 

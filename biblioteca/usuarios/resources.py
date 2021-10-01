@@ -11,7 +11,7 @@ from biblioteca.orientador.schemas import Orientadores
 from biblioteca.orientador import orientadores_dao
 from biblioteca.autor import autores_dao
 from biblioteca.curso import cursos_dao
-from biblioteca.projeto import projetos_dao
+from biblioteca.projeto.projetos_dao import ProjetosDAO
 from biblioteca.extensions import (
     secretaria_token_required,
     admin_token_required,
@@ -539,32 +539,35 @@ def edita_usuario(codUsuario, is_admin, is_user):
         return get_falha(response_messages.NAO_ENCONTRADO('Usuário')), 404
 
 def altera_orientador_aluno(codProjeto, user_info):
-    proj = projetos_dao.get_projeto_novo(codProjeto, True)
-    if not proj:
-        return get_erro(response_messages.NAO_ENCONTRADO('Trabalho')), 404
-    curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
-    if not curso:
-        return get_erro(response_messages.SEM_PERMICAO('ter acesso a esta ação')), 400
+    with Db() as db:
+        projetosDao = ProjetosDAO(db)
+            
+        proj = projetosDao.get_projeto_novo(codProjeto, True)
+        if not proj:
+            return get_erro(response_messages.NAO_ENCONTRADO('Trabalho')), 404
+        curso = cursos_dao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+        if not curso:
+            return get_erro(response_messages.SEM_PERMICAO('ter acesso a esta ação')), 400
 
-    if not proj['curso']['abreviacao'] == curso['abreviacao']:
-        return get_erro(response_messages.SEM_PERMICAO('ter acesso a esta ação')), 400
+        if not proj['curso']['abreviacao'] == curso['abreviacao']:
+            return get_erro(response_messages.SEM_PERMICAO('ter acesso a esta ação')), 400
 
-    try:
-        codOrientador = request.form['codOrientador']
-    except BadRequestKeyError:
-        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"codOrientador"')), 400
+        try:
+            codOrientador = request.form['codOrientador']
+        except BadRequestKeyError:
+            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"codOrientador"')), 400
 
-    if not util.is_cod_valido(codOrientador):
-        return get_erro(response_messages.VALIDACAO_DEVE('codOrientador', 'ser um numero inteiro')), 400
+        if not util.is_cod_valido(codOrientador):
+            return get_erro(response_messages.VALIDACAO_DEVE('codOrientador', 'ser um numero inteiro')), 400
 
-    orientador = orientadores_dao.get_orientador_codigo(codOrientador, False)
-    if not orientador:
-        return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
-    if not orientador['codUsuario']:
-        return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
-    
-    usuario_orientado_dao.edita_orientador_projeto_novo(codProjeto, orientador['codOrientador'])
-    return None, 204
+        orientador = orientadores_dao.get_orientador_codigo(codOrientador, False)
+        if not orientador:
+            return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
+        if not orientador['codUsuario']:
+            return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
+        
+        usuario_orientado_dao.edita_orientador_projeto_novo(codProjeto, orientador['codOrientador'])
+        return None, 204
 
 def mudar_senha(id):
     try:

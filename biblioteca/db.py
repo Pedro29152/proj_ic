@@ -20,7 +20,7 @@ class Db:
             database=self.database
         )
 
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(dictionary=True, buffered=True)
 
         return conn, cursor
 
@@ -64,7 +64,6 @@ class Db:
         self.__conn.rollback()        
 
     def close(self):
-        self.__conn.commit()
         self.__conn.close()
         self.__closed = True
 

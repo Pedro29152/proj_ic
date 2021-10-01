@@ -6,8 +6,8 @@ from mysql.connector.errors import DataError, IntegrityError
 from .schemas import Orientadores
 from biblioteca.db import Db
 from biblioteca import mailer, response_messages
-from biblioteca.projeto import projetos_dao
 from biblioteca.usuarios import usuario_orientado_dao
+from biblioteca.projeto.projetos_dao import ProjetosDAO
 from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.autor import autores_dao
 from biblioteca.responses import (
@@ -218,12 +218,13 @@ def desativa_orientador(id):
 def solicitar_revisao(codProjeto, professor_user_info):
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
+        projetosDao = ProjetosDAO(db)
 
         orientador = orientadores_dao.get_orientador_codUsuario(professor_user_info['codUsuario'])
         if not orientador:
             return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
         
-        proj = projetos_dao.get_projeto_novo(codProjeto, True)
+        proj = projetosDao.get_projeto_novo(codProjeto, True)
         if not proj:
             return get_erro(response_messages.NAO_ENCONTRADO('Trabalho')), 404
 
