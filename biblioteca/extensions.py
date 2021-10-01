@@ -5,6 +5,7 @@ from flask import request, jsonify, current_app as app
 from datetime import datetime
 from dateutil import parser 
 
+from biblioteca.db import Db
 from biblioteca import response_messages
 from biblioteca.autor import autores_dao
 from biblioteca.responses import (
@@ -12,7 +13,7 @@ from biblioteca.responses import (
     get_erro,
     get_unauthorized
 )
-from .usuarios import usuario_dao
+from biblioteca.usuarios import usuario_dao 
 
 class AtributosEspeciaisProjeto(IntEnum):
     Autores = 1
@@ -301,36 +302,39 @@ def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has
     is_admin = False
     is_secretaria = False
     try:
-        authorized = False
-        data = get_token_data()
-        current_user = usuario_dao.busca_usuarios_nome(data['username'])
+        with Db() as db:
+            usuarioDao = usuario_dao.UsuarioDAO(db)
 
-        if not current_user:
-            raise Exception(response_messages.SEM_AUTORIZACAO())
+            authorized = False
+            data = get_token_data()
+            current_user = usuarioDao.busca_usuarios_nome(data['username'])
 
-        if has_is_user:
-            if not id:
-                raise AttributeError(response_messages.PARAMETRO_NAO_ENVIADO('"id"'))
-            if id == current_user['codUsuario']:
-                authorized = True 
-                is_user = True
+            if not current_user:
+                raise Exception(response_messages.SEM_AUTORIZACAO())
 
-        if has_is_admin:
-            if current_user['tipoUsuario'] == TiposUsuario.Administrador.value:
-                authorized = True
-                is_admin = True
-        if has_is_secretaria:
-            if current_user['tipoUsuario'] == TiposUsuario.Secretaria.value:
-                authorized = True
-                is_secretaria = True
+            if has_is_user:
+                if not id:
+                    raise AttributeError(response_messages.PARAMETRO_NAO_ENVIADO('"id"'))
+                if id == current_user['codUsuario']:
+                    authorized = True 
+                    is_user = True
 
-        if not authorized:
-            for item in tipos_usuario:
-                if item == current_user['tipoUsuario']:
+            if has_is_admin:
+                if current_user['tipoUsuario'] == TiposUsuario.Administrador.value:
                     authorized = True
+                    is_admin = True
+            if has_is_secretaria:
+                if current_user['tipoUsuario'] == TiposUsuario.Secretaria.value:
+                    authorized = True
+                    is_secretaria = True
 
-        if not authorized:
-            raise Exception(response_messages.SEM_AUTORIZACAO())
+            if not authorized:
+                for item in tipos_usuario:
+                    if item == current_user['tipoUsuario']:
+                        authorized = True
+
+            if not authorized:
+                raise Exception(response_messages.SEM_AUTORIZACAO())
     except Exception as ex:
         return False, get_unauthorized(ex.__str__())
 
@@ -397,10 +401,10 @@ def generate_random_password():
     length = 13
     chars = string.ascii_letters + string.digits + '!@#$%^&*()'
     random.seed = (os.urandom(1024))
-    a = '' 
+    pwd = '' 
     for i in range(length):
-        a = a + a.join(random.choice(chars))
-    return str(a)
+        pwd = pwd + pwd.join(random.choice(chars))
+    return str(pwd)
 
 def separate_camel_case(string):
     if string == string.upper():

@@ -2,8 +2,9 @@ from flask_restful import Resource, request
 from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import IntegrityError
 
+from biblioteca.db import Db
 from biblioteca import mailer, response_messages
-from biblioteca.usuarios import usuario_dao
+from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.responses import (
     get_erro,
     get_falha,
@@ -85,43 +86,48 @@ def cadastro_curso():
         return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
     if len(abreviacao) > 3:
         return get_erro(response_messages.VALIDACAO_DEVE('abreviação', 'ter no máximo 3 caracteres'))
+    
     username = 'coordenador_{}'.format(abreviacao.lower())
     password = generate_random_password()
-    user = usuario_dao.add_usr(username, password, TiposUsuario.Coordenador.value, nome, email)
-    if not user:
-        return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou abreviação')), 400
 
-    curso = Cursos(
-        nomeCurso, 
-        abreviacao,
-        user['codUsuario']
-    )
-    try:
-        curso.grava_curso()
+    with Db() as db:
+        usuarioDao = UsuarioDAO(db)
 
-        msg = mailer.generate_message_html(
-            'Nova conta de Coordenador',
-            email,
-            '''
-                <h2>Você foi cadastrado no sistema BTA</h2>
+        user = usuarioDao.add_usr(username, password, TiposUsuario.Coordenador.value, nome, email)
+        if not user:
+            return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou abreviação')), 400
 
-                <p>Você foi cadastrado como um novo coordenador do sistema BTA - Biblioteca de Trabalhos Acadêmicos no curso: <b>{0}</b>, <b>{1}</b>.</p>
-                <p>Veja abaixo os dados de login do seu usuário:</p>
-
-                <p>Nome de usuário: <b>{2}</b></p>
-                <p>Senha: <b>{3}</b></p>
-            '''.format(abreviacao, nomeCurso, username, password)
+        curso = Cursos(
+            nomeCurso, 
+            abreviacao,
+            user['codUsuario']
         )
-        mailer.send_email(email, msg)
+        try:
+            curso.grava_curso()
 
-        return get_ok(response_messages.ENTIDADE_GRAVADA('Curso')), 201
-    except IntegrityError:
-        if not cursos_dao.is_ativo(curso):
-            cursos_dao.reativa_curso(curso)
-            return get_ok('O curso ja existia, porem esta inativo. O curso foi reativado com os dados novos'), 400
-        else:
-            usuario_dao.deleta_usuario(user['codUsuario'])
-            return get_erro(response_messages.ERRO_INTEGRIDADE('Nome ou breviacao')), 400
+            msg = mailer.generate_message_html(
+                'Nova conta de Coordenador',
+                email,
+                '''
+                    <h2>Você foi cadastrado no sistema BTA</h2>
+
+                    <p>Você foi cadastrado como um novo coordenador do sistema BTA - Biblioteca de Trabalhos Acadêmicos no curso: <b>{0}</b>, <b>{1}</b>.</p>
+                    <p>Veja abaixo os dados de login do seu usuário:</p>
+
+                    <p>Nome de usuário: <b>{2}</b></p>
+                    <p>Senha: <b>{3}</b></p>
+                '''.format(abreviacao, nomeCurso, username, password)
+            )
+            mailer.send_email(email, msg)
+
+            return get_ok(response_messages.ENTIDADE_GRAVADA('Curso')), 201
+        except IntegrityError:
+            if not cursos_dao.is_ativo(curso):
+                cursos_dao.reativa_curso(curso)
+                return get_ok('O curso ja existia, porem esta inativo. O curso foi reativado com os dados novos'), 400
+            else:
+                usuarioDao.deleta_usuario(user['codUsuario'])
+                return get_erro(response_messages.ERRO_INTEGRIDADE('Nome ou breviacao')), 400
 
 def buscar_cursos():
         cursos = cursos_dao.busca_cursos()
@@ -131,12 +137,15 @@ def buscar_cursos():
         return None, 204
 
 def get_curso(codCurso):
-    curso = cursos_dao.get_curso_codCurso(codCurso, False)
-    coord = usuario_dao.get_user_coordenador(curso['codCurso'])
-    curso.update(coord)
-    if not curso:
-        return get_erro(response_messages.NAO_ENCONTRADO('Codigo de curso')), 404
-    return curso, 200
+    with Db() as db:
+        usuarioDao = UsuarioDAO(db)
+
+        curso = cursos_dao.get_curso_codCurso(codCurso, False)
+        coord = usuarioDao.get_user_coordenador(curso['codCurso'])
+        curso.update(coord)
+        if not curso:
+            return get_erro(response_messages.NAO_ENCONTRADO('Codigo de curso')), 404
+        return curso, 200
 
 def edita_curso(codCurso):
     curso = cursos_dao.get_curso_codCurso(codCurso)

@@ -4,9 +4,11 @@ from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import DataError, IntegrityError
 
 from .schemas import Orientadores
+from biblioteca.db import Db
 from biblioteca import mailer, response_messages
 from biblioteca.projeto import projetos_dao
-from biblioteca.usuarios import usuario_dao, usuario_orientado_dao
+from biblioteca.usuarios import usuario_orientado_dao
+from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.autor import autores_dao
 from biblioteca.responses import (
     get_erro,
@@ -214,36 +216,42 @@ def desativa_orientador(id):
     return get_ok(response_messages.ENTIDADE_DESATIVADA('Orientador')), 200
 
 def solicitar_revisao(codProjeto, professor_user_info):
-    orientador = orientadores_dao.get_orientador_codUsuario(professor_user_info['codUsuario'])
-    if not orientador:
-        return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
-    
-    proj = projetos_dao.get_projeto_novo(codProjeto, True)
-    if not proj:
-        return get_erro(response_messages.NAO_ENCONTRADO('Trabalho')), 404
+    with Db() as db:
+        usuarioDao = UsuarioDAO(db)
 
-    try:
-        mensagem = request.form['mensagem']
-    except BadRequestKeyError:
-        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"mensagem"')), 400
+        orientador = orientadores_dao.get_orientador_codUsuario(professor_user_info['codUsuario'])
+        if not orientador:
+            return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
+        
+        proj = projetos_dao.get_projeto_novo(codProjeto, True)
+        if not proj:
+            return get_erro(response_messages.NAO_ENCONTRADO('Trabalho')), 404
+
+        try:
+            mensagem = request.form['mensagem']
+        except BadRequestKeyError:
+            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"mensagem"')), 400
 
 
-    usuarioOrientado = usuario_orientado_dao.get_usuario_orientado_codProjeto_codOrientador(codProjeto, orientador['codOrientador'])
-    if usuarioOrientado:
-        usuario_dao.gerar_solitacao(usuarioOrientado['codUsuarioOrientado'], mensagem)
+        usuarioOrientado = usuario_orientado_dao.get_usuario_orientado_codProjeto_codOrientador(codProjeto, orientador['codOrientador'])
+        if usuarioOrientado:
+            usuarioDao.gerar_solitacao(usuarioOrientado['codUsuarioOrientado'], mensagem)
 
-        for autor in proj['autores']:
-            enviar_email_revisao(autor, proj['tituloProjeto'], mensagem)
+            for autor in proj['autores']:
+                enviar_email_revisao(autor, proj['tituloProjeto'], mensagem)
 
-        return get_ok(response_messages.SOLICITACAO_REVISAO_ENVIADA()), 200
-    return get_erro(response_messages.ORIENTACAO_NECESSARIA()), 400
+            return get_ok(response_messages.SOLICITACAO_REVISAO_ENVIADA()), 200
+        return get_erro(response_messages.ORIENTACAO_NECESSARIA()), 400
 
 def verificar_revisoes(user_info):
-    usuarioOrientado = usuario_orientado_dao.get_usuario_orientado_aluno(user_info['codUsuario'])
-    revisao = usuario_dao.verificar_revisao(usuarioOrientado['codUsuarioOrientado'])
-    if revisao:
-        return get_data(revisao), 200
-    return None, 204
+    with Db() as db:
+        usuarioDao = UsuarioDAO(db)
+
+        usuarioOrientado = usuario_orientado_dao.get_usuario_orientado_aluno(user_info['codUsuario'])
+        revisao = usuarioDao.verificar_revisao(usuarioOrientado['codUsuarioOrientado'])
+        if revisao:
+            return get_data(revisao), 200
+        return None, 204
 
 def enviar_email_revisao(autor, titulo_projeto, mensagem):
     msg = mailer.generate_message_html(

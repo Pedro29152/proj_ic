@@ -6,19 +6,21 @@ from biblioteca.db import Db
 from biblioteca.orientador import orientadores_dao
 from biblioteca import extensions
 
-def verifica_usr(usuario, senha):
-    
-    senhaR = busca_senha_nome(usuario)
-    
-    if(senhaR):
-        if(check_password_hash(senhaR, senha)):
-            return busca_usuarios_nome(usuario)
+class UsuarioDAO:
+    def __init__(self, db):
+        self.db = db
 
-    return None
+    def verifica_usr(self, usuario, senha):
+        senhaR = self.busca_senha_nome(usuario)
+        
+        if(senhaR):
+            if(check_password_hash(senhaR, senha)):
+                return self.busca_usuarios_nome(usuario)
 
-def busca_usuarios():
-    with Db() as db:
-        val = db.busca(
+        return None
+
+    def busca_usuarios(self):
+        val = self.db.busca(
             'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where ativo = 1',
             None
         )
@@ -27,10 +29,9 @@ def busca_usuarios():
 
         return val
 
-def busca_usuarios_nome_like(nomeUsuario):
-    with Db() as db:
+    def busca_usuarios_nome_like(self, nomeUsuario):
         nomeUsuario = '%{}%'.format(nomeUsuario)
-        val = db.busca(
+        val = self.db.busca(
             'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where nomeUsuario like (%s) and ativo = 1',
             (nomeUsuario,)
         )
@@ -39,9 +40,8 @@ def busca_usuarios_nome_like(nomeUsuario):
 
         return val
 
-def busca_usuarios_inativos():
-    with Db() as db:
-        val = db.busca(
+    def busca_usuarios_inativos(self):
+        val = self.db.busca(
             'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where ativo = 0',
             None
         )
@@ -50,10 +50,9 @@ def busca_usuarios_inativos():
 
         return val
 
-def busca_usuarios_inativos_nome_like(nomeUsuario):
-    with Db() as db:
+    def busca_usuarios_inativos_nome_like(self, nomeUsuario):
         nomeUsuario = '%{}%'.format(nomeUsuario)
-        val = db.busca(
+        val = self.db.busca(
             'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where nomeUsuario like (%s) and ativo = 0',
             (nomeUsuario,)
         )
@@ -62,8 +61,7 @@ def busca_usuarios_inativos_nome_like(nomeUsuario):
 
         return val
 
-def busca_usuarios_codAutor_not_codUsuario(codAutor, codUsuario):
-    with Db() as db:
+    def busca_usuarios_codAutor_not_codUsuario(self, codAutor, codUsuario):
         query = '''
             select u.codUsuario, nomeUsuario, tipoUsuario, u.nome, u.email 
             from usuarios as u 
@@ -73,42 +71,38 @@ def busca_usuarios_codAutor_not_codUsuario(codAutor, codUsuario):
             on a.codAutor = uo.codAutor 
             where ativo = 1 and a.codAutor = (%s) and not u.codUsuario = (%s)
         '''
-        return db.busca(query, (codAutor, codUsuario))
+        return self.db.busca(query, (codAutor, codUsuario))
 
-def busca_usuarios_nome(nomeUsuario):
-    with Db() as db:
-        val = db.busca_um(
+    def busca_usuarios_nome(self, nomeUsuario):
+        val = self.db.busca_um(
             'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where nomeUsuario = (%s) and ativo = 1',
             (nomeUsuario,)
         )
 
         return val
 
-def busca_usuarios_orientados_nome_like(nomeUsuario, codOrientador):
-    with Db() as db:
+    def busca_usuarios_orientados_nome_like(self, nomeUsuario, codOrientador):
         query = '''
             select codUsuario, nomeUsuario, tipoUsuario, nome, email 
             from usuarios as u 
             natural join usuario_orientado as uo 
             where uo.codOrientador = (%s) and nomeUsuario like (%s) and ativo = 1
         '''
-        ret = db.busca(query,(codOrientador, nomeUsuario))
+        ret = self.db.busca(query,(codOrientador, nomeUsuario))
         return ret
 
-def busca_usuarios_orientados(codOrientador):
-    with Db() as db:
+    def busca_usuarios_orientados(self, codOrientador):
         query = '''
             select codUsuario, nomeUsuario, tipoUsuario, nome, email 
             from usuarios as u 
             natural join usuario_orientado as uo 
             where uo.codOrientador = (%s) and ativo = 1
         '''
-        ret = db.busca(query,(codOrientador,))
+        ret = self.db.busca(query,(codOrientador,))
         return ret
 
-def busca_senha_nome(nomeUsuario):
-    with Db() as db:
-        val = db.busca_um(
+    def busca_senha_nome(self, nomeUsuario):
+        val = self.db.busca_um(
             'select senha from usuarios where nomeUsuario = (%s) and ativo = 1',
             (nomeUsuario,)
         )
@@ -116,8 +110,7 @@ def busca_senha_nome(nomeUsuario):
             return val['senha']
         return None
 
-def buscar_usuarios_secretaria(nomeUsuario=None):
-    with Db() as db:
+    def buscar_usuarios_secretaria(self, nomeUsuario=None):
         if nomeUsuario == None:
             nomeUsuario = ''
         nomeUsuario = '%{}%'.format(nomeUsuario) 
@@ -125,11 +118,10 @@ def buscar_usuarios_secretaria(nomeUsuario=None):
             select codUsuario, nomeUsuario, tipoUsuario, nome, email, ativo from usuarios 
             where nomeUsuario like (%s) and tipoUsuario = {}
         '''.format(extensions.TiposUsuario.Secretaria.value)
-        ret = db.busca(query, (nomeUsuario,))
+        ret = self.db.busca(query, (nomeUsuario,))
         return ret
 
-def buscar_usuarios_admin(nomeUsuario=None):
-    with Db() as db:
+    def buscar_usuarios_admin(self, nomeUsuario=None):
         if nomeUsuario == None:
             nomeUsuario = ''
         nomeUsuario = '%{}%'.format(nomeUsuario)
@@ -137,29 +129,27 @@ def buscar_usuarios_admin(nomeUsuario=None):
             select codUsuario, nomeUsuario, tipoUsuario, nome, email, ativo from usuarios 
             where nomeUsuario like (%s) and tipoUsuario = {} or tipoUsuario = {}
         '''.format(extensions.TiposUsuario.Secretaria.value, extensions.TiposUsuario.Administrador.value)
-        ret = db.busca(query, (nomeUsuario,))
+        ret = self.db.busca(query, (nomeUsuario,))
         return ret
 
-def add_usr(usuario, senha, tipoUsuario, nome, email):
-    with Db() as db:
+    def add_usr(self, usuario, senha, tipoUsuario, nome, email):
         try:
             query = '''
                 insert into usuarios 
                 (nomeUsuario, senha, tipoUsuario, ativo, nome, email) 
                 values(%s, %s, %s, 1, %s, %s)
             '''
-            db.gravar_autocommit(query,(usuario, generate_password_hash(senha),tipoUsuario, nome, email.lower()))
-            return get_usuario_username(usuario)
+            self.db.gravar_autocommit(query,(usuario, generate_password_hash(senha),tipoUsuario, nome, email.lower()))
+            return self.get_usuario_username(usuario)
         except IntegrityError:
-            db.rollback()
+            self.db.rollback()
             return None
         except Exception as ex:
-            db.rollback()
+            self.db.rollback()
             raise ex
 
-def add_aluno(user, senha, nome, email, codAutor, codOrientador, codCurso):
-    with Db() as db:
-        user = add_usr(user, senha, 1, nome, email)
+    def add_aluno(self, user, senha, nome, email, codAutor, codOrientador, codCurso):
+        user = self.add_usr(user, senha, 1, nome, email)
         if not user:
             return False
         
@@ -167,171 +157,158 @@ def add_aluno(user, senha, nome, email, codAutor, codOrientador, codCurso):
         dataValidade = now + timedelta(days=30)
         codUsuario = user['codUsuario']
         query = 'insert into usuario_orientado(codOrientador, codAutor, codUsuario, dataValidade, dataCriacao, codCurso) values (%s, %s, %s, %s, %s, %s)'
-        db.gravar_autocommit(query, (codOrientador, codAutor, codUsuario, dataValidade.__str__(), now.__str__(), codCurso))
+        self.db.gravar_autocommit(query, (codOrientador, codAutor, codUsuario, dataValidade.__str__(), now.__str__(), codCurso))
 
-        desativa_anteriores(codAutor, codUsuario)
+        self.desativa_anteriores(codAutor, codUsuario)
 
         return True
 
-def desativa_anteriores(codAutor, codUsuario):
-    aut = busca_usuarios_codAutor_not_codUsuario(codAutor, codUsuario)
+    def desativa_anteriores(self, codAutor, codUsuario):
+        aut = self.busca_usuarios_codAutor_not_codUsuario(codAutor, codUsuario)
 
-    for item in aut:
-        desativa_usuario(item['codUsuario'])
+        for item in aut:
+            self.desativa_usuario(item['codUsuario'])
 
-def add_orientador(user, senha, nome, email, codOrientador):
-    with Db() as db:
-        usr = add_usr(user, senha, 2, nome, email)
+    def add_orientador(self, user, senha, nome, email, codOrientador):
+        usr = self.add_usr(user, senha, 2, nome, email)
         if not usr:
             return False
 
         codUser = usr['codUsuario']
         query = 'update orientadores set codUsuario = (%s) where codOrientador = (%s)'
-        db.gravar_autocommit(query, (codUser, codOrientador))
+        self.db.gravar_autocommit(query, (codUser, codOrientador))
         return True
 
-def get_count(codOrientador=None):
-    with Db() as db:
+    def get_count(self, codOrientador=None):
         if codOrientador:
             query = 'select count(*) as usuarios from usuarios natural join usuario_orientado where codOrientador = (%s)'
-            ret = db.busca_um(query, (codOrientador,))
+            ret = self.db.busca_um(query, (codOrientador,))
             return ret['usuarios']
 
         query = 'select count(*) as usuarios from usuarios'
-        ret = db.busca_um(query, None)
+        ret = self.db.busca_um(query, None)
         return ret['usuarios']
 
-def get_usuario(codUsuario):
-    with Db() as db:
+    def get_usuario(self, codUsuario):
+        query = 'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where codUsuario = (%s)'
+        ret = self.db.busca_um(query,(codUsuario,))
+        return ret
+
+    def get_usuario_ativo(self, codUsuario):
         query = 'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where codUsuario = (%s) and ativo = 1'
-        ret = db.busca_um(query,(codUsuario,))
+        ret = self.db.busca_um(query,(codUsuario,))
         return ret
 
-def get_usuario_inativo(codUsuario):
-    with Db() as db:
+    def get_usuario_inativo(self, codUsuario):
         query = 'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where codUsuario = (%s) and ativo = 0'
-        ret = db.busca_um(query,(codUsuario,))
+        ret = self.db.busca_um(query,(codUsuario,))
         return ret
 
-def get_usuario_username(username):
-    with Db() as db:
+    def get_usuario_username(self, username):
         query = '''
             select codUsuario, nomeUsuario, tipoUsuario, nome, email 
             from usuarios 
             where nomeUsuario = (%s)
         '''
-        ret = db.busca_um(query,(username,))
+        ret = self.db.busca_um(query,(username,))
         return ret
 
-def get_usuario_email(email):
-    with Db() as db:
+    def get_usuario_email(self, email):
         query = 'select codUsuario, nomeUsuario, tipoUsuario, nome, email from usuarios where email = (%s)'
-        ret = db.busca_um(query,(email,))
+        ret = self.db.busca_um(query,(email,))
         return ret
 
-def get_usuario_codProjeto(codProjeto):
-    with Db() as db:
+    def get_usuario_codProjeto(self, codProjeto):
         query = '''
-        select u.codUsuario
-        from usuarios as u
-        join usuario_orientado as uo
-        on uo.codUsuario = u.codUsuario
-        join autores as a
-        on uo.codAutor = a.codAutor
-        join projeto_autor as pa
-        on pa.codAutor = a.codAutor
-        join projetos as p
-        on pa.codProjeto = p.codProjeto
-        where p.codProjeto = (%s) and u.ativo = 1
-        order by p.dataEnvio
+            select u.codUsuario
+            from usuarios as u
+            join usuario_orientado as uo
+            on uo.codUsuario = u.codUsuario
+            join autores as a
+            on uo.codAutor = a.codAutor
+            join projeto_autor as pa
+            on pa.codAutor = a.codAutor
+            join projetos as p
+            on pa.codProjeto = p.codProjeto
+            where p.codProjeto = (%s) and u.ativo = 1
+            order by p.dataEnvio
         '''
-        return db.busca_um(query, (codProjeto,))
+        return self.db.busca_um(query, (codProjeto,))
 
-def get_user_coordenador(codCurso):
-    with Db() as db:
+    def get_user_coordenador(self, codCurso):
         query = '''
             select nome, email from usuarios as u
             natural join cursos as c 
             where codCurso = (%s)
         '''
-        user = db.busca_um(query, (codCurso,))
+        user = self.db.busca_um(query, (codCurso,))
         return user
 
-def edita_usuario(usuario):
-    with Db() as db:
+    def edita_usuario(self, usuario):
         query = 'update usuarios set nomeUsuario = (%s), nome = (%s), email = (%s), tipoUsuario = (%s) where codUsuario = (%s)'
-        db.gravar_autocommit(query,(usuario['nomeUsuario'], usuario['nome'], usuario['email'].lower(), usuario['tipoUsuario'], usuario['codUsuario']))
+        self.db.gravar_autocommit(query,(usuario['nomeUsuario'], usuario['nome'], usuario['email'].lower(), usuario['tipoUsuario'], usuario['codUsuario']))
 
-def deleta_usuario(codUsuario):
-    with Db() as db:
-        usr = get_usuario(codUsuario)
+    def deleta_usuario(self, codUsuario):
+        usr = self.get_usuario_ativo(codUsuario)
 
         query = 'delete from usuarios where codUsuario = (%s)'
-        db.gravar_autocommit(query,(codUsuario,))
+        self.db.gravar_autocommit(query,(codUsuario,))
         
         if usr['tipoUsuario'] == extensions.TiposUsuario.Professor.value:
             orientador = orientadores_dao.get_orientador_orientando_codUsuario(codUsuario)
             if orientador:
                 orientadores_dao.desativa_orientador(orientador['codOrientador'])
 
-def desativar_aluno(codUsuario):
-    with Db() as db:
+    def desativar_aluno(self, codUsuario):
         query = 'update usuarios set ativo = 0, email = null where codUsuario = (%s)'
-        db.gravar_autocommit(query, (codUsuario,))
+        self.db.gravar_autocommit(query, (codUsuario,))
 
-def desativa_usuario(codUsuario):
-    with Db() as db:
-        usr = get_usuario(codUsuario)
+    def desativa_usuario(self, codUsuario):
+        usr = self.get_usuario_ativo(codUsuario)
 
         query = 'update usuarios set ativo = 0 where codUsuario = (%s)'
-        db.gravar_autocommit(query, (codUsuario,))
+        self.db.gravar_autocommit(query, (codUsuario,))
 
         if usr['tipoUsuario'] == extensions.TiposUsuario.Professor.value:
             orientador = orientadores_dao.get_orientador_codUsuario(codUsuario)
             if orientador:
                 orientadores_dao.desativa_orientador(orientador['codOrientador'])
 
-def ativa_usuario(codUsuario):
-    with Db() as db:
+    def ativa_usuario(self, codUsuario):
         query = 'update usuarios set ativo = 1 where codUsuario = (%s)'
-        db.gravar_autocommit(query, (codUsuario,))
+        self.db.gravar_autocommit(query, (codUsuario,))
 
-def edita_senha(codUsuario, novaSenha):
-    with Db() as db:
+    def edita_senha(self, codUsuario, novaSenha):
         query = 'update usuarios set senha = (%s) where codUsuario = (%s)'
-        db.gravar_autocommit(query, (generate_password_hash(novaSenha), codUsuario))
+        self.db.gravar_autocommit(query, (generate_password_hash(novaSenha), codUsuario))
 
-def remove_responsabilidade_orientador(codOrientador):
-    with Db() as db:
+    def remove_responsabilidade_orientador(self, codOrientador):
         query = '''
             select * from usuario_orientado
             where codOrientador = (%s)
         '''
-        us_ori = db.busca(query, (codOrientador,))
+        us_ori = self.db.busca(query, (codOrientador,))
         for item in us_ori:
-            remove_responsabilidade_usuario(item)
+            self.remove_responsabilidade_usuario(item)
 
-def remove_responsabilidade_usuario(usuario_orientado):
-    with Db() as db:
+    def remove_responsabilidade_usuario(self, usuario_orientado):
         query_upd = '''
             update usuario_orientado set codOrientador = null
             where codAutor = (%s) and codUsuario = (%s)
         '''
         
-        db.gravar_autocommit(query_upd, (usuario_orientado['codAutor'], usuario_orientado['codUsuario']))
+        self.db.gravar_autocommit(query_upd, (usuario_orientado['codAutor'], usuario_orientado['codUsuario']))
 
-def gerar_solitacao(codUsuarioOrientado, mensagem):
-    with Db() as db:
+    def gerar_solitacao(self, codUsuarioOrientado, mensagem):
         query = '''
             insert into solicitacoes_revisao(codUsuarioOrientado, mensagem) values(%s,%s)
         '''
-        db.gravar_autocommit(query, (codUsuarioOrientado, mensagem))
+        self.db.gravar_autocommit(query, (codUsuarioOrientado, mensagem))
 
-def verificar_revisao(codUsuarioOrientado):
-    with Db() as db:
+    def verificar_revisao(self, codUsuarioOrientado):
         query = '''
             select * from solicitacoes_revisao 
             where codUsuarioOrientado = (%s)
         '''
-        ret = db.busca(query, (codUsuarioOrientado,))
+        ret = self.db.busca(query, (codUsuarioOrientado,))
         return ret

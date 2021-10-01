@@ -1,7 +1,7 @@
 from biblioteca.db import Db
-from .schemas import Orientadores
 from biblioteca.projeto import projetos_dao
 from biblioteca.usuarios import usuario_dao
+from .schemas import Orientadores
 
 from mysql.connector.errors import ProgrammingError
 
@@ -166,6 +166,8 @@ def ativa_orientador(codOrientador):
 
 def desativa_orientador(codOrientador):
     with Db() as db:
+        usuarioDao = usuario_dao.UsuarioDAO(db)
+
         ori = get_orientador_codigo(codOrientador, False)
         if ori['codUsuario']:
             query = '''
@@ -176,7 +178,7 @@ def desativa_orientador(codOrientador):
         query = 'update orientadores set ativo = 0, codUsuario = null where codOrientador = (%s)'
         db.gravar(query, (codOrientador,))
         db.commit()
-        usuario_dao.remove_responsabilidade_orientador(codOrientador)
+        usuarioDao.remove_responsabilidade_orientador(codOrientador)
 
 def deleta_orientador(codOrientador):
     with Db() as db:

@@ -64,6 +64,7 @@ class Db:
         self.__conn.rollback()        
 
     def close(self):
+        self.__conn.commit()
         self.__conn.close()
         self.__closed = True
 

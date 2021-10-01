@@ -8,7 +8,8 @@ from biblioteca.db import Db, response_messages
 from biblioteca.ext_dao import palavras_chave_dao
 from biblioteca.autor import autores_dao, projeto_autor_dao
 from biblioteca.curso import cursos_dao
-from biblioteca.usuarios import usuario_dao, usuario_orientado_dao
+from biblioteca.usuarios import usuario_orientado_dao
+from biblioteca.usuarios import usuario_dao
 from biblioteca.orientador import orientadores_dao
 from biblioteca.responses import (
     get_erro,
@@ -593,6 +594,8 @@ def ativa_projeto(codProjeto):
 
 def aprovar_projeto(codProjeto):
     with Db() as db:
+        usuarioDao = usuario_dao.UsuarioDAO(db)
+
         query = '''
             update projetos set status = 1 where codProjeto = (%s)
         '''
@@ -601,12 +604,14 @@ def aprovar_projeto(codProjeto):
         user = usuario_orientado_dao.get_usuario_codProjeto(codProjeto)
         if user:
             if user['tipoUsuario'] == TiposUsuario.Aluno.value:
-                usuario_dao.desativar_aluno(user['codUsuario'])
+                usuarioDao.desativar_aluno(user['codUsuario'])
             else:
-                usuario_dao.desativa_usuario(user['codUsuario'])
+                usuarioDao.desativa_usuario(user['codUsuario'])
 
 def recusar_projeto(codProjeto):
     with Db() as db:
+        usuarioDao = usuario_dao.UsuarioDAO(db)
+
         query = '''
             update projetos set status = 2 where codProjeto = (%s)
         '''
@@ -615,9 +620,9 @@ def recusar_projeto(codProjeto):
         user = usuario_orientado_dao.get_usuario_codProjeto(codProjeto)
         if user:    
             if user['tipoUsuario'] == TiposUsuario.Aluno.value:
-                usuario_dao.desativar_aluno(user['codUsuario'])
+                usuarioDao.desativar_aluno(user['codUsuario'])
             else:
-                usuario_dao.desativa_usuario(user['codUsuario'])
+                usuarioDao.desativa_usuario(user['codUsuario'])
 
 def edita_titulo(codProjeto, titulo):
     with Db() as db:

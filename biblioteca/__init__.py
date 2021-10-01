@@ -6,9 +6,10 @@ from json import dumps
 from datetime import datetime
 from config import config
 
-from biblioteca.geral import logger_dao
 from .api import configure_api
-from biblioteca.usuarios import usuario_dao
+from biblioteca.db import Db
+from biblioteca.geral import logger_dao
+from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.extensions import get_token_data
 from biblioteca import response_messages
 
@@ -45,26 +46,29 @@ def create_app(config_name):
         if not reqValues:
             reqValues = None
 
-        try:
-            token_data = get_token_data()
+        with Db() as db:
+            usuarioDao = UsuarioDAO(db)
             
-            if request.method == 'GET':
-                raise Exception()
-            
-            current_user = usuario_dao.busca_usuarios_nome(token_data['username'])
-            if not current_user:
-                raise Exception()
-            
+            try:
+                token_data = get_token_data()
+                
+                if request.method == 'GET':
+                    raise Exception()
+                
+                current_user = usuarioDao.busca_usuarios_nome(token_data['username'])
+                if not current_user:
+                    raise Exception()
+                
 
-            session['log'] = True
-            session['user'] = current_user
-            session['url'] = request.base_url
-            session['method'] = request.method
-            session['enderecoIp'] = request.remote_addr
-            session['reqDateTime'] = datetime.now()
-            session['requestValues'] = dumps(reqValues, separators=(',',':')) if reqValues else None
-        except:
-            pass
+                session['log'] = True
+                session['user'] = current_user
+                session['url'] = request.base_url
+                session['method'] = request.method
+                session['enderecoIp'] = request.remote_addr
+                session['reqDateTime'] = datetime.now()
+                session['requestValues'] = dumps(reqValues, separators=(',',':')) if reqValues else None
+            except:
+                pass
 
     @app.after_request
     def after(response):

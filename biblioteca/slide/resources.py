@@ -4,7 +4,8 @@ from flask_restful import Resource, request
 from flask import current_app as app
 from mysql.connector.errors import IntegrityError
 
-from . import slide_dao
+from .slide_dao import SlideDAO
+from biblioteca.db import Db
 from biblioteca import response_messages
 from biblioteca.extensions import admin_token_required
 from biblioteca.responses import (
@@ -20,58 +21,67 @@ ALLOWED_EXTENSIONS = set(['png', 'gif', 'jpg', 'jpeg'])
 
 class BuscarSlidesResource(Resource):
     def get(self):
-        ret = slide_dao.busca_slides()
-        return ret
+        with Db() as db:
+            slideDao = SlideDAO(db)
+
+            ret = slideDao.busca_slides()
+            return ret
 
     @admin_token_required
     def post(self):
-        count = slide_dao.get_count()
-        if count >= 5:
-            return get_bad_request(response_messages.SEM_PERMICAO('cadastrar mais que 3 slides'))
+        with Db() as db:
+            slideDao = SlideDAO(db)
 
-        r, code = check_file()
-        if r:
-            return get_response_code(r, code)
-        
-        try:
-            titulo = request.form['titulo']
-            subTitulo = request.form['subTitulo']
+            count = slideDao.get_count()
+            if count >= 5:
+                return get_bad_request(response_messages.SEM_PERMICAO('cadastrar mais que 3 slides'))
 
-            title = request.form['title']
-            subTitle = request.form['subTitle']
-        except:
-            return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "subTitulo", "title" e "subTitle"'))
-        
-        if titulo and not title:
-            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"title"'))
-        if title and not titulo:
-            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"titulo"'))
-        if subTitulo and not subTitle:
-            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitle"'))
-        if subTitle and not subTitulo:
-            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitulo"'))
+            r, code = check_file()
+            if r:
+                return get_response_code(r, code)
+            
+            try:
+                titulo = request.form['titulo']
+                subTitulo = request.form['subTitulo']
 
-        file = request.files['file']
-        filename = file.filename
-        if len(filename) > 255:
-            return get_erro(response_messages.NOME_ARQUIVO_MUITO_GRANDE())
-        try:
-            slide_dao.adiciona_slide(titulo, subTitulo, title, subTitle, '/static/slides/{0}'.format(filename))
-        except IntegrityError:
-            return get_bad_request(response_messages.ERRO_INTEGRIDADE('Imagem'))
+                title = request.form['title']
+                subTitle = request.form['subTitle']
+            except:
+                return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "subTitulo", "title" e "subTitle"'))
+            
+            if titulo and not title:
+                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"title"'))
+            if title and not titulo:
+                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"titulo"'))
+            if subTitulo and not subTitle:
+                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitle"'))
+            if subTitle and not subTitulo:
+                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitulo"'))
 
-        filepath = os.path.join(
-            app.config['SLIDES_FOLDER'],
-            filename
-        )
-        file.save(filepath)
+            file = request.files['file']
+            filename = file.filename
+            if len(filename) > 255:
+                return get_erro(response_messages.NOME_ARQUIVO_MUITO_GRANDE())
+            try:
+                slideDao.adiciona_slide(titulo, subTitulo, title, subTitle, '/static/slides/{0}'.format(filename))
+            except IntegrityError:
+                return get_bad_request(response_messages.ERRO_INTEGRIDADE('Imagem'))
 
-        return get_success(response_messages.ENTIDADE_GRAVADA('Slide'))
+            filepath = os.path.join(
+                app.config['SLIDES_FOLDER'],
+                filename
+            )
+            file.save(filepath)
+
+            return get_success(response_messages.ENTIDADE_GRAVADA('Slide'))
 
 class SlideIdResource(Resource):
     def get(self, id):
-        slide = slide_dao.get_slide(id)
-        return get_success(slide)
+        with Db() as db:
+            slideDao = SlideDAO(db)
+
+            slide = slideDao.get_slide(id)
+            return get_success(slide)
     
     @admin_token_required
     def put(self, id):
@@ -80,83 +90,89 @@ class SlideIdResource(Resource):
         if r:
             has_file = False
         
-        slide = slide_dao.get_slide(id)
-        if not slide:
-            return get_not_found(response_messages.NAO_ENCONTRADO('Slide'))
-        
-        try:
-            titulo = request.form['titulo']
-            subTitulo = request.form['subTitulo']
-
-            title = request.form['title']
-            subTitle = request.form['subTitle']
-        except:
-            return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "subTitulo", "title" e "subTitle"'))
-        
-        if (titulo and not title) and not slide['titulo']:
-            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"title"'))
-        if (title and not titulo) and not slide['title']:
-            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"titulo"'))
-        if (subTitulo and not subTitle) and not slide['subtitle']:
-            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitle"'))
-        if (subTitle and not subTitulo) and not slide['subtitulo']:
-            return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitulo"'))
-
-        if titulo:
-            slide['titulo'] = titulo
-        if subTitulo:
-            slide['subtitulo'] = subTitulo
-
-        if title:
-            slide['title'] = title
-        if subTitle:
-            slide['subtitle'] = subTitle
-
-        slide_dao.edita_slide(slide)
-
-        if has_file:
-            file = request.files['file']
-            filename = file.filename
+        with Db() as db:
+            slideDao = SlideDAO(db)
+                
+            slide = slideDao.get_slide(id)
+            if not slide:
+                return get_not_found(response_messages.NAO_ENCONTRADO('Slide'))
+            
             try:
-                slide_dao.edita_imagem(id, '/static/slides/{0}'.format(filename))
-            except IntegrityError:
-                return get_bad_request(response_messages.ERRO_INTEGRIDADE('Imagem'))
+                titulo = request.form['titulo']
+                subTitulo = request.form['subTitulo']
 
-            nomeImagem = slide['imagem'].split('/')[-1]
-            oldFilepath = os.path.join(
-                app.config['SLIDES_FOLDER'],
-                nomeImagem
-            )
-            filepath = os.path.join(
-                app.config['SLIDES_FOLDER'],
-                filename
-            )
+                title = request.form['title']
+                subTitle = request.form['subTitle']
+            except:
+                return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "subTitulo", "title" e "subTitle"'))
+            
+            if (titulo and not title) and not slide['titulo']:
+                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"title"'))
+            if (title and not titulo) and not slide['title']:
+                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"titulo"'))
+            if (subTitulo and not subTitle) and not slide['subtitle']:
+                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitle"'))
+            if (subTitle and not subTitulo) and not slide['subtitulo']:
+                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitulo"'))
 
-            os.remove(oldFilepath)
-            file.save(filepath)
+            if titulo:
+                slide['titulo'] = titulo
+            if subTitulo:
+                slide['subtitulo'] = subTitulo
 
-        return get_success(response_messages.ENTIDADE_EDITADA('Slide'))
+            if title:
+                slide['title'] = title
+            if subTitle:
+                slide['subtitle'] = subTitle
+
+            slideDao.edita_slide(slide)
+
+            if has_file:
+                file = request.files['file']
+                filename = file.filename
+                try:
+                    slideDao.edita_imagem(id, '/static/slides/{0}'.format(filename))
+                except IntegrityError:
+                    return get_bad_request(response_messages.ERRO_INTEGRIDADE('Imagem'))
+
+                nomeImagem = slide['imagem'].split('/')[-1]
+                oldFilepath = os.path.join(
+                    app.config['SLIDES_FOLDER'],
+                    nomeImagem
+                )
+                filepath = os.path.join(
+                    app.config['SLIDES_FOLDER'],
+                    filename
+                )
+
+                os.remove(oldFilepath)
+                file.save(filepath)
+
+            return get_success(response_messages.ENTIDADE_EDITADA('Slide'))
 
     @admin_token_required
     def delete(self, id):
-        count = slide_dao.get_count()
-        if count <= 1:
-            return get_bad_request(response_messages.SEM_PERMICAO('apagar o último slide'))
+        with Db() as db:
+            slideDao = SlideDAO(db)
 
-        slide = slide_dao.get_slide(id)
-        if not slide:
-            return get_not_found(response_messages.NAO_ENCONTRADO('Slide'))
-        
-        slide_dao.delete_slide(id)
+            count = slideDao.get_count()
+            if count <= 1:
+                return get_bad_request(response_messages.SEM_PERMICAO('apagar o último slide'))
 
-        nomeImagem = slide['imagem'].split('/')[-1]
-        filepath = os.path.join(
-            app.config['SLIDES_FOLDER'],
-            nomeImagem
-        )
-        os.remove(filepath)
+            slide = slideDao.get_slide(id)
+            if not slide:
+                return get_not_found(response_messages.NAO_ENCONTRADO('Slide'))
+            
+            slideDao.delete_slide(id)
 
-        return get_success(response_messages.ENTIDADE_DELETADA('Slide'))
+            nomeImagem = slide['imagem'].split('/')[-1]
+            filepath = os.path.join(
+                app.config['SLIDES_FOLDER'],
+                nomeImagem
+            )
+            os.remove(filepath)
+
+            return get_success(response_messages.ENTIDADE_DELETADA('Slide'))
 
 def check_file():
     if 'file' not in request.files:
@@ -172,6 +188,7 @@ def check_file():
         return None, None
             
     return get_erro(response_messages.ERRO_INESPERADO()), 500
+
 def __allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
