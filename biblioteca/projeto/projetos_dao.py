@@ -60,10 +60,13 @@ QUERY_MODALIDADE = '''
     '''
 
 class ProjetosDAO:
-    def __init__(self, db, usuarioDaoArg=None, orientadoresDaoArg=None):
+    def __init__(self, db, usuarioDaoArg=None, orientadoresDaoArg=None, usuarioOrientadoDaoArg=None, palavrasChaveDao=None, projetoAutorDaoArg=None):
         self.db = db
         self.orientadoresDao = orientadoresDaoArg if orientadoresDaoArg else orientadores_dao.OrientadoresDAO(self.db, projetosDaoArg=self)
         self.usuarioDao = usuarioDaoArg if usuarioDaoArg else usuario_dao.UsuarioDAO(self.db, orientadoresDao=self.orientadoresDao)
+        self.usuarioOrientadoDao = usuarioOrientadoDaoArg if usuarioOrientadoDaoArg else usuario_orientado_dao.UsuarioOrientadoDAO(self.db)
+        self.palavrasChaveDao = palavrasChaveDao if palavrasChaveDao else palavras_chave_dao.PalavrasChaveDAO(self.db)
+        self.projetoAutorDao = projetoAutorDaoArg if projetoAutorDaoArg else projeto_autor_dao.ProjetoAutorDAO(self.db)
 
     def busca_projeto_tipo(self, tipo, query = '', ordem = 0, crescente = True):
         queryBase = query
@@ -470,7 +473,7 @@ class ProjetosDAO:
                 self.deleta_projeto(projeto.codProjeto)
                 raise Exception(self.response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
             try:
-                projeto_autor_dao.grava_autor_proj(projeto.codProjeto, codAutor)
+                self.projetoAutorDao.grava_autor_proj(projeto.codProjeto, codAutor)
             except IntegrityError:
                 self.deleta_projeto(projeto.codProjeto)
                 raise Exception(self.response_messages.SEM_PERMICAO('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
@@ -576,7 +579,7 @@ class ProjetosDAO:
         '''
         self.db.gravar_autocommit(query, (codProjeto,))
 
-        user = usuario_orientado_dao.get_usuario_codProjeto(codProjeto)
+        user = self.usuarioOrientadoDao.get_usuario_codProjeto(codProjeto)
         if user:
             if user['tipoUsuario'] == TiposUsuario.Aluno.value:
                 self.usuarioDao.desativar_aluno(user['codUsuario'])
@@ -584,12 +587,14 @@ class ProjetosDAO:
                 self.usuarioDao.desativa_usuario(user['codUsuario'])
 
     def recusar_projeto(self, codProjeto):
+       
+            
         query = '''
             update projetos set status = 2 where codProjeto = (%s)
         '''
         self.db.gravar_autocommit(query, (codProjeto,))
         
-        user = usuario_orientado_dao.get_usuario_codProjeto(codProjeto)
+        user = self.usuarioOrientadoDao.get_usuario_codProjeto(codProjeto)
         if user:    
             if user['tipoUsuario'] == TiposUsuario.Aluno.value:
                 self.usuarioDao.desativar_aluno(user['codUsuario'])
@@ -665,25 +670,23 @@ class ProjetosDAO:
             self.prenche_projeto(item, attrs=attrs)
 
     def prenche_projeto(self, ret, attrs=None):
-            
-                
-            if attrs == None:
+        if attrs == None:
+            ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
+            ret['palavrasChave'] = self.palavrasChaveDao.busca_palavras_chave(ret['codProjeto'])
+            ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
+            ret['orientadores'] = self.orientadoresDao.busca_orientadores_codProjeto(ret['codProjeto'])
+        else:
+            if AtributosEspeciaisProjeto.Autores.value in attrs:
                 ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
-                ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
+
+            if AtributosEspeciaisProjeto.PalavrasChave.value in attrs:
+                ret['palavrasChave'] = self.palavrasChaveDao.busca_palavras_chave(ret['codProjeto'])
+
+            if AtributosEspeciaisProjeto.Curso.value in attrs:
                 ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
+
+            if AtributosEspeciaisProjeto.Orientadores.value in attrs:
                 ret['orientadores'] = self.orientadoresDao.busca_orientadores_codProjeto(ret['codProjeto'])
-            else:
-                if AtributosEspeciaisProjeto.Autores.value in attrs:
-                    ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
-
-                if AtributosEspeciaisProjeto.PalavrasChave.value in attrs:
-                    ret['palavrasChave'] = palavras_chave_dao.busca_palavras_chave(ret['codProjeto'])
-
-                if AtributosEspeciaisProjeto.Curso.value in attrs:
-                    ret['curso'] = cursos_dao.get_all_curso_cod(ret['codCurso'])
-
-                if AtributosEspeciaisProjeto.Orientadores.value in attrs:
-                    ret['orientadores'] = self.orientadoresDao.busca_orientadores_codProjeto(ret['codProjeto'])
 
     def reprova_projetos_invalidos(self, ):
         query = '''

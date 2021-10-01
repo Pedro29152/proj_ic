@@ -12,10 +12,11 @@ from mysql.connector.errors import IntegrityError
 
 from biblioteca.db import Db
 from biblioteca import mailer, response_messages
-from biblioteca.usuarios import usuario_orientado_dao
+from biblioteca.usuarios.usuario_orientado_dao import UsuarioOrientadoDAO
 from biblioteca.curso import cursos_dao
 from biblioteca.orientador.orientadores_dao import OrientadoresDAO
-from biblioteca.autor import autores_dao, projeto_autor_dao
+from biblioteca.autor.projeto_autor_dao import ProjetoAutorDAO
+from biblioteca.autor import autores_dao
 from biblioteca.pdf_generator import TermoCompromisso
 from biblioteca.responses import (
     get_data,
@@ -490,6 +491,7 @@ def upload_projeto(user_info=None):
     with Db() as db:
         projetosDao = ProjetosDAO(db)
         orientadoresDao = OrientadoresDAO(db)
+        usuarioOrientadoDao = UsuarioOrientadoDAO(db)
             
         try:
             titulo = request.form['titulo']
@@ -613,7 +615,7 @@ def upload_projeto(user_info=None):
                     projeto, is_secretaria=False
                 )
 
-                usuario_orientado_dao.add_projeto(user_info['codUsuario'], projeto.codProjeto)
+                usuarioOrientadoDao.add_projeto(user_info['codUsuario'], projeto.codProjeto)
             else:
                 proj = projetosDao.grava_projeto(
                     projeto, is_secretaria=True
@@ -808,6 +810,7 @@ def edita_projeto(codProjeto, has_file):
 def edita_projeto_aluno(codProjeto, user_info, has_file):
     with Db() as db:
         projetosDao = ProjetosDAO(db)
+        projetoAutorDao = ProjetoAutorDAO(db)
             
         proj = projetosDao.get_projeto_novo(codProjeto)
         if proj:
@@ -815,7 +818,7 @@ def edita_projeto_aluno(codProjeto, user_info, has_file):
             if not autor:
                 return get_erro(response_messages.USUARIO_NAO_RELACIONADO_AUT()), 400
             
-            if not projeto_autor_dao.is_valid_autor(proj['codProjeto'], autor['codAutor']):
+            if not projetoAutorDao.is_valid_autor(proj['codProjeto'], autor['codAutor']):
                 return get_erro(response_messages.SEM_PERMICAO('editar este projeto')), 400
             
             try:

@@ -5,6 +5,9 @@ from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import DataError, IntegrityError
 from datetime import datetime, timedelta
 
+from . import util
+from .usuario_orientado_dao import UsuarioOrientadoDAO
+from .usuario_dao import UsuarioDAO
 from biblioteca.db import Db
 from biblioteca import mailer, response_messages
 from biblioteca.orientador.schemas import Orientadores
@@ -36,9 +39,6 @@ from biblioteca.responses import (
     get_response_code,
     get_not_found
 )
-from . import usuario_orientado_dao
-from .usuario_dao import UsuarioDAO
-from . import util
 
 class LoginResource(Resource):
     def post(self):
@@ -545,6 +545,7 @@ def altera_orientador_aluno(codProjeto, user_info):
     with Db() as db:
         projetosDao = ProjetosDAO(db)
         orientadoresDao = OrientadoresDAO(db)
+        usuarioOrientadoDao = UsuarioOrientadoDAO(db)
             
         proj = projetosDao.get_projeto_novo(codProjeto, True)
         if not proj:
@@ -570,7 +571,7 @@ def altera_orientador_aluno(codProjeto, user_info):
         if not orientador['codUsuario']:
             return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
         
-        usuario_orientado_dao.edita_orientador_projeto_novo(codProjeto, orientador['codOrientador'])
+        usuarioOrientadoDao.edita_orientador_projeto_novo(codProjeto, orientador['codOrientador'])
         return None, 204
 
 def mudar_senha(id):

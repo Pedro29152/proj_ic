@@ -8,7 +8,7 @@ from config import config
 
 from .api import configure_api
 from biblioteca.db import Db
-from biblioteca.geral import logger_dao
+from biblioteca.geral.logger_dao import LoggerDAO
 from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.extensions import get_token_data
 from biblioteca import response_messages
@@ -72,50 +72,56 @@ def create_app(config_name):
 
     @app.after_request
     def after(response):
-        try:
-            if session['log']:
-                status = response.status_code
-                resp = response.data.decode('utf-8')
-                logger_dao.logger_gravar(
-                    session['url'],
-                    session['reqDateTime'],
-                    session['method'],
-                    status,
-                    session['user']['codUsuario'],
-                    session['enderecoIp'],
-                    session['requestValues'],
-                    resp
-                )
-                session.clear()
-        except:
-            pass
+        with Db() as db:
+            loggerDao = LoggerDAO(db)
 
-        return response
+            try:
+                if session['log']:
+                    status = response.status_code
+                    resp = response.data.decode('utf-8')
+                    loggerDao.logger_gravar(
+                        session['url'],
+                        session['reqDateTime'],
+                        session['method'],
+                        status,
+                        session['user']['codUsuario'],
+                        session['enderecoIp'],
+                        session['requestValues'],
+                        resp
+                    )
+                    session.clear()
+            except:
+                pass
+
+            return response
 
     @app.errorhandler(InternalServerError)
     def internal_error(exception):
-        if hasattr(exception, 'original_exception'):
-            ex = str(exception.original_exception)
-        else:
-            ex = str(exception)
-        
-        try:
-            if session['log']:
-                status = 500
-                logger_dao.logger_gravar(
-                    session['url'],
-                    session['reqDateTime'],
-                    session['method'],
-                    status,
-                    codUsuario= session['user']['codUsuario'],
-                    ip_address= session['enderecoIp'],
-                    request_data= session['requestValues'],
-                    info= ex
-                )
-                session.clear()
-        except:
-            pass
+        with Db() as db:
+            loggerDao = LoggerDAO(db)
+                
+            if hasattr(exception, 'original_exception'):
+                ex = str(exception.original_exception)
+            else:
+                ex = str(exception)
+            
+            try:
+                if session['log']:
+                    status = 500
+                    loggerDao.logger_gravar(
+                        session['url'],
+                        session['reqDateTime'],
+                        session['method'],
+                        status,
+                        codUsuario= session['user']['codUsuario'],
+                        ip_address= session['enderecoIp'],
+                        request_data= session['requestValues'],
+                        info= ex
+                    )
+                    session.clear()
+            except:
+                pass
 
-        return make_response(response_messages.ERRO_INESPERADO(), 500)
+            return make_response(response_messages.ERRO_INESPERADO(), 500)
     
     return app
