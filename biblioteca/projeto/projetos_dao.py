@@ -60,7 +60,7 @@ QUERY_MODALIDADE = '''
     '''
 
 class ProjetosDAO:
-    def __init__(self, db, usuarioDaoArg=None, orientadoresDaoArg=None, usuarioOrientadoDaoArg=None, palavrasChaveDao=None, projetoAutorDaoArg=None, cursosDaoArg=None):
+    def __init__(self, db, usuarioDaoArg=None, orientadoresDaoArg=None, usuarioOrientadoDaoArg=None, palavrasChaveDao=None, projetoAutorDaoArg=None, cursosDaoArg=None, autoresDaoArg=None):
         self.db = db
         self.orientadoresDao = orientadoresDaoArg if orientadoresDaoArg else orientadores_dao.OrientadoresDAO(self.db, projetosDaoArg=self)
         self.usuarioDao = usuarioDaoArg if usuarioDaoArg else usuario_dao.UsuarioDAO(self.db, orientadoresDao=self.orientadoresDao)
@@ -68,6 +68,7 @@ class ProjetosDAO:
         self.palavrasChaveDao = palavrasChaveDao if palavrasChaveDao else palavras_chave_dao.PalavrasChaveDAO(self.db)
         self.projetoAutorDao = projetoAutorDaoArg if projetoAutorDaoArg else projeto_autor_dao.ProjetoAutorDAO(self.db)
         self.cursosDao = cursosDaoArg if cursosDaoArg else cursos_dao.CursosDAO(self.db)
+        self.autoresDao = autoresDaoArg if autoresDaoArg else autores_dao.AutoresDAO(self.db)
 
     def busca_projeto_tipo(self, tipo, query = '', ordem = 0, crescente = True):
         queryBase = query
@@ -672,13 +673,13 @@ class ProjetosDAO:
 
     def prenche_projeto(self, ret, attrs=None):
         if attrs == None:
-            ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
+            ret['autores'] = self.autoresDao.busca_autores_proj(ret['codProjeto'])
             ret['palavrasChave'] = self.palavrasChaveDao.busca_palavras_chave(ret['codProjeto'])
             ret['curso'] = self.cursosDao.get_all_curso_cod(ret['codCurso'])
             ret['orientadores'] = self.orientadoresDao.busca_orientadores_codProjeto(ret['codProjeto'])
         else:
             if AtributosEspeciaisProjeto.Autores.value in attrs:
-                ret['autores'] = autores_dao.busca_autores_proj(ret['codProjeto'])
+                ret['autores'] = self.autoresDao.busca_autores_proj(ret['codProjeto'])
 
             if AtributosEspeciaisProjeto.PalavrasChave.value in attrs:
                 ret['palavrasChave'] = self.palavrasChaveDao.busca_palavras_chave(ret['codProjeto'])

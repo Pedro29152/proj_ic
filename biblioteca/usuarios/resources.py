@@ -12,9 +12,9 @@ from biblioteca.db import Db
 from biblioteca import mailer, response_messages
 from biblioteca.orientador.schemas import Orientadores
 from biblioteca.curso.cursos_dao import CursosDAO
+from biblioteca.autor.autores_dao import AutoresDAO
 from biblioteca.projeto.projetos_dao import ProjetosDAO
 from biblioteca.orientador.orientadores_dao import OrientadoresDAO
-from biblioteca.autor import autores_dao
 from biblioteca.extensions import (
     secretaria_token_required,
     admin_token_required,
@@ -340,15 +340,16 @@ def cadastro_aluno(professor_user_info):
         usuarioDao = UsuarioDAO(db)
         orientadoresDao = OrientadoresDAO(db)
         cursosDao = CursosDAO(db)
+        autoresDao = AutoresDAO(db)
 
         curso = cursosDao.get_curso_codCurso(codCurso, False)
         if not curso:
             return get_falha(response_messages.NAO_ENCONTRADO('Curso')), 400
 
-        autor = autores_dao.get_autor_ra(ra)
+        autor = autoresDao.get_autor_ra(ra)
         if not autor:
             try:
-                autor = autores_dao.cadastra_autor(nome, email, ra)
+                autor = autoresDao.cadastra_autor(nome, email, ra)
                 if not autor:
                     return get_erro(response_messages.ERRO_INTEGRIDADE('Autor')), 400
             except DataError:

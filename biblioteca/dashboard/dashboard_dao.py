@@ -1,20 +1,20 @@
-from biblioteca.db import Db
 from biblioteca.projeto import projetos_dao
 
+class DashboardDAO:
+    def __init__(self, db, projetosDaoArg=None):
+        self.db = db
+        self.projetosDao = projetosDaoArg if projetosDaoArg else projetos_dao.ProjetosDAO(self.db)
 
-def get_count_projetos_semestre(ano, semestre):
-    with Db() as db:
-        projetosDao = projetos_dao.ProjetosDAO(db)
-
-        if not __valid_int(ano):
+    def get_count_projetos_semestre(self, ano, semestre):
+        if not self.__valid_int(ano):
             return None
-        if not __valid_int(semestre):
+        if not self.__valid_int(semestre):
             return None
         
         semestre = int(semestre)
         ano = int(ano)
         
-        projetosDao.reprova_projetos_invalidos()
+        self.projetosDao.reprova_projetos_invalidos()
 
         dataQuery = ''
         if semestre == 1:
@@ -30,20 +30,17 @@ def get_count_projetos_semestre(ano, semestre):
             FROM projetos
             where year(dataAvaliacao) = (%s) and (ativo = 1 and status = 1)
         '''.format(dataQuery)
-        res = db.busca_um(query, (ano,))
+        res = self.db.busca_um(query, (ano,))
         
         count = res['count']
         if not count:
             return 0 
         return int(count)
 
-def get_count_projetos_semestres(anoI, anoF):
-    with Db() as db:
-        projetosDao = projetos_dao.ProjetosDAO(db)
-
-        if not __valid_int(anoI):
+    def get_count_projetos_semestres(self, anoI, anoF):
+        if not self.__valid_int(anoI):
             return None
-        if not __valid_int(anoF):
+        if not self.__valid_int(anoF):
             return None
         
         anoI = int(anoI)
@@ -52,7 +49,7 @@ def get_count_projetos_semestres(anoI, anoF):
         if anoI > anoF:
             return None
 
-        projetosDao.reprova_projetos_invalidos()
+        self.projetosDao.reprova_projetos_invalidos()
 
         query = '''
             SELECT
@@ -64,19 +61,16 @@ def get_count_projetos_semestres(anoI, anoF):
             group by year(dataAvaliacao)
             order by 1
         '''
-        ret = db.busca(query, (anoI, anoF))
+        ret = self.db.busca(query, (anoI, anoF))
         if not ret:
             return None
         
-        __remove_decimais(ret)
+        self.__remove_decimais(ret)
 
         return ret
 
-def get_count_projetos_curso(anoI, anoF):
-    with Db() as db:
-        projetosDao = projetos_dao.ProjetosDAO(db)
-
-        projetosDao.reprova_projetos_invalidos()
+    def get_count_projetos_curso(self, anoI, anoF):
+        self.projetosDao.reprova_projetos_invalidos()
 
         query = '''
             SELECT
@@ -91,21 +85,18 @@ def get_count_projetos_curso(anoI, anoF):
             group by year(dataAvaliacao), codCurso
             order by descricaoCurso, year(dataAvaliacao)
         '''
-        ret = db.busca(query, (anoI, anoF))
+        ret = self.db.busca(query, (anoI, anoF))
         if not ret:
             return ret
 
-        __remove_decimais(ret)
+        self.__remove_decimais(ret)
         
-        cursos = __gerar_obj_proj(ret, 'abreviacao', order_ano=True)
+        cursos = self.__gerar_obj_proj(ret, 'abreviacao', order_ano=True)
 
         return cursos
 
-def get_count_projetos_orientador(anoI, anoF, orientadores= tuple()):
-    with Db() as db:
-        projetosDao = projetos_dao.ProjetosDAO(db)
-
-        projetosDao.reprova_projetos_invalidos()
+    def get_count_projetos_orientador(self, anoI, anoF, orientadores= tuple()):
+        self.projetosDao.reprova_projetos_invalidos()
 
         baseQuery = '''
             SELECT
@@ -128,26 +119,23 @@ def get_count_projetos_orientador(anoI, anoF, orientadores= tuple()):
 
         if orientadores:
             query = baseQuery.format('and (o.raOrientador in (%s))' % ','.join(['%s'] * len(orientadores)))
-            ret = db.busca(query, (anoI, anoF) + orientadores)
+            ret = self.db.busca(query, (anoI, anoF) + orientadores)
         else:
             query = baseQuery.format('')
-            ret = db.busca(query, (anoI, anoF))
+            ret = self.db.busca(query, (anoI, anoF))
 
         if not ret:
             return ret
 
-        __remove_decimais(ret)
+        self.__remove_decimais(ret)
         
-        orientadores = __gerar_obj_proj(ret, 'nomeOrientador', order_ano=True)
+        orientadores = self.__gerar_obj_proj(ret, 'nomeOrientador', order_ano=True)
         ret = None
 
         return orientadores
 
-def get_count_projetos_formandos_curso(anoI, anoF):
-    with Db() as db:
-        projetosDao = projetos_dao.ProjetosDAO(db)
-
-        projetosDao.reprova_projetos_invalidos()
+    def get_count_projetos_formandos_curso(self, anoI, anoF):
+        self.projetosDao.reprova_projetos_invalidos()
 
         query =  '''
             SELECT
@@ -163,22 +151,19 @@ def get_count_projetos_formandos_curso(anoI, anoF):
             group by p.codCurso,  year(dataAvaliacao)
             order by p.codCurso, year(dataAvaliacao)
         '''
-        ret = db.busca(query, (anoI, anoF))
+        ret = self.db.busca(query, (anoI, anoF))
         if not ret:
             return ret
 
-        __remove_decimais(ret)
+        self.__remove_decimais(ret)
         
-        cursos = __gerar_obj_proj(ret, 'abreviacao', order_ano=True)
+        cursos = self.__gerar_obj_proj(ret, 'abreviacao', order_ano=True)
         ret = None
 
         return cursos
 
-def get_count_projetos_status(anoI, anoF):
-    with Db() as db:
-        projetosDao = projetos_dao.ProjetosDAO(db)
-
-        projetosDao.reprova_projetos_invalidos()
+    def get_count_projetos_status(self, anoI, anoF):
+        self.projetosDao.reprova_projetos_invalidos()
         
         query = '''
             select
@@ -191,22 +176,19 @@ def get_count_projetos_status(anoI, anoF):
             group by 1, year(dataAvaliacao)
             order by status, year(dataAvaliacao);
         '''
-        ret = db.busca(query, (anoI, anoF))
+        ret = self.db.busca(query, (anoI, anoF))
         if not ret:
             return ret
 
-        __remove_decimais(ret)
+        self.__remove_decimais(ret)
         
-        status = __gerar_obj_proj(ret, 'status', order_ano=True)
+        status = self.__gerar_obj_proj(ret, 'status', order_ano=True)
         ret = None
 
         return status
 
-def get_count_projetos_modalidade(anoI, anoF):
-    with Db() as db:
-        projetosDao = projetos_dao.ProjetosDAO(db)
-        
-        projetosDao.reprova_projetos_invalidos()
+    def get_count_projetos_modalidade(self, anoI, anoF):
+        self.projetosDao.reprova_projetos_invalidos()
 
         query = '''
             select 
@@ -227,20 +209,18 @@ def get_count_projetos_modalidade(anoI, anoF):
             group by year(dataAvaliacao), modalidade
             order by 1
         '''
-        ret = db.busca(query, (anoI, anoF))
+        ret = self.db.busca(query, (anoI, anoF))
         if not ret:
             return ret
         
-        __remove_decimais(ret)
+        self.__remove_decimais(ret)
         
-        modalidade = __gerar_obj_proj(ret, 'modalidade', order_ano=True)
+        modalidade = self.__gerar_obj_proj(ret, 'modalidade', order_ano=True)
         ret = None
 
         return modalidade
 
-
-def get_count_solicitacoes_revisao(anoI, anoF):
-    with Db() as db:
+    def get_count_solicitacoes_revisao(self, anoI, anoF):
         query = '''
             select
                 year(dataSolicitacao) as ano,
@@ -251,11 +231,11 @@ def get_count_solicitacoes_revisao(anoI, anoF):
             group by 1
             order by 1
         '''
-        ret = db.busca(query, (anoI, anoF))
+        ret = self.db.busca(query, (anoI, anoF))
         if not ret:
             return ret
 
-        __remove_decimais(ret)
+        self.__remove_decimais(ret)
         
         solic = {}
         for item in ret:
@@ -263,8 +243,7 @@ def get_count_solicitacoes_revisao(anoI, anoF):
 
         return solic
 
-def get_count_usuarios_tipo():
-    with Db() as db:
+    def get_count_usuarios_tipo(self, ):
         query = '''
             select
                 (case
@@ -281,7 +260,7 @@ def get_count_usuarios_tipo():
             group by tipoUsuario
             order by 1
         '''
-        ret = db.busca(query, None)
+        ret = self.db.busca(query, None)
         if not ret:
             return ret
 
@@ -291,8 +270,7 @@ def get_count_usuarios_tipo():
         
         return tipos
 
-def get_anos():
-    with Db() as db:
+    def get_anos(self, ):
         query = '''
             select
                 min(year(dataAvaliacao)) as min, 
@@ -300,41 +278,41 @@ def get_anos():
             from projetos as p
             where (p.ativo = 1 and p.status = 1)
         '''
-        ret = db.busca_um(query, None)
+        ret = self.db.busca_um(query, None)
         if not ret or (not ret['min'] or not ret['max']):
             return []
         return list(range(ret['min'], ret['max'] + 1))
 
 
-def __valid_int(val):
-    try:
-        t = int(val)
-    except ValueError:
-        return False
-    return True
-
-def __remove_decimais(obj):
-    for item in obj:
-        item['semestre1'] = int(item['semestre1'])
-        item['semestre2'] = int(item['semestre2'])    
-
-def __gerar_obj_proj(obj, attr, order_ano=False, ano_attr='ano'):
-    ret = {}
-    for item in obj:
+    def __valid_int(self, val):
         try:
-            ret[item[attr]].append(item)
-        except KeyError:
-            ret[item[attr]] = [item]
+            t = int(val)
+        except ValueError:
+            return False
+        return True
 
-    if order_ano:
-        for chave in ret.keys():
-            att = ret[chave]
-            ret[chave] = {}
-            for a in att:
-                dataset = []
-                dataset.append(a['semestre1'])
-                dataset.append(a['semestre2'])
-                ano = a['ano']
-                ret[chave][ano] = dataset
+    def __remove_decimais(self, obj):
+        for item in obj:
+            item['semestre1'] = int(item['semestre1'])
+            item['semestre2'] = int(item['semestre2'])    
 
-    return ret
+    def __gerar_obj_proj(self, obj, attr, order_ano=False, ano_attr='ano'):
+        ret = {}
+        for item in obj:
+            try:
+                ret[item[attr]].append(item)
+            except KeyError:
+                ret[item[attr]] = [item]
+
+        if order_ano:
+            for chave in ret.keys():
+                att = ret[chave]
+                ret[chave] = {}
+                for a in att:
+                    dataset = []
+                    dataset.append(a['semestre1'])
+                    dataset.append(a['semestre2'])
+                    ano = a['ano']
+                    ret[chave][ano] = dataset
+
+        return ret

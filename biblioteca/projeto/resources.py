@@ -13,10 +13,10 @@ from mysql.connector.errors import IntegrityError
 from biblioteca.db import Db
 from biblioteca import mailer, response_messages
 from biblioteca.curso.cursos_dao import CursosDAO
+from biblioteca.autor.autores_dao import AutoresDAO
 from biblioteca.autor.projeto_autor_dao import ProjetoAutorDAO
 from biblioteca.orientador.orientadores_dao import OrientadoresDAO
 from biblioteca.usuarios.usuario_orientado_dao import UsuarioOrientadoDAO
-from biblioteca.autor import autores_dao
 from biblioteca.pdf_generator import TermoCompromisso
 from biblioteca.responses import (
     get_data,
@@ -121,6 +121,7 @@ class GetProjetoNovo(Resource):
             projetosDao = ProjetosDAO(db)
             orientadoresDao = OrientadoresDAO(db)
             cursosDao = CursosDAO(db)
+            autoresDao = AutoresDAO(db)
 
             if user_info['tipoUsuario'] == TiposUsuario.Professor.value:
                 orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
@@ -132,7 +133,7 @@ class GetProjetoNovo(Resource):
                     return get_response_code(proj, 200)
                 return get_not_found(response_messages.NAO_ENCONTRADO('Trabalho'))
             elif user_info['tipoUsuario'] == TiposUsuario.Aluno.value:
-                autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+                autor = autoresDao.get_autor_codUsuario(user_info['codUsuario'])
                 if not autor:
                     return get_erro(response_messages.USUARIO_NAO_RELACIONADO_AUT()), 400
                 
@@ -304,12 +305,13 @@ class DownloadArquivoProjetoNovoResource(Resource):
             projetosDao = ProjetosDAO(db)
             orientadoresDao = OrientadoresDAO(db)
             cursosDao = CursosDAO(db)
+            autoresDao = AutoresDAO(db)
 
             attatch = False
             if request.args.get('as_attachment'):
                 attatch = True if request.args.get('as_attachment').lower() == 'true' else False
             if user_info['tipoUsuario'] == TiposUsuario.Aluno.value:
-                autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+                autor = autoresDao.get_autor_codUsuario(user_info['codUsuario'])
                 if not autor:
                     return get_erro(response_messages.USUARIO_NAO_RELACIONADO_AUT()), 400
                 proj = projetosDao.get_projeto_novo_codAutor(autor['codAutor'])
@@ -498,6 +500,7 @@ def upload_projeto(user_info=None):
         orientadoresDao = OrientadoresDAO(db)
         usuarioOrientadoDao = UsuarioOrientadoDAO(db)
         cursosDao = CursosDAO(db)
+        autoresDao = AutoresDAO(db)
             
         try:
             titulo = request.form['titulo']
@@ -578,7 +581,7 @@ def upload_projeto(user_info=None):
             return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ter no máximo 5 palavras-chave')), 400 
         
         if user_info:
-            lider = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+            lider = autoresDao.get_autor_codUsuario(user_info['codUsuario'])
             if not lider:
                 return get_erro(response_messages.NAO_FOI_POSSIVEL('obter os dados do autor principal')), 400
             removed = 0
@@ -819,10 +822,11 @@ def edita_projeto_aluno(codProjeto, user_info, has_file):
     with Db() as db:
         projetosDao = ProjetosDAO(db)
         projetoAutorDao = ProjetoAutorDAO(db)
+        autoresDao = AutoresDAO(db)
             
         proj = projetosDao.get_projeto_novo(codProjeto)
         if proj:
-            autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+            autor = autoresDao.get_autor_codUsuario(user_info['codUsuario'])
             if not autor:
                 return get_erro(response_messages.USUARIO_NAO_RELACIONADO_AUT()), 400
             
@@ -889,8 +893,9 @@ def get_projeto(codProjeto):
 def get_projeto_autor(user_info):
     with Db() as db:
         projetosDao = ProjetosDAO(db)
+        autoresDao = AutoresDAO(db)
             
-        autor = autores_dao.get_autor_codUsuario(user_info['codUsuario'])
+        autor = autoresDao.get_autor_codUsuario(user_info['codUsuario'])
         if not autor:
             return get_erro(response_messages.USUARIO_NAO_RELACIONADO_AUT()), 400
         

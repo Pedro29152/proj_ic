@@ -7,10 +7,10 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill
 
 from biblioteca.db import Db
+from biblioteca.curso.cursos_dao import CursosDAO
+from biblioteca.autor.autores_dao import AutoresDAO
 from biblioteca.projeto.projetos_dao import ProjetosDAO
 from biblioteca.orientador.orientadores_dao import OrientadoresDAO
-from biblioteca.curso.cursos_dao import CursosDAO
-from biblioteca.autor import autores_dao
 from biblioteca.extensions import (
     LinguagemProjeto,
     ModalidadeProjeto,
@@ -279,61 +279,64 @@ def get_orientadores_workbook(data_i= None, data_f= None, user=None):
         return wb
 
 def get_autores_workbook(data_i=None, data_f=None, user=None):
-    autores = autores_dao.get_relatorio_autores(data_i=data_i, data_f=data_f)
-    if not autores:
-        return None
+    with Db()as db:
+        autoresDao = AutoresDAO(db)
 
-    atributos = list(autores[0].keys())
+        autores = autoresDao.get_relatorio_autores(data_i=data_i, data_f=data_f)
+        if not autores:
+            return None
 
-    info = [
-        'FATEC de Carapicuíba',
-        'Gerado por: {}'.format(user['nome']),
-        'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
-    ]
-    
-    header = __generate_header(atributos)
+        atributos = list(autores[0].keys())
 
-    column_widths = __format_column_widths( 
-        __get_base_column_widths_info(info), 
-        __get_base_column_widths_header(header),
-        __get_base_column_widths(atributos)
-    )
+        info = [
+            'FATEC de Carapicuíba',
+            'Gerado por: {}'.format(user['nome']),
+            'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
+        ]
+        
+        header = __generate_header(atributos)
 
-    dif = len(header) - len(info)
-    for i in range(dif if dif > 0 else 0):
-        info.append('')
+        column_widths = __format_column_widths( 
+            __get_base_column_widths_info(info), 
+            __get_base_column_widths_header(header),
+            __get_base_column_widths(atributos)
+        )
 
-    wb = __generate_workbook(
-        title='Relatorio de Autores',
-        info=info,
-        header= __generate_header(atributos)
-    )
-    ws = wb.active
+        dif = len(header) - len(info)
+        for i in range(dif if dif > 0 else 0):
+            info.append('')
 
-    for i, autor in enumerate(autores):
-        linha = []
+        wb = __generate_workbook(
+            title='Relatorio de Autores',
+            info=info,
+            header= __generate_header(atributos)
+        )
+        ws = wb.active
 
-        for j, atributo in enumerate(atributos):
-            val = autor[atributo]
-            
-            linha.append(val)
+        for i, autor in enumerate(autores):
+            linha = []
 
-            tam_cell = (len(str(linha[j])) + 3)
-            if tam_cell > 80:
-                tam_cell = 80
-            
-            if len(column_widths) > j:
-                if tam_cell > column_widths[j]:
-                    column_widths[j] = tam_cell
-            else:
-                column_widths += [tam_cell]
+            for j, atributo in enumerate(atributos):
+                val = autor[atributo]
+                
+                linha.append(val)
 
-        ws.append(linha)
+                tam_cell = (len(str(linha[j])) + 3)
+                if tam_cell > 80:
+                    tam_cell = 80
+                
+                if len(column_widths) > j:
+                    if tam_cell > column_widths[j]:
+                        column_widths[j] = tam_cell
+                else:
+                    column_widths += [tam_cell]
 
-    for i, column_width in enumerate(column_widths):
-        ws.column_dimensions[get_column_letter(i+1)].width = column_width
-    
-    return wb
+            ws.append(linha)
+
+        for i, column_width in enumerate(column_widths):
+            ws.column_dimensions[get_column_letter(i+1)].width = column_width
+        
+        return wb
 
 def __generate_header(attr):
     ret = [separate_camel_case(key) for key in attr]

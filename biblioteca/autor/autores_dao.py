@@ -1,9 +1,10 @@
 from mysql.connector.errors import IntegrityError, ProgrammingError
-from biblioteca.db import Db
 
+class AutoresDAO:
+    def __init__(self, db):
+        self.db = db
 
-def busca_autores(nomeAutor=''):
-    with Db() as db:
+    def busca_autores(self, nomeAutor=''):
         if not nomeAutor:
             nomeAutor = ''
         nomeAutor = '%{}%'.format(nomeAutor)
@@ -12,41 +13,33 @@ def busca_autores(nomeAutor=''):
             FROM autores
             WHERE nomeAutor like (%s)
             '''
-        ret = db.busca(
+        ret = self.db.busca(
             query,
             (nomeAutor,)
         )
         return ret
 
-
-def get_autor(codAluno):
-    with Db() as db:
+    def get_autor(self, codAluno):
         query = 'select * from autores where codAutor = (%s)'
-        ret = db.busca_um(query, (codAluno,))
+        ret = self.db.busca_um(query, (codAluno,))
         return ret
 
-
-def busca_autores_proj(codProjeto):
-    with Db() as db:
+    def busca_autores_proj(self, codProjeto):
         query = '''
             SELECT autores.nomeAutor, autores.raAutor, autores.email
             FROM autores 
             NATURAL JOIN projeto_autor pa 
             WHERE pa.codProjeto = (%s)
         '''
-        ret = db.busca(query, (codProjeto,))
+        ret = self.db.busca(query, (codProjeto,))
         return ret
 
-
-def get_autor_ra(ra):
-    with Db() as db:
+    def get_autor_ra(self, ra):
         query = 'select * from autores where raAutor = (%s)'
-        ret = db.busca_um(query, (ra,))
+        ret = self.db.busca_um(query, (ra,))
         return ret
 
-
-def get_autor_codUsuario(codUsuario):
-    with Db() as db:
+    def get_autor_codUsuario(self, codUsuario):
         query = '''
             select distinct a.*
             from autores as a 
@@ -56,22 +49,18 @@ def get_autor_codUsuario(codUsuario):
             on u.codUsuario = uo.codUsuario 
             where u.codUsuario = (%s) and u.ativo = 1
         '''
-        return db.busca_um(query, (codUsuario,))
+        return self.db.busca_um(query, (codUsuario,))
 
-
-def get_orientador_codAutor(codAutor):
-    with Db() as db:
+    def get_orientador_codAutor(self, codAutor):
         query = '''
             select o.* from usuario_orientado as uo
             join orientadores as o 
             on uo.codOrientador = o.codOrientador 
             where uo.codAutor = (%s)
         '''
-        return db.busca_um(query, (codAutor,))
+        return self.db.busca_um(query, (codAutor,))
 
-
-def get_relatorio_autores(data_i=None, data_f=None):
-    with Db() as db:
+    def get_relatorio_autores(self, data_i=None, data_f=None):
         base_query = '''
             select 
                 a.nomeAutor as nomeDoAutor,
@@ -101,32 +90,28 @@ def get_relatorio_autores(data_i=None, data_f=None):
             query = base_query.format(
                 'and (year(p.dataAvaliacao) between %s and %s)')
             try:
-                ret = db.busca(query, (data_i, data_f))
+                ret = self.db.busca(query, (data_i, data_f))
             except ProgrammingError:
                 return None
         else:
             query = base_query.format('')
             try:
-                ret = db.busca(query)
+                ret = self.db.busca(query)
             except ProgrammingError:
                 return None
 
         return ret
 
-
-def cadastra_autor(nome, email, ra):
-    with Db() as db:
+    def cadastra_autor(self, nome, email, ra):
         query = 'insert into autores(nomeAutor, email, raAutor) values (%s, %s, %s)'
         try:
-            db.gravar_autocommit(query, (nome, email.lower(), ra))
-            return get_autor_ra(ra)
+            self.db.gravar_autocommit(query, (nome, email.lower(), ra))
+            return self.get_autor_ra(ra)
         except IntegrityError:
-            db.rollback()
+            self.db.rollback()
             return None
 
-
-def is_aluno_valido(codUsuario):
-    with Db() as db:
+    def is_aluno_valido(self, codUsuario):
         query = '''
             select distinct u.codUsuario
             from usuarios as u 
@@ -136,5 +121,5 @@ def is_aluno_valido(codUsuario):
             on a.codAutor = uo.codAutor 
             where uo.dataValidade > now() and u.codUsuario = (%s) 
         '''
-        ret = db.busca_um(query, (codUsuario,))
+        ret = self.db.busca_um(query, (codUsuario,))
         return ret
