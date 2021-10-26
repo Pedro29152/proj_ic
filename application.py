@@ -22,7 +22,7 @@ from biblioteca import create_app
 # instancia nossa função factory criada anteriormente
 app = create_app(getenv('FLASK_ENV') or 'default')
 
-if __name__ == '__main__':
+def run():
     conf = {
         'ip': '0.0.0.0',
         'port': app.config['APP_PORT'],
@@ -49,3 +49,6 @@ if __name__ == '__main__':
         port = conf['port'], 
         use_reloader = conf['debug']
     )
+
+if __name__ == '__main__':
+    run()
