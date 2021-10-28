@@ -93,15 +93,15 @@ class CountProjetosOrientadorSelf(Resource):
         anoI, anoF = get_anoI_anoF()
         if anoF < anoI:
             return get_no_content()
-        with Db() as db:
-            orientadoresDao = OrientadoresDAO(db)
-        orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
-        if not orientador:
-            return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
         with Db() as db:
+            orientadoresDao = OrientadoresDAO(db)
             dashboardDao = DashboardDAO(db)
-                
+
+            orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
+            if not orientador:
+                return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
+
             oris = tuple([orientador['raOrientador']])
             ret = dashboardDao.get_count_projetos_orientador(anoI, anoF, orientadores= oris)
             if ret == None:
