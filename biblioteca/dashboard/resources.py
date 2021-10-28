@@ -33,11 +33,11 @@ class CountProjetosSemestre(Resource):
 
 class CountProjetosAnos(Resource):
     def get(self):
-        anoI, anoF = get_anoI_anoF()
-        if anoF < anoI:
-            return get_no_content()
-        
         with Db() as db:
+            anoI, anoF = get_anoI_anoF(db)
+            if anoF < anoI:
+                return get_no_content()
+            
             dashboardDao = DashboardDAO(db)
                 
             count_ano = dashboardDao.get_count_projetos_semestres(anoI, anoF)
@@ -48,11 +48,11 @@ class CountProjetosAnos(Resource):
 
 class CountProjetosCurso(Resource):
     def get(self):
-        anoI, anoF = get_anoI_anoF()
-        if anoF < anoI:
-            return get_no_content()
-
         with Db() as db:
+            anoI, anoF = get_anoI_anoF(db)
+            if anoF < anoI:
+                return get_no_content()
+
             dashboardDao = DashboardDAO(db)
 
             ret = dashboardDao.get_count_projetos_curso(anoI, anoF)
@@ -63,23 +63,23 @@ class CountProjetosCurso(Resource):
 class CountProjetosOrientador(Resource):
     @admin_token_required
     def get(self):
-        anoI, anoF = get_anoI_anoF()
-        if anoF < anoI:
-            return get_no_content()
-
-        o = request.args.get('orientadores')
-        if not o:
-            oris = tuple()
-        else:
-            oris = tuple()
-            for ori in o.split(','):
-                try:
-                    oris = oris + (int(ori),)
-                except:
-                    oris = tuple()
-                    break
-
         with Db() as db:
+            anoI, anoF = get_anoI_anoF(db)
+            if anoF < anoI:
+                return get_no_content()
+
+            o = request.args.get('orientadores')
+            if not o:
+                oris = tuple()
+            else:
+                oris = tuple()
+                for ori in o.split(','):
+                    try:
+                        oris = oris + (int(ori),)
+                    except:
+                        oris = tuple()
+                        break
+
             dashboardDao = DashboardDAO(db)
                 
             ret = dashboardDao.get_count_projetos_orientador(anoI, anoF, orientadores= oris)
@@ -90,11 +90,11 @@ class CountProjetosOrientador(Resource):
 class CountProjetosOrientadorSelf(Resource):
     @professor_token_required
     def get(self, user_info):
-        anoI, anoF = get_anoI_anoF()
-        if anoF < anoI:
-            return get_no_content()
-
         with Db() as db:
+            anoI, anoF = get_anoI_anoF(db)
+            if anoF < anoI:
+                return get_no_content()
+
             orientadoresDao = OrientadoresDAO(db)
             dashboardDao = DashboardDAO(db)
 
@@ -111,11 +111,11 @@ class CountProjetosOrientadorSelf(Resource):
 class CountProjetosFormandos(Resource):
     @admin_token_required
     def get(self):
-        anoI, anoF = get_anoI_anoF()
-        if anoF < anoI:
-            return get_no_content()
-
         with Db() as db:
+            anoI, anoF = get_anoI_anoF(db)
+            if anoF < anoI:
+                return get_no_content()
+
             dashboardDao = DashboardDAO(db)
                 
             ret = dashboardDao.get_count_projetos_formandos_curso(anoI, anoF)
@@ -126,11 +126,11 @@ class CountProjetosFormandos(Resource):
 class CountProjetoStatus(Resource):
     @admin_token_required
     def get(self):
-        anoI, anoF = get_anoI_anoF()
-        if anoF < anoI:
-            return get_no_content()
-
         with Db() as db:
+            anoI, anoF = get_anoI_anoF(db)
+            if anoF < anoI:
+                return get_no_content()
+
             dashboardDao = DashboardDAO(db)
                 
             ret = dashboardDao.get_count_projetos_status(anoI, anoF)
@@ -140,11 +140,11 @@ class CountProjetoStatus(Resource):
 
 class CountProjetoModalidade(Resource):
     def get(self):
-        anoI, anoF = get_anoI_anoF()
-        if anoF < anoI:
-            return get_no_content()
-        
         with Db() as db:
+            anoI, anoF = get_anoI_anoF(db)
+            if anoF < anoI:
+                return get_no_content()
+        
             dashboardDao = DashboardDAO(db)
                 
             ret = dashboardDao.get_count_projetos_modalidade(anoI, anoF)
@@ -155,11 +155,11 @@ class CountProjetoModalidade(Resource):
 class CountSolicitacoesRevisao(Resource):
     @admin_token_required
     def get(self):
-        anoI, anoF = get_anoI_anoF()
-        if anoF < anoI:
-            return get_no_content()
-        
         with Db() as db:
+            anoI, anoF = get_anoI_anoF(db)
+            if anoF < anoI:
+                return get_no_content()
+        
             dashboardDao = DashboardDAO(db)
                 
             ret = dashboardDao.get_count_solicitacoes_revisao(anoI, anoF)
@@ -188,7 +188,7 @@ class GetAnos(Resource):
                 return get_no_content()
             return get_success(ret)
 
-def get_anoI_anoF():
+def get_anoI_anoF(db):
     try:
         anoI = int(request.args.get('anoInicial'))
     except:
@@ -198,16 +198,15 @@ def get_anoI_anoF():
     except:
         anoF = None
 
-    with Db() as db:
-        dashboardDao = DashboardDAO(db)
-            
-        anos = dashboardDao.get_anos()
-        if not anos:
-            anos = [datetime.now().year]
+    dashboardDao = DashboardDAO(db)
+        
+    anos = dashboardDao.get_anos()
+    if not anos:
+        anos = [datetime.now().year]
 
-        if not anoI:
-            anoI = anos[0]
-        if not anoF:
-            anoF = anos[-1]
+    if not anoI:
+        anoI = anos[0]
+    if not anoF:
+        anoF = anos[-1]
 
-        return anoI, anoF
+    return anoI, anoF
