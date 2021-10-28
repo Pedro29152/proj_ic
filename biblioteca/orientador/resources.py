@@ -120,25 +120,27 @@ class GetRevisaoResource(Resource):
             return get_not_found(response_messages.NAO_ENCONTRADO('Revisão'))
 
 def cadastro_orientador():
-    try:
-        orientadores = Orientadores(
-            nomeOrientador=request.form['nomeOrientador'],
-            raOrientador=request.form['raOrientador'],
-            email=request.form['email'],
-            currLattes=request.form['linkCurrLattes']
-        )
+    with Db() as db:
         try:
-            orientadores.grava_orientador()
-        except DataError:
-            return get_erro(response_messages.VALIDACAO_DEVE('raOrientador', 'ter no maximo 5 caracteres e seu nome no maximo 200')), 400
+            orientadores = Orientadores(
+                nomeOrientador=request.form['nomeOrientador'],
+                raOrientador=request.form['raOrientador'],
+                email=request.form['email'],
+                currLattes=request.form['linkCurrLattes'],
+                db=db
+            )
+            try:
+                orientadores.grava_orientador()
+            except DataError:
+                return get_erro(response_messages.VALIDACAO_DEVE('raOrientador', 'ter no maximo 5 caracteres e seu nome no maximo 200')), 400
 
-        return get_ok(response_messages.ENTIDADE_GRAVADA('Orientador')), 201
-    except AttributeError as ex:
-        return get_erro(ex.__str__()), 400
-    except BadRequestKeyError:
-        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"')), 400
-    except IntegrityError:
-        return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou raOrientador')), 400
+            return get_ok(response_messages.ENTIDADE_GRAVADA('Orientador')), 201
+        except AttributeError as ex:
+            return get_erro(ex.__str__()), 400
+        except BadRequestKeyError:
+            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"')), 400
+        except IntegrityError:
+            return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou raOrientador')), 400
 
 def edita_orientador(codOrientador):
     with Db() as db:

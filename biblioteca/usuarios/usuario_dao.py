@@ -145,10 +145,14 @@ class UsuarioDAO:
             raise IntegrityError(response_messages.ERRO_INTEGRIDADE('Email ou abreviação'))
 
     def add_aluno(self, user, senha, nome, email, codAutor, codOrientador, codCurso):
-        user = self.add_usr(user, senha, 1, nome, email)
-        if not user:
+        try:
+            user = self.add_usr(user, senha, 1, nome, email)
+            if not user:
+                return False
+        except IntegrityError as ie:
+            self.db.rollback()
             return False
-        
+
         now = datetime.now()
         dataValidade = now + timedelta(days=30)
         codUsuario = user['codUsuario']
@@ -166,10 +170,14 @@ class UsuarioDAO:
             self.desativa_usuario(item['codUsuario'])
 
     def add_orientador(self, user, senha, nome, email, codOrientador):
-        usr = self.add_usr(user, senha, 2, nome, email)
-        if not usr:
+        try:
+            usr = self.add_usr(user, senha, 2, nome, email)
+            if not usr:
+                return False
+        except IntegrityError as ie:
+            self.db.rollback()
             return False
-
+        
         codUser = usr['codUsuario']
         query = 'update orientadores set codUsuario = (%s) where codOrientador = (%s)'
         self.db.gravar(query, (codUser, codOrientador))

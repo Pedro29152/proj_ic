@@ -15,7 +15,7 @@ class OrientadoresDAO:
         ret = self.db.busca_um(query, (raOrientador,))
 
         if ret:
-            ori = Orientadores(ret['codOrientador'], ret['nomeOrientador'], ret['raOrientador'], ret['email'], ret['currLattes'])
+            ori = Orientadores(ret['codOrientador'], ret['nomeOrientador'], ret['raOrientador'], ret['email'], ret['currLattes'], db=self.db)
             return ori
         return None
 
@@ -25,7 +25,7 @@ class OrientadoresDAO:
 
         if ret:
             if is_instance:
-                ori = Orientadores(ret['codOrientador'], ret['nomeOrientador'], ret['raOrientador'], ret['email'], ret['currLattes'])
+                ori = Orientadores(ret['codOrientador'], ret['nomeOrientador'], ret['raOrientador'], ret['email'], ret['currLattes'], db=self.db)
                 return ori
             return ret
         return None
@@ -43,7 +43,7 @@ class OrientadoresDAO:
         ret = self.db.busca_um(query, (codUsuario,))
         if ret:
             if is_instance:
-                ori = Orientadores(ret['codOrientador'], ret['nomeOrientador'], ret['raOrientador'], ret['email'], ret['currLattes'])
+                ori = Orientadores(ret['codOrientador'], ret['nomeOrientador'], ret['raOrientador'], ret['email'], ret['currLattes'], db=self.db)
                 return ori
             return ret
         return None

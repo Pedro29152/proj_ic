@@ -260,7 +260,7 @@ def cadastro_professor(existente=True):
                 return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
     except BadRequestKeyError:
         return get_erro(
-            response_messages.CAMPOS_OBRIGATORIOS('{}, "nome" e "email" em seu corpo'.format('"codOrientador", ' if existente else '"currLattes", "ra", '))
+            response_messages.CAMPOS_OBRIGATORIOS('{}, "nome" e "email" em seu corpo'.format('"codOrientador"' if existente else '"currLattes", "ra"'))
         ), 400
     
     
@@ -277,7 +277,8 @@ def cadastro_professor(existente=True):
                     nomeOrientador=nome,
                     raOrientador=ra,
                     email=email,
-                    currLattes=currLattes
+                    currLattes=currLattes,
+                    db=db
                 )
                 orientador.grava_orientador()
 
@@ -296,7 +297,6 @@ def cadastro_professor(existente=True):
         user = orientador['raOrientador']
         password = generate_random_password()
         if usuarioDao.add_orientador(user, password, nome, email, codOrientador):
-            
             msg = mailer.generate_message_html(
                 'Nova conta de Orientador',
                 email,
