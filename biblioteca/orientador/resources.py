@@ -1,3 +1,4 @@
+from smtplib import SMTPAuthenticationError
 from flask import request, jsonify
 from flask_restful import Resource, request
 from werkzeug.exceptions import BadRequestKeyError
@@ -129,10 +130,8 @@ def cadastro_orientador():
                 currLattes=request.form['linkCurrLattes'],
                 db=db
             )
-            try:
-                orientadores.grava_orientador()
-            except DataError:
-                return get_erro(response_messages.VALIDACAO_DEVE('raOrientador', 'ter no maximo 5 caracteres e seu nome no maximo 200')), 400
+            
+            orientadores.grava_orientador()
 
             return get_ok(response_messages.ENTIDADE_GRAVADA('Orientador')), 201
         except AttributeError as ex:
@@ -141,6 +140,9 @@ def cadastro_orientador():
             return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"')), 400
         except IntegrityError:
             return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou raOrientador')), 400
+        except DataError:
+            return get_erro(response_messages.VALIDACAO_DEVE('raOrientador', 'ter no maximo 5 caracteres e seu nome no maximo 200')), 400
+
 
 def edita_orientador(codOrientador):
     with Db() as db:
@@ -161,9 +163,9 @@ def edita_orientador(codOrientador):
             if raOrientador:
                 ori.raOrientador = raOrientador
             if email:
-                ori.email = email
                 if not is_valid_email(email):
                     raise AttributeError(response_messages.VALIDACAO_DEVE('email', 'ser um email valido'))
+                ori.email = email
             if currLattes:
                 if not is_valid_http_link(currLattes):
                     raise AttributeError(response_messages.VALIDACAO_DEVE('currLattes', 'ser um link http/https valido'))
@@ -268,7 +270,11 @@ def solicitar_revisao(codProjeto, professor_user_info):
             usuarioDao.gerar_solitacao(usuarioOrientado['codUsuarioOrientado'], mensagem)
 
             for autor in proj['autores']:
-                enviar_email_revisao(autor, proj['tituloProjeto'], mensagem)
+                try:
+                    enviar_email_revisao(autor, proj['tituloProjeto'], mensagem)
+                except SMTPAuthenticationError:
+                    db.rollback()
+                    return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL())
 
             return get_ok(response_messages.SOLICITACAO_REVISAO_ENVIADA()), 200
         return get_erro(response_messages.ORIENTACAO_NECESSARIA()), 400
@@ -299,6 +305,3 @@ def enviar_email_revisao(autor, titulo_projeto, mensagem):
         '''.format(autor['nomeAutor'], titulo_projeto, mensagem)
     )
     mailer.send_email(autor['email'], msg)
-
-
-

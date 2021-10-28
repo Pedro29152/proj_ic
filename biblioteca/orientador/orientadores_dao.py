@@ -158,14 +158,10 @@ class OrientadoresDAO:
     def desativa_orientador(self, codOrientador):
         ori = self.get_orientador_codigo(codOrientador, False)
         if ori['codUsuario']:
-            query = '''
-                update usuarios set ativo = 0 where codUsuario = (%s)
-            '''
-            self.db.gravar(query, (ori['codUsuario'],))
+            self.usuarioDao.deleta_usuario(ori['codUsuario'])
 
         query = 'update orientadores set ativo = 0, codUsuario = null where codOrientador = (%s)'
         self.db.gravar(query, (codOrientador,))
-        self.db.commit()
         self.usuarioDao.remove_responsabilidade_orientador(codOrientador)
 
     def deleta_orientador(self, codOrientador):
