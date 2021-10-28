@@ -1,4 +1,6 @@
+from smtplib import SMTPAuthenticationError
 from flask_restful import Resource, request
+from werkzeug import exceptions
 from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import IntegrityError
 
@@ -48,10 +50,26 @@ class CursoIdResource(Resource):
 class AtivaCursoResource(Resource):
     @secretaria_token_required
     def post(self, id):
+        try:
+            codUsuario = request.form['codUsuario'] 
+        except BadRequestKeyError:
+            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"codUsuario"')), 400
+
+        if not (codUsuario):
+            return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
+
         with Db() as db:
             cursosDao = CursosDAO(db)
+            usuarioDao = UsuarioDAO(db)
 
-            cursosDao.ativa_curso(id)
+            user = usuarioDao.get_usuario_ativo(codUsuario)
+            if not user:
+                return get_falha(response_messages.USUARIO_NAO_EXISTE()), 400
+
+            if not user['tipoUsuario'] == TiposUsuario.Coordenador.value:
+                return  get_falha(response_messages.TIPO_USUARIO_ERRADO('Coordenador')), 400
+
+            cursosDao.ativa_curso(id, user['codUsuario'])
 
             return get_ok(response_messages.ENTIDADE_ATIVADA('Curso'))
 
@@ -103,41 +121,48 @@ def cadastro_curso():
         usuarioDao = UsuarioDAO(db)
         cursosDao = CursosDAO(db)
 
-        user = usuarioDao.add_usr(username, password, TiposUsuario.Coordenador.value, nome, email)
-        if not user:
-            return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou abreviação')), 400
+        try:
+            user = usuarioDao.add_usr(username, password, TiposUsuario.Coordenador.value, nome, email)
+            if not user:
+                db.rollback()
+                return get_erro(response_messages.ERRO_INESPERADO()), 500
+        except IntegrityError as ie:
+            db.rollback()
+            return get_erro(ie.__str__()), 400
 
         curso = Cursos(
             nomeCurso, 
             abreviacao,
-            user['codUsuario']
+            user['codUsuario'],
+            db=db
         )
+
         try:
             curso.grava_curso()
 
-            msg = mailer.generate_message_html(
-                'Nova conta de Coordenador',
-                email,
-                '''
-                    <h2>Você foi cadastrado no sistema BTA</h2>
-
-                    <p>Você foi cadastrado como um novo coordenador do sistema BTA - Biblioteca de Trabalhos Acadêmicos no curso: <b>{0}</b>, <b>{1}</b>.</p>
-                    <p>Veja abaixo os dados de login do seu usuário:</p>
-
-                    <p>Nome de usuário: <b>{2}</b></p>
-                    <p>Senha: <b>{3}</b></p>
-                '''.format(abreviacao, nomeCurso, username, password)
-            )
-            mailer.send_email(email, msg)
+            __enviar_email_cadastro_curso(email, abreviacao, nomeCurso, username, password)
 
             return get_ok(response_messages.ENTIDADE_GRAVADA('Curso')), 201
         except IntegrityError:
             if not cursosDao.is_ativo(curso):
-                cursosDao.reativa_curso(curso)
-                return get_ok('O curso ja existia, porem esta inativo. O curso foi reativado com os dados novos'), 400
+                try:
+                    cursosDao.reativa_curso(curso)
+
+                    __enviar_email_cadastro_curso(email, abreviacao, nomeCurso, username, password)                        
+
+                    return get_ok(response_messages.CURSO_REATIVADO()), 200
+                except SMTPAuthenticationError as se:
+                    db.rollback()
+                    return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
+                except Exception as ex:
+                    db.rollback()
+                    return get_erro(response_messages.ERRO_INESPERADO()), 500
             else:
-                usuarioDao.deleta_usuario(user['codUsuario'])
+                db.rollback()
                 return get_erro(response_messages.ERRO_INTEGRIDADE('Nome ou breviacao')), 400
+        except SMTPAuthenticationError as se:
+            db.rollback()
+            return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
 
 def buscar_cursos():
         with Db() as db:
@@ -197,3 +222,19 @@ def buscar_todos_cursos():
         if cursos:
             return get_data(cursos), 200
         return None, 204
+
+def __enviar_email_cadastro_curso(email, abreviacao, nomeCurso, username, password):
+    msg = mailer.generate_message_html(
+        'Nova conta de Coordenador',
+        email,
+        '''
+            <h2>Você foi cadastrado no sistema BTA</h2>
+
+            <p>Você foi cadastrado como um novo coordenador do sistema BTA - Biblioteca de Trabalhos Acadêmicos no curso: <b>{0}</b>, <b>{1}</b>.</p>
+            <p>Veja abaixo os dados de login do seu usuário:</p>
+
+            <p>Nome de usuário: <b>{2}</b></p>
+            <p>Senha: <b>{3}</b></p>
+        '''.format(abreviacao, nomeCurso, username, password)
+    )
+    mailer.send_email(email, msg)

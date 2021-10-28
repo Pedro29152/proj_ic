@@ -53,10 +53,6 @@ class Db:
     def gravar(self, query, *args):
         self.__cursor.execute(query, *args)
 
-    def gravar_autocommit(self, query, *args):
-        self.gravar(query, *args)
-        self.__conn.commit()
-
     def rollback(self):
         if self.__closed:
             raise ValueError(response_messages.CONEXAO_FECHADA)
@@ -64,6 +60,7 @@ class Db:
         self.__conn.rollback()        
 
     def close(self):
+        self.commit()
         self.__conn.close()
         self.__closed = True
 

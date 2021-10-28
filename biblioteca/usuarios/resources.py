@@ -234,17 +234,16 @@ def cadastro_usuario():
         return get_falha(response_messages.NOVA_ROTA_CADASTRO('aluno', '"/api/usuarios/cadastro/aluno"')), 400
     if tipoUsuario == TiposUsuario.Professor.value:
         return get_falha(response_messages.NOVA_ROTA_CADASTRO('orientador' '"/api/usuarios/cadastro/orientador/novo"')), 400
-    if tipoUsuario == TiposUsuario.Coordenador.value:
-        return get_falha(response_messages.NOVA_ROTA_CADASTRO('coordenador', '"/api/usuarios/cadastro/coordenador"')), 400
 
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
 
-        if usuarioDao.add_usr(user, senha, tipoUsuario, nome, email):
-            return get_ok(
-                response_messages.ENTIDADE_GRAVADA('Usuario')
-            ), 201
-        return get_erro(response_messages.ERRO_INTEGRIDADE('Nome de usuario ou email')), 400
+        try:
+            usuarioDao.add_usr(user, senha, tipoUsuario, nome, email)
+            return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
+        except IntegrityError as ie:
+            db.rollback()
+            return get_erro(response_messages.ERRO_INTEGRIDADE('Nome de usuario ou email')), 400
 
 def cadastro_professor(existente=True):
     try:

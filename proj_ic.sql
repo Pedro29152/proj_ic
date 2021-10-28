@@ -46,12 +46,12 @@ CREATE TABLE `proj_ic`.`cursos` (
   `descricaoCurso` varchar(255) NOT NULL,
   `ativo` int(11) NOT NULL,
   `abreviacao` varchar(5) NOT NULL,
-  `codUsuario` int(11) NOT NULL,
+  `codUsuario` int(11),
   PRIMARY KEY (`codCurso`),
   UNIQUE KEY `abreviacao_UNIQUE` (`abreviacao`),
   UNIQUE KEY `descricaoCurso_UNIQUE` (`descricaoCurso`),
   UNIQUE KEY `codUsuario_UNIQUE` (`codUsuario`),
-  CONSTRAINT `FK_USUARIO_CURSO` FOREIGN KEY (`codUsuario`) REFERENCES `proj_ic`.`usuarios` (`codUsuario`)
+  CONSTRAINT `FK_USUARIO_CURSO` FOREIGN KEY (`codUsuario`) REFERENCES `proj_ic`.`usuarios` (`codUsuario`) ON DELETE SET NULL ON UPDATE SET NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 --

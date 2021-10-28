@@ -45,4 +45,4 @@ class UsuarioOrientadoDAO():
         query = '''
             update usuario_orientado set codProjeto = (%s) where codUsuario = (%s)
         '''
-        self.db.gravar_autocommit(query, (codProjeto, codUsuario))
+        self.db.gravar(query, (codProjeto, codUsuario))

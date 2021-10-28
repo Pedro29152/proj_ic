@@ -19,7 +19,7 @@ class Orientadores:
         with Db() as db:
             if self.nomeOrientador and self.raOrientador and self.email and self.currLattes:
                 query1 = 'insert into orientadores(nomeOrientador, raOrientador, email, currLattes) values(%s, %s, %s, %s)'
-                db.gravar_autocommit(query1, (self.nomeOrientador, self.raOrientador, self.email, self.currLattes))
+                db.gravar(query1, (self.nomeOrientador, self.raOrientador, self.email, self.currLattes))
                 
                 query2 = 'select codOrientador from orientadores where raOrientador = (%s)'
                 self.codOrientador = db.busca_um(query2, (self.raOrientador,))['codOrientador']
@@ -32,4 +32,4 @@ class Orientadores:
                 raise AttributeError(response_messages.ATRIBUTO_OBRIGATORIO('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"'))
                 
             query = 'update orientadores set nomeOrientador = (%s), raOrientador = (%s), email = (%s), currLattes = (%s) where codOrientador = (%s)'
-            db.gravar_autocommit(query, (self.nomeOrientador, self.raOrientador, self.email, self.currLattes, self.codOrientador))
+            db.gravar(query, (self.nomeOrientador, self.raOrientador, self.email, self.currLattes, self.codOrientador))

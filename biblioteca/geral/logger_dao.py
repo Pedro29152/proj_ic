@@ -9,4 +9,4 @@ class LoggerDAO():
             insert into logger(rotaCompleta, requestDate, method, statusCode, ipAddress, info, requestData, responseData, codUsuario)
             values(%s,%s,%s,%s,%s,%s,%s,%s,%s)
         '''
-        self.db.gravar_autocommit(query, (url, request_datetime, method, status_code, ip_address, info, request_data, response_data, codUsuario))
+        self.db.gravar(query, (url, request_datetime, method, status_code, ip_address, info, request_data, response_data, codUsuario))

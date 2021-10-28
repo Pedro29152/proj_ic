@@ -105,7 +105,7 @@ class AutoresDAO:
     def cadastra_autor(self, nome, email, ra):
         query = 'insert into autores(nomeAutor, email, raAutor) values (%s, %s, %s)'
         try:
-            self.db.gravar_autocommit(query, (nome, email.lower(), ra))
+            self.db.gravar(query, (nome, email.lower(), ra))
             return self.get_autor_ra(ra)
         except IntegrityError:
             self.db.rollback()

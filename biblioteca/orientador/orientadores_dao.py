@@ -153,7 +153,7 @@ class OrientadoresDAO:
     def ativa_orientador(self, codOrientador):
         query = 'update orientadores set ativo = 1 where codOrientador = (%s)'
 
-        self.db.gravar_autocommit(query, (codOrientador,))
+        self.db.gravar(query, (codOrientador,))
 
     def desativa_orientador(self, codOrientador):
         ori = self.get_orientador_codigo(codOrientador, False)
@@ -172,7 +172,7 @@ class OrientadoresDAO:
         query = '''
             delete from orientadores where codOrientador = (%s)
         '''
-        self.db.gravar_autocommit(query, (codOrientador,))
+        self.db.gravar(query, (codOrientador,))
 
     def exists(self, codOrientador):
         query = 'select codOrientador from orientadores where codOrientador = (%s)'

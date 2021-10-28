@@ -24,28 +24,28 @@ class SlideDAO:
             insert into slides(titulo, subtitulo, title, subtitle, imagem) values (%s,%s,%s,%s,%s)
         '''
 
-        self.db.gravar_autocommit(query, (titulo, subTitulo, title, subTitle, nomeImagem))
+        self.db.gravar(query, (titulo, subTitulo, title, subTitle, nomeImagem))
 
     def edita_slide(self, slide):
         query = '''
             update slides set titulo = (%s), subtitulo = (%s), title = (%s), subtitle = (%s)
             where codSlide = (%s)
         '''
-        self.db.gravar_autocommit(query, (slide['titulo'], slide['subtitulo'], slide['title'], slide['subtitle'], slide['codSlide']))
+        self.db.gravar(query, (slide['titulo'], slide['subtitulo'], slide['title'], slide['subtitle'], slide['codSlide']))
 
     def edita_imagem(self, codSlide, imagem):
         query = '''
             update slides set imagem = (%s)
             where codSlide = (%s)
         '''
-        self.db.gravar_autocommit(query, (imagem, codSlide))
+        self.db.gravar(query, (imagem, codSlide))
 
     def delete_slide(self, codSlide):
         query = '''
             delete from slides 
             where codSlide = (%s)
         '''
-        self.db.gravar_autocommit(query, (codSlide,))
+        self.db.gravar(query, (codSlide,))
 
     def get_count(self):
         query = '''

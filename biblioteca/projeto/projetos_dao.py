@@ -4,6 +4,7 @@ from os import getenv
 from flask import current_app as app
 from mysql.connector.errors import DataError, IntegrityError, ProgrammingError
 
+from biblioteca import response_messages
 from biblioteca.db import Db
 from biblioteca.ext_dao import palavras_chave_dao
 from biblioteca.autor import autores_dao, projeto_autor_dao
@@ -63,11 +64,11 @@ class ProjetosDAO:
     def __init__(self, db, usuarioDaoArg=None, orientadoresDaoArg=None, usuarioOrientadoDaoArg=None, palavrasChaveDao=None, projetoAutorDaoArg=None, cursosDaoArg=None, autoresDaoArg=None):
         self.db = db
         self.orientadoresDao = orientadoresDaoArg if orientadoresDaoArg else orientadores_dao.OrientadoresDAO(self.db, projetosDaoArg=self)
-        self.usuarioDao = usuarioDaoArg if usuarioDaoArg else usuario_dao.UsuarioDAO(self.db, orientadoresDao=self.orientadoresDao)
+        self.usuarioDao = usuarioDaoArg if usuarioDaoArg else usuario_dao.UsuarioDAO(self.db, orientadoresDaoArg=self.orientadoresDao)
         self.usuarioOrientadoDao = usuarioOrientadoDaoArg if usuarioOrientadoDaoArg else usuario_orientado_dao.UsuarioOrientadoDAO(self.db)
         self.palavrasChaveDao = palavrasChaveDao if palavrasChaveDao else palavras_chave_dao.PalavrasChaveDAO(self.db)
         self.projetoAutorDao = projetoAutorDaoArg if projetoAutorDaoArg else projeto_autor_dao.ProjetoAutorDAO(self.db)
-        self.cursosDao = cursosDaoArg if cursosDaoArg else cursos_dao.CursosDAO(self.db)
+        self.cursosDao = cursosDaoArg if cursosDaoArg else cursos_dao.CursosDAO(self.db, usuarioDaoArg=self.usuarioDao)
         self.autoresDao = autoresDaoArg if autoresDaoArg else autores_dao.AutoresDAO(self.db)
 
     def busca_projeto_tipo(self, tipo, query = '', ordem = 0, crescente = True):
@@ -454,7 +455,7 @@ class ProjetosDAO:
                 values(%s,%s,%s,%s,%s,%s,%s,%s,%s)
             '''
         
-        self.db.gravar_autocommit(query,
+        self.db.gravar(query,
             (projeto.tituloProjeto,
             projeto.subTitulo,
             projeto.descricao, 
@@ -468,17 +469,19 @@ class ProjetosDAO:
 
         projeto.codProjeto = self.get_cod_projeto_titulo(projeto.tituloProjeto)
         
+        proj = self.get_projeto(projeto.codProjeto)
+
         for aut in projeto.autores:
             try:
-                codAutor = aut.tenta_gravar_autor(projeto.codProjeto)
-            except DataError:
+                codAutor = aut.tenta_gravar_autor()
+            except DataError as de:
                 self.deleta_projeto(projeto.codProjeto)
-                raise Exception(self.response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
+                raise Exception(response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
             try:
                 self.projetoAutorDao.grava_autor_proj(projeto.codProjeto, codAutor)
-            except IntegrityError:
+            except IntegrityError as ie:
                 self.deleta_projeto(projeto.codProjeto)
-                raise Exception(self.response_messages.SEM_PERMICAO('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
+                raise Exception(response_messages.SEM_PERMICAO('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
 
         for palavra in projeto.palavrasChave:
             palavra.grava_palavra_chave(projeto.codProjeto)
@@ -492,7 +495,7 @@ class ProjetosDAO:
 
     def deleta_projeto(self, codProjeto):
         query = 'delete from projetos where codProjeto = (%s)'
-        self.db.gravar_autocommit(query, (codProjeto,))
+        self.db.gravar(query, (codProjeto,))
 
     def get_projeto_novo(self, codProjeto, is_full=False):
         query = 'select * from projetos where codProjeto = (%s) and status = 0'
@@ -568,18 +571,18 @@ class ProjetosDAO:
     def desativa_projeto(self, codProjeto):
         query = 'update projetos set ativo = 0 where codProjeto = (%s)'
 
-        self.db.gravar_autocommit(query, (codProjeto,))
+        self.db.gravar(query, (codProjeto,))
 
     def ativa_projeto(self, codProjeto):
         query = 'update projetos set ativo = 1 where codProjeto = (%s)'
 
-        self.db.gravar_autocommit(query, (codProjeto,))
+        self.db.gravar(query, (codProjeto,))
 
     def aprovar_projeto(self, codProjeto):
         query = '''
             update projetos set status = 1 where codProjeto = (%s)
         '''
-        self.db.gravar_autocommit(query, (codProjeto,))
+        self.db.gravar(query, (codProjeto,))
 
         user = self.usuarioOrientadoDao.get_usuario_codProjeto(codProjeto)
         if user:
@@ -594,7 +597,7 @@ class ProjetosDAO:
         query = '''
             update projetos set status = 2 where codProjeto = (%s)
         '''
-        self.db.gravar_autocommit(query, (codProjeto,))
+        self.db.gravar(query, (codProjeto,))
         
         user = self.usuarioOrientadoDao.get_usuario_codProjeto(codProjeto)
         if user:    
@@ -606,22 +609,22 @@ class ProjetosDAO:
     def edita_titulo(self, codProjeto, titulo):
         query = 'update projetos set tituloProjeto = (%s) where codProjeto = (%s)'
 
-        self.db.gravar_autocommit(query, (titulo, codProjeto))
+        self.db.gravar(query, (titulo, codProjeto))
 
     def edita_descricao(self, codProjeto, descricao):
         query = 'update projetos set descricao = (%s) where codProjeto = (%s)'
 
-        self.db.gravar_autocommit(query, (descricao, codProjeto))
+        self.db.gravar(query, (descricao, codProjeto))
 
     def edita_subtitulo(self, codProjeto, subtitulo):
         query = 'update projetos set subtitulo = (%s) where codProjeto = (%s)'
 
-        self.db.gravar_autocommit(query, (subtitulo, codProjeto))
+        self.db.gravar(query, (subtitulo, codProjeto))
 
     def edita_publicacao(self, codProjeto, localPublicacao):
         query = 'update projetos set localPublicacao = (%s) where codProjeto = (%s)'
 
-        self.db.gravar_autocommit(query, (localPublicacao, codProjeto))
+        self.db.gravar(query, (localPublicacao, codProjeto))
 
     def is_ativo_filename(self, filename):
         query = 'select codProjeto from projetos where nomeArquivo = (%s) and ativo = 1 and not status = 2 '
@@ -660,12 +663,12 @@ class ProjetosDAO:
     def download_file(self, codProjeto):
         query = 'UPDATE projetos SET numDownloads = numDownloads + 1 WHERE codProjeto = (%s)'
 
-        self.db.gravar_autocommit(query, (codProjeto,))
+        self.db.gravar(query, (codProjeto,))
 
     def add_view(self, codProjeto):
         query = 'UPDATE projetos SET numVisitas = numVisitas + 1 WHERE codProjeto = (%s)'
 
-        self.db.gravar_autocommit(query, (codProjeto,))
+        self.db.gravar(query, (codProjeto,))
 
     def prenche_projetos(self, ret, attrs=None):
         for item in ret:
@@ -731,7 +734,7 @@ class ProjetosDAO:
     def __grava_proj_ori(self, codProjeto, codOrientador, tipo):
         query = 'insert into projeto_orientador values(%s, %s, %s)'
 
-        self.db.gravar_autocommit(query, (codOrientador, codProjeto, tipo))
+        self.db.gravar(query, (codOrientador, codProjeto, tipo))
 
     def __get_limit(self, pag, tam = 20):
         fi = 1 + ((pag - 1) * tam)

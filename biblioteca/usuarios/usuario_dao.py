@@ -3,12 +3,12 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from mysql.connector.errors import IntegrityError
 from datetime import datetime, timedelta
 from biblioteca.orientador import orientadores_dao
-from biblioteca import extensions
+from biblioteca import extensions, response_messages
 
 class UsuarioDAO:
-    def __init__(self, db, orientadoresDao=None):
+    def __init__(self, db, orientadoresDaoArg=None):
         self.db = db
-        self.orientadoresDao = orientadoresDao if orientadoresDao else orientadores_dao.OrientadoresDAO(self.db, usuariosDaoArg=self)
+        self.orientadoresDao = orientadoresDaoArg if orientadoresDaoArg else orientadores_dao.OrientadoresDAO(self.db, usuariosDaoArg=self)
 
     def verifica_usr(self, usuario, senha):
         senhaR = self.busca_senha_nome(usuario)
@@ -139,14 +139,10 @@ class UsuarioDAO:
                 (nomeUsuario, senha, tipoUsuario, ativo, nome, email) 
                 values(%s, %s, %s, 1, %s, %s)
             '''
-            self.db.gravar_autocommit(query,(usuario, generate_password_hash(senha),tipoUsuario, nome, email.lower()))
+            self.db.gravar(query,(usuario, generate_password_hash(senha),tipoUsuario, nome, email.lower()))
             return self.get_usuario_username(usuario)
-        except IntegrityError:
-            self.db.rollback()
-            return None
-        except Exception as ex:
-            self.db.rollback()
-            raise ex
+        except IntegrityError as ie:
+            raise IntegrityError(response_messages.ERRO_INTEGRIDADE('Email ou abreviação'))
 
     def add_aluno(self, user, senha, nome, email, codAutor, codOrientador, codCurso):
         user = self.add_usr(user, senha, 1, nome, email)
@@ -157,7 +153,7 @@ class UsuarioDAO:
         dataValidade = now + timedelta(days=30)
         codUsuario = user['codUsuario']
         query = 'insert into usuario_orientado(codOrientador, codAutor, codUsuario, dataValidade, dataCriacao, codCurso) values (%s, %s, %s, %s, %s, %s)'
-        self.db.gravar_autocommit(query, (codOrientador, codAutor, codUsuario, dataValidade.__str__(), now.__str__(), codCurso))
+        self.db.gravar(query, (codOrientador, codAutor, codUsuario, dataValidade.__str__(), now.__str__(), codCurso))
 
         self.desativa_anteriores(codAutor, codUsuario)
 
@@ -176,7 +172,7 @@ class UsuarioDAO:
 
         codUser = usr['codUsuario']
         query = 'update orientadores set codUsuario = (%s) where codOrientador = (%s)'
-        self.db.gravar_autocommit(query, (codUser, codOrientador))
+        self.db.gravar(query, (codUser, codOrientador))
         return True
 
     def get_count(self, codOrientador=None):
@@ -246,13 +242,13 @@ class UsuarioDAO:
 
     def edita_usuario(self, usuario):
         query = 'update usuarios set nomeUsuario = (%s), nome = (%s), email = (%s), tipoUsuario = (%s) where codUsuario = (%s)'
-        self.db.gravar_autocommit(query,(usuario['nomeUsuario'], usuario['nome'], usuario['email'].lower(), usuario['tipoUsuario'], usuario['codUsuario']))
+        self.db.gravar(query,(usuario['nomeUsuario'], usuario['nome'], usuario['email'].lower(), usuario['tipoUsuario'], usuario['codUsuario']))
 
     def deleta_usuario(self, codUsuario):
         usr = self.get_usuario_ativo(codUsuario)
 
         query = 'delete from usuarios where codUsuario = (%s)'
-        self.db.gravar_autocommit(query,(codUsuario,))
+        self.db.gravar(query,(codUsuario,))
         
         if usr['tipoUsuario'] == extensions.TiposUsuario.Professor.value:
             orientador = self.orientadoresDao.get_orientador_orientando_codUsuario(codUsuario)
@@ -261,14 +257,14 @@ class UsuarioDAO:
 
     def desativar_aluno(self, codUsuario):
         query = 'update usuarios set ativo = 0, email = null where codUsuario = (%s)'
-        self.db.gravar_autocommit(query, (codUsuario,))
+        self.db.gravar(query, (codUsuario,))
 
     def desativa_usuario(self, codUsuario):
         
         usr = self.get_usuario_ativo(codUsuario)
 
         query = 'update usuarios set ativo = 0 where codUsuario = (%s)'
-        self.db.gravar_autocommit(query, (codUsuario,))
+        self.db.gravar(query, (codUsuario,))
 
         if usr['tipoUsuario'] == extensions.TiposUsuario.Professor.value:
             orientador = self.orientadoresDao.get_orientador_codUsuario(codUsuario)
@@ -277,11 +273,11 @@ class UsuarioDAO:
 
     def ativa_usuario(self, codUsuario):
         query = 'update usuarios set ativo = 1 where codUsuario = (%s)'
-        self.db.gravar_autocommit(query, (codUsuario,))
+        self.db.gravar(query, (codUsuario,))
 
     def edita_senha(self, codUsuario, novaSenha):
         query = 'update usuarios set senha = (%s) where codUsuario = (%s)'
-        self.db.gravar_autocommit(query, (generate_password_hash(novaSenha), codUsuario))
+        self.db.gravar(query, (generate_password_hash(novaSenha), codUsuario))
 
     def remove_responsabilidade_orientador(self, codOrientador):
         query = '''
@@ -298,13 +294,13 @@ class UsuarioDAO:
             where codAutor = (%s) and codUsuario = (%s)
         '''
         
-        self.db.gravar_autocommit(query_upd, (usuario_orientado['codAutor'], usuario_orientado['codUsuario']))
+        self.db.gravar(query_upd, (usuario_orientado['codAutor'], usuario_orientado['codUsuario']))
 
     def gerar_solitacao(self, codUsuarioOrientado, mensagem):
         query = '''
             insert into solicitacoes_revisao(codUsuarioOrientado, mensagem) values(%s,%s)
         '''
-        self.db.gravar_autocommit(query, (codUsuarioOrientado, mensagem))
+        self.db.gravar(query, (codUsuarioOrientado, mensagem))
 
     def verificar_revisao(self, codUsuarioOrientado):
         query = '''

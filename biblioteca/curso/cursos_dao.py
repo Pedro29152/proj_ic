@@ -1,9 +1,11 @@
+from biblioteca.usuarios import usuario_dao
 from .schemas import Cursos
 from mysql.connector.errors import ProgrammingError
 
 class CursosDAO:
-    def __init__(self, db):
+    def __init__(self, db, usuarioDaoArg=None):
         self.db = db
+        self.usuarioDao = usuarioDaoArg if usuarioDaoArg else usuario_dao.UsuarioDAO(self.db)
             
     def busca_curso_nome(self, descricaoCurso):
         nomeCurso = '%' + descricaoCurso + '%'
@@ -16,14 +18,19 @@ class CursosDAO:
         return val
 
     def desativa_curso(self, codCurso):
+        curso = self.get_curso_codCurso(codCurso)
+        if not curso:
+            return
+        
         query = 'update cursos set ativo = 0 where codCurso = (%s)'
 
-        self.db.gravar_autocommit(query, (codCurso,))
+        self.db.gravar(query, (codCurso,))
+        self.usuarioDao.deleta_usuario(curso.codUsuario)
 
-    def ativa_curso(self, codCurso):
-        query = 'update cursos set ativo = 1 where codCurso = (%s)'
+    def ativa_curso(self, codCurso, codUsuario):
+        query = 'update cursos set ativo = 1, codUsuario = (%s) where codCurso = (%s)'
 
-        self.db.gravar_autocommit(query, (codCurso,))
+        self.db.gravar(query, (codUsuario, codCurso))
 
     def is_ativo(self, curso):
         query = 'select * from cursos where (descricaoCurso = (%s) or abreviacao = (%s)) and ativo = 1'
@@ -36,7 +43,7 @@ class CursosDAO:
     def reativa_curso(self, curso):
         query = 'update cursos set descricaoCurso = (%s), abreviacao = (%s), ativo = 1, codUsuario = (%s) where abreviacao = (%s) or descricaoCurso = (%s)'
 
-        self.db.gravar_autocommit(query, (curso.descricaoCurso, curso.abreviacao, curso.codUsuario, curso.abreviacao, curso.descricaoCurso))
+        self.db.gravar(query, (curso.descricaoCurso, curso.abreviacao, curso.codUsuario, curso.abreviacao, curso.descricaoCurso))
 
     def busca_cursos(self, ):
         val = self.db.busca(

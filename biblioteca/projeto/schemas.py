@@ -1,4 +1,5 @@
 from mysql.connector.errors import DataError, IntegrityError
+from biblioteca.autor.autores_dao import AutoresDAO
 
 from biblioteca.db import Db
 from biblioteca.extensions import is_valid_email
@@ -46,24 +47,27 @@ class Avalicoes:
         self.numDownloads = numDownloads
 
 class PalavrasChave:
-    def __init__(self, palavraChave='', codPalavra = 0, projeto = None):
+    def __init__(self, palavraChave='', codPalavra = 0, projeto = None, db=None):
         self.codPalavra = codPalavra
         self.palavraChave = palavraChave
 
         self.projeto = projeto
 
-    def grava_palavra_chave(self, codProjeto):
-        with Db() as db:
-            query = "INSERT INTO palavras_chave(palavraChave, codProjeto) values(%s,%s)"
-            db.gravar_autocommit(query, (self.palavraChave, codProjeto))
+        self.db = db
 
-            return True
+    def grava_palavra_chave(self, codProjeto):
+        query = "INSERT INTO palavras_chave(palavraChave, codProjeto) values(%s,%s)"
+        self.db.gravar(query, (self.palavraChave, codProjeto))
+
+        return True
 
 class Autores:
-    def __init__(self, raAutor='', nomeAutor='', email=''):        
+    def __init__(self, raAutor='', nomeAutor='', email='', db=None):        
         self.raAutor = raAutor
         self.nomeAutor = nomeAutor
         self.email = email.lower()
+
+        self.db = db
 
         if not is_valid_email(self.email):
             raise AttributeError('O campo "email" dever ser um email valido')
@@ -71,15 +75,18 @@ class Autores:
     def __getitem__(self, attr):
         return getattr(self, attr)
     
-    def tenta_gravar_autor(self, codProjeto):
-        with Db() as db:
-            try:
-                query = 'INSERT INTO autores(raAutor, nomeAutor, email) values(%s,%s,%s)'
-                db.gravar_autocommit(query, (self.raAutor, self.nomeAutor, self.email))
-            except IntegrityError:
-                db.rollback()
-            except Exception as ex:
-                db.rollback()
-                raise ex
+    def tenta_gravar_autor(self):
+        try:
+            query = 'INSERT INTO autores(raAutor, nomeAutor, email) values(%s,%s,%s)'
+            self.db.gravar(query, (self.raAutor, self.nomeAutor, self.email))
+        except IntegrityError as ie:
+            if ie.errno == 1062:
+                pass
+            else:
+                self.db.rollback()
+                raise ie
+        except Exception as ex:
+            self.db.rollback()
+            raise ex
 
-            return db.busca_um("select codAutor from autores where raAutor = %s",(self.raAutor,))['codAutor']
+        return self.db.busca_um("select codAutor from autores where raAutor = %s and email = %s",(self.raAutor, self.email))['codAutor']

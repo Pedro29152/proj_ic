@@ -589,7 +589,7 @@ def upload_projeto(user_info=None):
                 if autores_obj[i - removed]['ra'] == lider['raAutor']:
                     autores_obj.pop(i - removed)
                     removed = removed + 1
-            projeto.autores.append(Autores(lider['raAutor'], lider['nomeAutor'], lider['email']))
+            projeto.autores.append(Autores(lider['raAutor'], lider['nomeAutor'], lider['email'], db=db))
 
             if not projetosDao.is_valid_project(lider['codAutor']):
                 return get_erro(response_messages.NAO_PODE_ALTERAR_PROJETO()), 400
@@ -599,7 +599,7 @@ def upload_projeto(user_info=None):
                 if item['nome'] and item['ra'] and item['email']:
                     if not is_valid_email(item['email']):
                         return get_erro(response_messages.ATRIBUTO_INVALIDO('email')), 400
-                    projeto.autores.append(Autores(item['ra'], item['nome'], item['email']))
+                    projeto.autores.append(Autores(item['ra'], item['nome'], item['email'], db=db))
                 else:
                     return get_erro(response_messages.VALIDACAO_DEVE('autores', 'conter os campos "nome", "ra" e "email"')), 400
             except KeyError:
@@ -608,7 +608,7 @@ def upload_projeto(user_info=None):
         for item in palavras_obj:
             try:
                 if item['palavra']:
-                    projeto.palavrasChave.append(PalavrasChave(item['palavra']))
+                    projeto.palavrasChave.append(PalavrasChave(item['palavra'], db=db))
                 else:
                     return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'conter o campo "palavra"')), 400
             except KeyError:

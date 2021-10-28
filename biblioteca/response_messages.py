@@ -143,6 +143,11 @@ def NAO_FOI_POSSIVEL(acao):
         'Não foi possivel {0}'.format(acao), 
         'It was not possible to {0}'.format(acao)
     )
+def NAO_FOI_POSSIVEL_ENVIAR_EMAIL():
+    return get_msg(
+        'Não foi possivel enviar o e-mail, por favor tente novamente mais tarde',
+        'It was not possible to send the e-mail, please try again later'
+    )
 def ATRIBUTO_INVALIDO(campo):
     return get_msg(
         'O valor do campo {0} enviado é inválido'.format(campo), 
@@ -189,6 +194,16 @@ def TRABALHO_REPROVADO():
         'Trabalho reprovado com sucesso', 
         'Work successfullt refused'
     )
+def USUARIO_NAO_EXISTE():
+    return get_msg(
+        'O usuario enviado nao existe ou está desativado',
+        'The user sent does not exist or is disabled'
+    )
+def TIPO_USUARIO_ERRADO(tipoUsuario):
+    return get_msg(
+        'O usuario deve ser do tipo {0}'.format(tipoUsuario),
+        'The user must be a {0}'.format(tipoUsuario)
+    )
 def USUARIO_NAO_RELACIONADO():
     return get_msg(
         'O usuário utilizado não possui um orientador ligado a ele', 
@@ -220,6 +235,11 @@ def NAO_PODE_ALTERAR_PROJETO():
         "You cannot register another work, you can only change the one alredy registered if it haven't been alredy approved"
     )
 
+def CURSO_REATIVADO():
+    return get_msg(
+        'O curso ja existia, porem estava inativo. O curso foi reativado com os dados novos',
+        'The course alredy existed, however, it was inactive. The course has been rectivated with the new information'
+    )
 def NOVA_ROTA_CADASTRO(entidade, uri):
     return get_msg(
         'Para cadastrar um {0} utilize a rota {1}'.format(entidade, uri),
