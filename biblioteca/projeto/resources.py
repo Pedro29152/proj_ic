@@ -1,6 +1,7 @@
-import os, json
+import os, json, tempfile
 
 from json.decoder import JSONDecodeError
+from smtplib import SMTPAuthenticationError
 from flask_restful import Resource
 from flask import request, send_from_directory, current_app as app
 from werkzeug.utils import secure_filename
@@ -9,6 +10,7 @@ from datetime import datetime
 from random import randint
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from mysql.connector.errors import IntegrityError
+from biblioteca import db
 
 from biblioteca.db import Db
 from biblioteca import mailer, response_messages
@@ -48,6 +50,10 @@ from biblioteca.extensions import(
 from .projetos_dao import ProjetosDAO
 from .schemas import Projetos, Autores, PalavrasChave
 
+MINIMO_AUTORES = 2
+MAXIMO_AUTORES = 5
+MINIMO_PALAVRAS_CHAVE = 1
+MAXIMO_PALAVRAS_CHAVE = 5
 ALLOWED_EXTENSIONS = set(['pdf'])
 
 class BuscaProjetoResource(Resource):
@@ -85,7 +91,7 @@ class BuscarProjetosOrientador(Resource):
             if not orientador:
                 return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
-            res, cod = busca_projetos_orientador(orientador['codOrientador'])
+            res, cod = busca_projetos_orientador(orientador['codOrientador'], db)
             return get_response_code(res, cod)
 
 class BuscarProjetosOrientadorNovo(Resource):
@@ -98,7 +104,7 @@ class BuscarProjetosOrientadorNovo(Resource):
             if not orientador:
                 return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
-            res, cod = busca_projetos_orientador_novo(orientador['codOrientador'])
+            res, cod = busca_projetos_orientador_novo(orientador['codOrientador'], db)
             return get_response_code(res, cod)
 
 class BuscarProjetosCurso(Resource):
@@ -111,12 +117,12 @@ class BuscarProjetosCurso(Resource):
             if not curso:
                 return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
-            res, cod = busca_projetos_curso(curso['codCurso'])
+            res, cod = busca_projetos_curso(curso['codCurso'], db)
             return get_response_code(res, cod)
 
 class GetProjetoNovo(Resource):
     @aluno_professor_coordenador_token_required
-    def get(self, user_info, id):
+    def get(self, user_info):
         with Db() as db:
             projetosDao = ProjetosDAO(db)
             orientadoresDao = OrientadoresDAO(db)
@@ -180,7 +186,7 @@ class BuscarProjetosOrientadorId(Resource):
             if not orientador:
                 return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
-            res, cod = busca_projetos_orientador_publico(orientador['codOrientador'])
+            res, cod = busca_projetos_orientador_publico(orientador['codOrientador'], db)
             return get_response_code(res, cod)
 
 class BuscarAtributosProjetoResource(Resource):
@@ -268,7 +274,7 @@ class AlteraLocalPublicacaoResource(Resource):
             if not orientador:
                 return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
-            status, cod = edita_publicacao(id, orientador['codOrientador'])
+            status, cod = edita_publicacao(id, orientador['codOrientador'], db)
             return get_response_code(status, cod)
 
 class GetProjetoResource(Resource):
@@ -284,19 +290,20 @@ class GetProjetoAutorResource(Resource):
 
 class DownloadArquivoProjetoResource(Resource):
     def get(self, filename):
-        attatch = False
-        if request.args.get('as_attachment'):
-            attatch = True if request.args.get('as_attachment').lower() == 'true' else False
+        with Db() as db:
+            attatch = False
+            if request.args.get('as_attachment'):
+                attatch = True if request.args.get('as_attachment').lower() == 'true' else False
 
-        if download_arquivo(filename):
-            f = send_from_directory(    
-                    app.config['UPLOAD_FOLDER'],
-                    filename, 
-                    as_attachment=attatch
-                )
+            if download_arquivo(filename, db):
+                f = send_from_directory(    
+                        app.config['UPLOAD_FOLDER'],
+                        filename, 
+                        as_attachment=attatch
+                    )
 
-            return f
-        return get_not_found(response_messages.NAO_ENCONTRADO('Arquivo'))
+                return f
+            return get_not_found(response_messages.NAO_ENCONTRADO('Arquivo'))
 
 class DownloadArquivoProjetoNovoResource(Resource):
     @aluno_professor_coordenador_token_required
@@ -310,55 +317,58 @@ class DownloadArquivoProjetoNovoResource(Resource):
             attatch = False
             if request.args.get('as_attachment'):
                 attatch = True if request.args.get('as_attachment').lower() == 'true' else False
+
             if user_info['tipoUsuario'] == TiposUsuario.Aluno.value:
                 autor = autoresDao.get_autor_codUsuario(user_info['codUsuario'])
                 if not autor:
                     return get_erro(response_messages.USUARIO_NAO_RELACIONADO_AUT()), 400
-                proj = projetosDao.get_projeto_novo_codAutor(autor['codAutor'])
+                
+                proj = projetosDao.get_projeto_novo_codAutor_nomeArquivo(autor['codAutor'], filename)
                 if not proj:
-                    return get_erro(response_messages.SEM_AUTORIZACAO()), 400
-                if filename == proj['nomeArquivo']:
-                    if download_arquivo(filename):
-                        f = send_from_directory(    
-                                app.config['UPLOAD_FOLDER'],
-                                filename, 
-                                as_attachment=attatch
-                            )
+                    return get_erro(response_messages.SEM_AUTORIZACAO()), 401
+                
+                if download_arquivo(filename, db):
+                    f = send_from_directory(    
+                            app.config['UPLOAD_FOLDER'],
+                            filename, 
+                            as_attachment=attatch
+                        )
 
-                        return f
+                    return f
             elif user_info['tipoUsuario'] == TiposUsuario.Professor.value:
                 orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
                 if not orientador:
                     return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
-                proj = projetosDao.get_projeto_novo_codOrientador(orientador['codOrientador'])
-                if not proj:
-                    return get_erro(response_messages.SEM_AUTORIZACAO()), 400
-                if filename == proj['nomeArquivo']:
-                    if download_arquivo(filename):
-                        f = send_from_directory(    
-                                app.config['UPLOAD_FOLDER'],
-                                filename, 
-                                as_attachment=attatch
-                            )
 
-                        return f
+                proj = projetosDao.get_projeto_novo_codOrientador_nomeArquivo(orientador['codOrientador'], filename)
+                if not proj:
+                    return get_erro(response_messages.SEM_AUTORIZACAO()), 401
+                
+                if download_arquivo(filename, db):
+                    f = send_from_directory(    
+                            app.config['UPLOAD_FOLDER'],
+                            filename, 
+                            as_attachment=attatch
+                        )
+
+                    return f
             elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
                 curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
                 if not curso:
                     return get_erro(response_messages.USUARIO_NAO_RELACIONADO_CURSO()), 400
-                proj = projetosDao.get_projeto_novo_codCurso(curso['codCurso'])
+
+                proj = projetosDao.get_projeto_novo_codCurso_nomeArquivo(curso['codCurso'], filename)
                 if not proj:
-                    return get_erro(response_messages.SEM_AUTORIZACAO()), 400
-                if filename == proj['nomeArquivo']:
-                    if download_arquivo(filename):
-                        f = send_from_directory(    
-                                app.config['UPLOAD_FOLDER'],
-                                filename, 
-                                as_attachment=attatch
-                            )
+                    return get_erro(response_messages.SEM_AUTORIZACAO()), 401
 
-                        return f
+                if download_arquivo(filename, db):
+                    f = send_from_directory(    
+                            app.config['UPLOAD_FOLDER'],
+                            filename, 
+                            as_attachment=attatch
+                        )
 
+                    return f
 
             return get_not_found(response_messages.NAO_ENCONTRADO('Arquivo'))
 
@@ -416,41 +426,37 @@ def busca_pag(tipo='', pag = 1):
         else:
             return None, 204
 
-def busca_projetos_orientador(codOrientador):
-    with Db() as db:
-        projetosDao = ProjetosDAO(db)
+def busca_projetos_orientador(codOrientador, db):
+    projetosDao = ProjetosDAO(db)
 
-        res = projetosDao.busca_projeto_orientador(codOrientador)
-        if not res:
-            return None, 204
-        return get_data(res), 200
+    res = projetosDao.busca_projeto_orientador(codOrientador)
+    if not res:
+        return None, 204
+    return get_data(res), 200
 
-def busca_projetos_orientador_novo(codOrientador):
-    with Db() as db:
-        projetosDao = ProjetosDAO(db)
-            
-        res = projetosDao.busca_projeto_orientador_novo(codOrientador)
-        if not res:
-            return None, 204
-        return get_data(res), 200
+def busca_projetos_orientador_novo(codOrientador, db):
+    projetosDao = ProjetosDAO(db)
+        
+    res = projetosDao.busca_projeto_orientador_novo(codOrientador)
+    if not res:
+        return None, 204
+    return get_data(res), 200
 
-def busca_projetos_curso(codCurso):
-    with Db() as db:
-        projetosDao = ProjetosDAO(db)
-            
-        res = projetosDao.buscar_projetos_codCurso_novo(codCurso, True)
-        if not res:
-            return None, 204
-        return get_data(res), 200
+def busca_projetos_curso(codCurso, db):
+    projetosDao = ProjetosDAO(db)
+        
+    res = projetosDao.buscar_projetos_codCurso_novo(codCurso, True)
+    if not res:
+        return None, 204
+    return get_data(res), 200
 
-def busca_projetos_orientador_publico(codOrientador):
-    with Db() as db:
-        projetosDao = ProjetosDAO(db)
+def busca_projetos_orientador_publico(codOrientador, db):
+    projetosDao = ProjetosDAO(db)
 
-        res = projetosDao.busca_projeto_orientador_publico(codOrientador)
-        if not res:
-            return None, 204
-        return get_data(res), 200   
+    res = projetosDao.busca_projeto_orientador_publico(codOrientador)
+    if not res:
+        return None, 204
+    return get_data(res), 200   
 
 def busca_projeto_inativo():
     with Db() as db:
@@ -570,15 +576,15 @@ def upload_projeto(user_info=None):
         except JSONDecodeError:
             return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ser um array contendo objetos JSON com o atributo: "palavra"')), 400
 
-        if len(autores_obj) < 1:
-            return get_erro(response_messages.VALIDACAO_DEVE('autores', 'ter no mínimo 1 autor')), 400
-        if len(autores_obj) > 5:
-            return get_erro(response_messages.VALIDACAO_DEVE('autores', 'ter no máximo 5 autores')), 400
+        if len(autores_obj) < (MINIMO_AUTORES - 1 if user_info else MINIMO_AUTORES):
+            return get_erro(response_messages.VALIDACAO_DEVE('autores', 'ter no mínimo {0} autor'.format(MINIMO_AUTORES))), 400
+        if len(autores_obj) > MAXIMO_AUTORES:
+            return get_erro(response_messages.VALIDACAO_DEVE('autores', 'ter no máximo {0} autores'.format(MAXIMO_AUTORES))), 400
 
-        if len(palavras_obj) < 1:
-            return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ter no mínimo 1 palavra-chave')), 400
-        if len(palavras_obj) > 5:
-            return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ter no máximo 5 palavras-chave')), 400 
+        if len(palavras_obj) < MINIMO_PALAVRAS_CHAVE:
+            return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ter no mínimo {0} palavra-chave'.format(MINIMO_PALAVRAS_CHAVE))), 400
+        if len(palavras_obj) > MAXIMO_PALAVRAS_CHAVE:
+            return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ter no máximo {0} palavras-chave'.format(MAXIMO_PALAVRAS_CHAVE))), 400 
         
         if user_info:
             lider = autoresDao.get_autor_codUsuario(user_info['codUsuario'])
@@ -630,14 +636,18 @@ def upload_projeto(user_info=None):
                     projeto, is_secretaria=True
                 )
 
-                for autor in projeto.autores:
-                    enviar_email_permissao(
-                        autor, 
-                        projeto.curso.descricaoCurso, 
-                        projeto.tituloProjeto, 
-                        projeto.dataAvaliacao.split('-')[0]
-                    )
+                try:
+                    for autor in projeto.autores:
+                        enviar_email_permissao(
+                            autor, 
+                            projeto.curso.descricaoCurso, 
+                            projeto.tituloProjeto, 
+                            projeto.dataAvaliacao.split('-')[0]
+                        )
+                except SMTPAuthenticationError as se:
+                    raise Exception(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL())
         except Exception as ex:
+            db.rollback()
             return get_erro(ex.__str__()), 400
 
         filepath = os.path.join(
@@ -663,22 +673,8 @@ def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
         if not proj:
             return get_erro(response_messages.NAO_ENCONTRADO('Projeto')), 404
         
-        if is_admin or is_secretaria:
-            projetosDao.aprovar_projeto(proj['codProjeto'])
-            
-            enviar_email_aprovacao(proj['autores'], proj['tituloProjeto'])
-            for autor in proj['autores']:
-                enviar_email_permissao(
-                    autor,
-                    proj['curso']['descricaoCurso'],
-                    proj['tituloProjeto'],
-                    proj['dataAvaliacao'].strftime('%Y')
-                )
-
-            return get_ok(response_messages.TRABALHO_APROVADO()), 200
-        elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
-            curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
-            if curso['abreviacao'] == proj['curso']['abreviacao']:
+        try:
+            if is_admin or is_secretaria:
                 projetosDao.aprovar_projeto(proj['codProjeto'])
                 
                 enviar_email_aprovacao(proj['autores'], proj['tituloProjeto'])
@@ -691,26 +687,47 @@ def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
                     )
 
                 return get_ok(response_messages.TRABALHO_APROVADO()), 200
-            return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho'))
-        else:
-            orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
-            if not orientador:
-                return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
+            elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
+                curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+                if curso['abreviacao'] == proj['curso']['abreviacao']:
+                    projetosDao.aprovar_projeto(proj['codProjeto'])
+                    
+                    enviar_email_aprovacao(proj['autores'], proj['tituloProjeto'])
+                    for autor in proj['autores']:
+                        enviar_email_permissao(
+                            autor,
+                            proj['curso']['descricaoCurso'],
+                            proj['tituloProjeto'],
+                            proj['dataAvaliacao'].strftime('%Y')
+                        )
 
-            if projetosDao.is_orientador_projeto_novo(proj['codProjeto'], orientador['codOrientador']):
-                projetosDao.aprovar_projeto(proj['codProjeto'])
+                    return get_ok(response_messages.TRABALHO_APROVADO()), 200
+                return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho'))
+            else:
+                orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
+                if not orientador:
+                    return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
 
-                enviar_email_aprovacao(proj['autores'], proj['tituloProjeto'])
-                for autor in proj['autores']:
-                    enviar_email_permissao(
-                        autor,
-                        proj['curso']['descricaoCurso'],
-                        proj['tituloProjeto'],
-                        proj['dataAvaliacao'].strftime('%Y')
-                    )
+                if projetosDao.is_orientador_projeto_novo(proj['codProjeto'], orientador['codOrientador']):
+                    projetosDao.aprovar_projeto(proj['codProjeto'])
 
-                return get_ok(response_messages.TRABALHO_APROVADO()), 200
-            return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho')), 400
+                    enviar_email_aprovacao(proj['autores'], proj['tituloProjeto'])
+                    for autor in proj['autores']:
+                        enviar_email_permissao(
+                            autor,
+                            proj['curso']['descricaoCurso'],
+                            proj['tituloProjeto'],
+                            proj['dataAvaliacao'].strftime('%Y')
+                        )
+
+                    return get_ok(response_messages.TRABALHO_APROVADO()), 200
+                return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho')), 400
+        except SMTPAuthenticationError as ae:
+            db.rollback()
+            return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
+        except Exception as ex:
+            db.rollback()
+            return get_erro(ex.__str__()), 400
 
 def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
     with Db() as db:
@@ -721,48 +738,83 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
         proj = projetosDao.get_projeto_novo(codProjeto, True)
         if not proj:
             return get_erro(response_messages.NAO_ENCONTRADO('Trabalho')), 404
+
+        arquivo_rm = os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo'])
+        tmp_file = os.path.join(tempfile.gettempdir(), proj['nomeArquivo'])
+        deleted = False
+
+        try:
+            if is_admin or is_secretaria:
+                projetosDao.recusar_projeto(proj['codProjeto'])
+
+                try:
+                    os.replace(arquivo_rm, tmp_file)
+                    deleted = True
+                except FileNotFoundError as fe:
+                    pass
+
+                enviar_email_reprovacao(proj['autores'], proj['tituloProjeto'])
+
+                return get_ok(response_messages.TRABALHO_REPROVADO()), 200
+            elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
+                curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
+                if curso['abreviacao'] == proj['curso']['abreviacao']:
+                    projetosDao.recusar_projeto(proj['codProjeto'])
+
+                    try:
+                        os.replace(arquivo_rm, tmp_file)
+                        deleted = True
+                    except FileNotFoundError as fe:
+                        pass
+
+                    enviar_email_reprovacao(proj['autores'], proj['tituloProjeto'])
+
+                    return get_ok(response_messages.TRABALHO_REPROVADO()), 200
+                return get_erro(response_messages.SEM_PERMICAO('reprovar este projeto')), 401
+            else:
+                orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
+                if not orientador:
+                    return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
+
+                if projetosDao.is_orientador_projeto_novo(proj['codProjeto'], orientador['codOrientador']):
+                    projetosDao.recusar_projeto(proj['codProjeto'])
+
+                    try:
+                        os.replace(arquivo_rm, tmp_file)
+                        deleted = True
+                    except FileNotFoundError as fe:
+                        pass
+
+                    enviar_email_reprovacao(proj['autores'], proj['tituloProjeto'])
+
+                    return get_ok(response_messages.TRABALHO_REPROVADO()), 200
+                return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho')), 400
+        except SMTPAuthenticationError as se:
+            db.rollback()
+            if deleted:
+                try:
+                    os.replace(tmp_file, arquivo_rm)
+                except FileNotFoundError as fe:
+                    pass
+            return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
+        except Exception as ex:
+            db.rollback()
+            if deleted:
+                try:
+                    os.replace(tmp_file, arquivo_rm)
+                except FileNotFoundError as fe:
+                    pass
+            return get_erro(ex.__str__()), 400
+
+def download_arquivo(filename, db):
+    projetosDao = ProjetosDAO(db)
         
-        if is_admin or is_secretaria:
-            projetosDao.recusar_projeto(proj['codProjeto'])
-            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
-
-            enviar_email_reprovacao(proj['autores'], proj['tituloProjeto'])
-
-            return get_ok(response_messages.TRABALHO_REPROVADO()), 200
-        elif user_info['tipoUsuario'] == TiposUsuario.Coordenador.value:
-            curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
-            if curso['abreviacao'] == proj['curso']['abreviacao']:
-                projetosDao.recusar_projeto(proj['codProjeto'])
-                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
-
-                enviar_email_reprovacao(proj['autores'], proj['tituloProjeto'])
-
-                return get_ok(response_messages.TRABALHO_REPROVADO()), 200
-            return get_erro(response_messages.SEM_PERMICAO('reprovar este projeto'))
-        else:
-            orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
-            if not orientador:
-                return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
-
-            if projetosDao.is_orientador_projeto_novo(proj['codProjeto'], orientador['codOrientador']):
-                projetosDao.recusar_projeto(proj['codProjeto'])
-                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], proj['nomeArquivo']))
-
-                enviar_email_reprovacao(proj['autores'], proj['tituloProjeto'])
-
-                return get_ok(response_messages.TRABALHO_REPROVADO()), 200
-            return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho')), 400
-
-def download_arquivo(filename):
-    with Db() as db:
-        projetosDao = ProjetosDAO(db)
-            
-        codProj = projetosDao.is_ativo_filename(filename)
-        if codProj:
-            projetosDao.download_file(codProj)
-            return True
-        else:
-            return False
+    codProj = projetosDao.is_ativo_filename(filename)
+    if codProj:
+        projetosDao.download_file(codProj)
+        return True
+    else:
+        return False
 
 def desativa_projeto(codProjeto):
     with Db() as db:
@@ -861,24 +913,23 @@ def edita_projeto_aluno(codProjeto, user_info, has_file):
             return get_ok(response_messages.ENTIDADE_EDITADA('Trabalho')), 200
         return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
 
-def edita_publicacao(codProjeto, codOrientador):
-    with Db() as db:
-        projetosDao = ProjetosDAO(db)
-            
-        proj = projetosDao.get_projeto_orientador(codOrientador, codProjeto)
-        if proj:
-            try:
-                publicacao = request.form['publicacaoProjeto']
-            except BadRequestKeyError:
-                return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"publicacaoProjeto"')), 400
+def edita_publicacao(codProjeto, codOrientador, db):
+    projetosDao = ProjetosDAO(db)
+        
+    proj = projetosDao.get_projeto_orientador(codOrientador, codProjeto)
+    if proj:
+        try:
+            publicacao = request.form['publicacaoProjeto']
+        except BadRequestKeyError:
+            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"publicacaoProjeto"')), 400
 
-            if not publicacao:
-                return get_erro(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
+        if not publicacao:
+            return get_erro(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
 
-            projetosDao.edita_publicacao(codProjeto, publicacao)
+        projetosDao.edita_publicacao(codProjeto, publicacao)
 
-            return get_ok(response_messages.ENTIDADE_EDITADA('Publicação')), 200
-        return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
+        return get_ok(response_messages.ENTIDADE_EDITADA('Publicação')), 200
+    return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
 
 def get_projeto(codProjeto):
     with Db() as db:
@@ -1016,7 +1067,7 @@ def enviar_email_reprovacao(autores, titulo_projeto):
 
             <p>Olá.</p>
 
-            <p>O seu projeto: <b>{1}</b>, foi recusado e não será exposto publicamente na Biblioteca de Trabalhos Acadêmicos.</p>
+            <p>O seu projeto: <b>{0}</b>, foi recusado e não será exposto publicamente na Biblioteca de Trabalhos Acadêmicos.</p>
         '''.format(titulo_projeto),
         cco=emails
     )

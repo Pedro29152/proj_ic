@@ -469,19 +469,17 @@ class ProjetosDAO:
 
         projeto.codProjeto = self.get_cod_projeto_titulo(projeto.tituloProjeto)
         
-        proj = self.get_projeto(projeto.codProjeto)
-
-        for aut in projeto.autores:
-            try:
+        try:
+            for aut in projeto.autores:
                 codAutor = aut.tenta_gravar_autor()
-            except DataError as de:
-                self.deleta_projeto(projeto.codProjeto)
-                raise Exception(response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
-            try:
+            
                 self.projetoAutorDao.grava_autor_proj(projeto.codProjeto, codAutor)
-            except IntegrityError as ie:
-                self.deleta_projeto(projeto.codProjeto)
-                raise Exception(response_messages.SEM_PERMICAO('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
+        except DataError as de:
+            raise Exception(response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
+        except IntegrityError as ie:
+            raise Exception(response_messages.SEM_PERMICAO('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
+        except Exception as ex:
+            raise ex
 
         for palavra in projeto.palavrasChave:
             palavra.grava_palavra_chave(projeto.codProjeto)
@@ -489,7 +487,6 @@ class ProjetosDAO:
         self.__grava_proj_ori(projeto.codProjeto, projeto.orientador.codOrientador, TiposOrientador.Principal.value)
         if projeto.coOrientador:
             self.__grava_proj_ori(projeto.codProjeto, projeto.coOrientador.codOrientador, TiposOrientador.CoOrientador.value)
-
 
         return projeto
 
@@ -515,15 +512,48 @@ class ProjetosDAO:
             self.prenche_projeto(proj)
         return proj
 
-    def get_projeto_novo_codOrientador(self, codOrientador, is_full=False):
+    def get_projeto_novo_codAutor_nomeArquivo(self, codAutor, nomeArquivo, is_full=False):
+        query = '''
+            select p.* from projetos as p 
+            natural join projeto_autor 
+            where codAutor = (%s) and nomeArquivo = (%s) and status = 0
+        '''
+        proj = self.db.busca_um(query,(codAutor, nomeArquivo))
+        if is_full and proj:
+            self.prenche_projeto(proj)
+        return proj
+
+    def get_projeto_novo_codOrientador(self, codOrientador, is_full=False, fetch_all=False):
         query = '''
             select p.* from projetos as p 
             natural join projeto_orientador 
             where codOrientador = (%s) and status = 0
         '''
-        proj = self.db.busca_um(query,(codOrientador,))
+
+        if fetch_all:
+            proj = self.db.busca(query,(codOrientador,))
+        else:
+            proj = self.db.busca_um(query,(codOrientador,))
+        
         if is_full and proj:
             self.prenche_projeto(proj)
+        return proj
+    
+    def get_projeto_novo_codOrientador_nomeArquivo(self, codOrientador, nomeArquivo, is_full=False, fetch_all=False):
+        query = '''
+            select p.* from projetos as p 
+            natural join projeto_orientador 
+            where codOrientador = (%s) and nomeArquivo = (%s) and status = 0
+        '''
+
+        if fetch_all:
+            proj = self.db.busca(query,(codOrientador, nomeArquivo))
+        else:
+            proj = self.db.busca_um(query,(codOrientador, nomeArquivo))
+        
+        if is_full and proj:
+            self.prenche_projeto(proj)
+
         return proj
 
     def get_projeto_novo_codCurso(self, codCurso, is_full=False):
@@ -532,6 +562,16 @@ class ProjetosDAO:
             where codCurso = (%s) and status = 0
         '''
         proj = self.db.busca_um(query,(codCurso,))
+        if is_full and proj:
+            self.prenche_projeto(proj)
+        return proj
+
+    def get_projeto_novo_codCurso_nomeArquivo(self, codCurso, nomeArquivo, is_full=False):
+        query = '''
+            select * from projetos 
+            where codCurso = (%s) and nomeArquivo = (%s) and status = 0
+        '''
+        proj = self.db.busca_um(query,(codCurso, nomeArquivo))
         if is_full and proj:
             self.prenche_projeto(proj)
         return proj

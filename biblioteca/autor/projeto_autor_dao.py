@@ -4,7 +4,7 @@ class ProjetoAutorDAO:
         self.db = db
 
     def grava_autor_proj(self, codProjeto, codAutor):
-        query = 'INSERT INTO projeto_autor VALUES(%s,%s)'
+        query = 'INSERT INTO projeto_autor(codProjeto, codAutor) VALUES(%s,%s)'
         self.db.gravar(query, (codProjeto, codAutor))
 
     def is_valid_autor(self, codProjeto, codAutor):

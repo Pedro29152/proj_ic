@@ -232,7 +232,7 @@ def ORIENTACAO_NECESSARIA():
 def NAO_PODE_ALTERAR_PROJETO():
     return get_msg(
         'Você não pode cadastrar mais um trabalho, somente alterar o ja cadastrado caso ele ainda não tenha sido aprovado', 
-        "You cannot register another work, you can only change the one alredy registered if it haven't been alredy approved"
+        "You cannot register another work, you can only change the one alredy registered if it hasn't been alredy acknowledged"
     )
 
 def CURSO_REATIVADO():
