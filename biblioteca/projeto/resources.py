@@ -1,4 +1,4 @@
-import os, json, tempfile
+import os, json, tempfile, shutil
 
 from json.decoder import JSONDecodeError
 from smtplib import SMTPAuthenticationError
@@ -748,7 +748,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
                 projetosDao.recusar_projeto(proj['codProjeto'])
 
                 try:
-                    os.replace(arquivo_rm, tmp_file)
+                    shutil.move(arquivo_rm, tmp_file)
                     deleted = True
                 except FileNotFoundError as fe:
                     pass
@@ -762,7 +762,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
                     projetosDao.recusar_projeto(proj['codProjeto'])
 
                     try:
-                        os.replace(arquivo_rm, tmp_file)
+                        shutil.move(arquivo_rm, tmp_file)
                         deleted = True
                     except FileNotFoundError as fe:
                         pass
@@ -780,7 +780,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
                     projetosDao.recusar_projeto(proj['codProjeto'])
 
                     try:
-                        os.replace(arquivo_rm, tmp_file)
+                        shutil.move(arquivo_rm, tmp_file)
                         deleted = True
                     except FileNotFoundError as fe:
                         pass
@@ -793,7 +793,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
             db.rollback()
             if deleted:
                 try:
-                    os.replace(tmp_file, arquivo_rm)
+                    shutil.move(tmp_file, arquivo_rm)
                 except FileNotFoundError as fe:
                     pass
             return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
@@ -801,7 +801,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
             db.rollback()
             if deleted:
                 try:
-                    os.replace(tmp_file, arquivo_rm)
+                    shutil.move(tmp_file, arquivo_rm)
                 except FileNotFoundError as fe:
                     pass
             return get_erro(ex.__str__()), 400
