@@ -134,14 +134,10 @@ def cadastro_orientador():
             orientadores.grava_orientador()
 
             return get_ok(response_messages.ENTIDADE_GRAVADA('Orientador')), 201
-        except AttributeError as ex:
-            return get_erro(ex.__str__()), 400
         except BadRequestKeyError:
             return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"')), 400
-        except IntegrityError:
-            return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou raOrientador')), 400
-        except DataError:
-            return get_erro(response_messages.VALIDACAO_DEVE('raOrientador', 'ter no maximo 5 caracteres e seu nome no maximo 200')), 400
+        except Exception as ex:
+            return get_erro(ex.__str__()), 400
 
 
 def edita_orientador(codOrientador):

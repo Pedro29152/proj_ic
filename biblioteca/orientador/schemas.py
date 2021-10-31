@@ -1,6 +1,7 @@
 from biblioteca.db import Db
 from biblioteca import response_messages
 from biblioteca import extensions
+from mysql.connector.errors import DataError, IntegrityError
 
 class Orientadores:
     def __init__(self, codOrientador=None, nomeOrientador='', raOrientador='', email='', currLattes=None, db=None):
@@ -18,14 +19,19 @@ class Orientadores:
             raise AttributeError(response_messages.VALIDACAO_DEVE('currLattes', 'ser um link http/https valido valido'))
     
     def grava_orientador(self):
-        if self.nomeOrientador and self.raOrientador and self.email and self.currLattes:
-            query1 = 'insert into orientadores(nomeOrientador, raOrientador, email, currLattes) values(%s, %s, %s, %s)'
-            self.db.gravar(query1, (self.nomeOrientador, self.raOrientador, self.email, self.currLattes))
-            
-            query2 = 'select codOrientador from orientadores where raOrientador = (%s)'
-            self.codOrientador = self.db.busca_um(query2, (self.raOrientador,))['codOrientador']
-        else:
-            raise AttributeError(response_messages.ATRIBUTO_OBRIGATORIO('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"'))
+        try:
+            if self.nomeOrientador and self.raOrientador and self.email and self.currLattes:
+                query1 = 'insert into orientadores(nomeOrientador, raOrientador, email, currLattes) values(%s, %s, %s, %s)'
+                self.db.gravar(query1, (self.nomeOrientador, self.raOrientador, self.email, self.currLattes))
+                
+                query2 = 'select codOrientador from orientadores where raOrientador = (%s)'
+                self.codOrientador = self.db.busca_um(query2, (self.raOrientador,))['codOrientador']
+            else:
+                raise AttributeError(response_messages.ATRIBUTO_OBRIGATORIO('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"'))
+        except DataError:
+            raise DataError(response_messages.VALIDACAO_DEVE('"raOrientador"', 'conter no máximo 5 caracteres'))
+        except IntegrityError:
+            raise IntegrityError(response_messages.ERRO_INTEGRIDADE('Email ou raOrientador'))
         
     def edita_orientador(self):
         if not (self.nomeOrientador or self.raOrientador or self.email or self.currLattes):

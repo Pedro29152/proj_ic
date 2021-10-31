@@ -9,7 +9,6 @@ class UsuarioOrientadoDAO():
 
         self.db.gravar(query, (codOrientador, codProjeto))
         self.db.gravar(query2, (codOrientador, codProjeto))
-        self.db.commit()
 
     def get_usuario_orientado(self, codOrientador, codUsuario):
         query = '''

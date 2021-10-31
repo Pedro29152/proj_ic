@@ -1,4 +1,5 @@
-from mysql.connector.errors import IntegrityError, ProgrammingError
+from mysql.connector.errors import IntegrityError, ProgrammingError, DataError
+from biblioteca import response_messages
 
 class AutoresDAO:
     def __init__(self, db):
@@ -108,8 +109,9 @@ class AutoresDAO:
             self.db.gravar(query, (nome, email.lower(), ra))
             return self.get_autor_ra(ra)
         except IntegrityError:
-            self.db.rollback()
-            return None
+            raise IntegrityError(response_messages.ERRO_INTEGRIDADE('"raAutor" ou "email"'))
+        except DataError:
+            raise DataError(response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres'))
 
     def is_aluno_valido(self, codUsuario):
         query = '''

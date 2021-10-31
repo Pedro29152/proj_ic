@@ -475,11 +475,9 @@ class ProjetosDAO:
             
                 self.projetoAutorDao.grava_autor_proj(projeto.codProjeto, codAutor)
         except DataError as de:
-            raise Exception(response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
+            raise DataError(response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres e o nome deve ter no maximo 200'))
         except IntegrityError as ie:
-            raise Exception(response_messages.SEM_PERMICAO('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
-        except Exception as ex:
-            raise ex
+            raise IntegrityError(response_messages.SEM_PERMICAO('cadastrar dois alunos com o mesmo ra no mesmo trabalho'))
 
         for palavra in projeto.palavrasChave:
             palavra.grava_palavra_chave(projeto.codProjeto)

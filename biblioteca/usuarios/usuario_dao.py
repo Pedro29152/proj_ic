@@ -142,16 +142,12 @@ class UsuarioDAO:
             self.db.gravar(query,(usuario, generate_password_hash(senha),tipoUsuario, nome, email.lower()))
             return self.get_usuario_username(usuario)
         except IntegrityError as ie:
-            raise IntegrityError(response_messages.ERRO_INTEGRIDADE('Email ou abreviação'))
+            raise IntegrityError(response_messages.ERRO_INTEGRIDADE('Email ou nome de usuario'))
 
     def add_aluno(self, user, senha, nome, email, codAutor, codOrientador, codCurso):
-        try:
-            user = self.add_usr(user, senha, 1, nome, email)
-            if not user:
-                return False
-        except IntegrityError as ie:
-            self.db.rollback()
-            return False
+        user = self.add_usr(user, senha, extensions.TiposUsuario.Aluno.value, nome, email)
+        if not user:
+            raise Exception(response_messages.ERRO_INESPERADO())
 
         now = datetime.now()
         dataValidade = now + timedelta(days=30)
@@ -159,29 +155,22 @@ class UsuarioDAO:
         query = 'insert into usuario_orientado(codOrientador, codAutor, codUsuario, dataValidade, dataCriacao, codCurso) values (%s, %s, %s, %s, %s, %s)'
         self.db.gravar(query, (codOrientador, codAutor, codUsuario, dataValidade.__str__(), now.__str__(), codCurso))
 
-        self.desativa_anteriores(codAutor, codUsuario)
+        self.desativa_usuarios_autor_anteriores(codAutor, codUsuario)
 
-        return True
-
-    def desativa_anteriores(self, codAutor, codUsuario):
+    def desativa_usuarios_autor_anteriores(self, codAutor, codUsuario):
         aut = self.busca_usuarios_codAutor_not_codUsuario(codAutor, codUsuario)
 
         for item in aut:
             self.desativa_usuario(item['codUsuario'])
 
     def add_orientador(self, user, senha, nome, email, codOrientador):
-        try:
-            usr = self.add_usr(user, senha, 2, nome, email)
-            if not usr:
-                return False
-        except IntegrityError as ie:
-            self.db.rollback()
-            return False
-        
+        usr = self.add_usr(user, senha, extensions.TiposUsuario.Professor.value, nome, email)
+        if not usr:
+            raise Exception(response_messages.ERRO_INESPERADO())
+    
         codUser = usr['codUsuario']
         query = 'update orientadores set codUsuario = (%s) where codOrientador = (%s)'
         self.db.gravar(query, (codUser, codOrientador))
-        return True
 
     def get_count(self, codOrientador=None):
         if codOrientador:

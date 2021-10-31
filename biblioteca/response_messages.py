@@ -69,7 +69,7 @@ def PARAMETRO_NAO_ENVIADO(parametros):
 def CAMPOS_OBRIGATORIOS(campos):
     return get_msg(
         'A requisicao deve conter o(s) campo(s) {0} em seu corpo'.format(campos), 
-        'The request must have the folowing fields in its body: {0}'.format(campos)
+        'The request must have the following fields in its body: {0}'.format(campos)
     )
 def ATRIBUTO_OBRIGATORIO(campos):
     return get_msg(

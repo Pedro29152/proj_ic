@@ -1,6 +1,7 @@
 import jwt
 from flask import jsonify
 from flask_restful import Resource, request, current_app
+from smtplib import SMTPAuthenticationError
 from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import DataError, IntegrityError
 from datetime import datetime, timedelta
@@ -22,10 +23,12 @@ from biblioteca.extensions import (
     professor_token_required,
     is_valid_email,
     is_valid_username,
+    get_request_form_data_attributes,
     admin_is_user_token_required,
     secretaria_token_required_user_info,
     secretaria_token_required_is_user,
     coordenador_secretaria_token_required,
+    coordenador_token_required,
     token_required,
     generate_random_password,
     TiposUsuario
@@ -42,7 +45,6 @@ from biblioteca.responses import (
 
 class LoginResource(Resource):
     def post(self):
-        #with Db() as db:
         res, cod = login()
         return get_response_code(res, cod)
 
@@ -99,7 +101,7 @@ class AtivaUsuarioResource(Resource):
         return get_response_code(res, cod)
 
 class AlterarOrientadorDoAlunoResource(Resource):
-    @coordenador_secretaria_token_required
+    @coordenador_token_required
     def put(self, id, user_info):
         res, cod = altera_orientador_aluno(id, user_info)
         return get_response_code(res, cod)
@@ -170,8 +172,6 @@ class RecuperaraSenha(Resource):
         return get_response_code(data, cod)
 
 def login():
-    user  = ''
-    senha = ''
     try:
         user = request.form['username']
         senha = request.form['password']
@@ -184,27 +184,28 @@ def login():
         usuarioDao = UsuarioDAO(db)
 
         usr = usuarioDao.verifica_usr(user, senha)
-        if usr:
-            extDt = datetime.now() + timedelta(hours=1)
-            extDt = extDt.__str__()
-            token_data = {
-                'username': usr['nomeUsuario'], 
-                'tipoUsuario': str(usr['tipoUsuario']),
-                'nome': usr['nome'],
-                'ext': extDt
-            }
+        if not usr:
+            return get_erro(response_messages.USUARIO_SENHA_INCORRETOS()), 401
 
-            token = jwt.encode(
-                token_data,
-                current_app.config['SECRET_KEY'],
-                algorithm='HS256'
-            )
+        extDt = datetime.now() + timedelta(hours=1)
+        extDt = extDt.__str__()
+        token_data = {
+            'username': usr['nomeUsuario'], 
+            'tipoUsuario': str(usr['tipoUsuario']),
+            'nome': usr['nome'],
+            'ext': extDt
+        }
 
-            ret = get_ok("Usuario logado com sucesso")
-            ret['token'] = token #ret['token'] = token.decode('utf-8')
-            ret['data'] = token_data
-            return ret, 200
-        return get_erro(response_messages.USUARIO_SENHA_INCORRETOS()), 401
+        token = jwt.encode(
+            token_data,
+            current_app.config['SECRET_KEY'],
+            algorithm='HS256'
+        )
+
+        ret = get_ok("Usuario logado com sucesso")
+        ret['token'] = token
+        ret['data'] = token_data
+        return ret, 200
 
 def cadastro_usuario():
     try:
@@ -243,36 +244,38 @@ def cadastro_usuario():
             return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
         except IntegrityError as ie:
             db.rollback()
-            return get_erro(response_messages.ERRO_INTEGRIDADE('Nome de usuario ou email')), 400
+            return get_erro(ie.__str__()), 400
 
 def cadastro_professor(existente=True):
+    campos_adicionais = ''
     try:
         nome = request.form['nome']
         email = request.form['email']
         if existente:
+            campos_adicionais = '"codOrientador"'
             codOrientador = request.form['codOrientador']
             if not (email and nome and codOrientador):
                 return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
         else:
+            campos_adicionais = '"currLattes", "ra"'
             currLattes = request.form['currLattes']
             ra = request.form['ra']
             if not (email and nome and currLattes and ra):
                 return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
     except BadRequestKeyError:
         return get_erro(
-            response_messages.CAMPOS_OBRIGATORIOS('{}, "nome" e "email" em seu corpo'.format('"codOrientador"' if existente else '"currLattes", "ra"'))
+            response_messages.CAMPOS_OBRIGATORIOS('{0}, "nome" e "email" em seu corpo'.format(campos_adicionais))
         ), 400
-    
-    
+
     if not is_valid_email(email):
         return get_erro(response_messages.VALIDACAO_DEVE('email', 'ser um email valido')), 400
 
     with Db() as db:
-        usuarioDao = UsuarioDAO(db)
-        orientadoresDao = OrientadoresDAO(db)
+        try:
+            usuarioDao = UsuarioDAO(db)
+            orientadoresDao = OrientadoresDAO(db)
 
-        if not existente:
-            try:
+            if not existente:
                 orientador = Orientadores(
                     nomeOrientador=nome,
                     raOrientador=ra,
@@ -283,20 +286,16 @@ def cadastro_professor(existente=True):
                 orientador.grava_orientador()
 
                 codOrientador = orientador.codOrientador
-            except AttributeError as ex:
-                return get_erro(ex.__str__()), 400
-            except DataError:
-                return get_erro(response_messages.VALIDACAO_DEVE('ra', 'conter no máximo 13 caracteres')), 400
-            except IntegrityError:
-                return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou ra')), 400
-        else:
-            if not orientadoresDao.exists(codOrientador):
-                return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
-                
-        orientador = orientadoresDao.get_orientador_codigo(codOrientador, False)
-        user = orientador['raOrientador']
-        password = generate_random_password()
-        if usuarioDao.add_orientador(user, password, nome, email, codOrientador):
+            else:
+                if not orientadoresDao.exists(codOrientador):
+                    return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
+                    
+            orientador = orientadoresDao.get_orientador_codigo(codOrientador, is_instance= False)
+            user = orientador['raOrientador']
+            password = generate_random_password()
+
+            usuarioDao.add_orientador(user, password, nome, email, codOrientador)
+            
             msg = mailer.generate_message_html(
                 'Nova conta de Orientador',
                 email,
@@ -312,12 +311,13 @@ def cadastro_professor(existente=True):
             )
             mailer.send_email(email, msg)
 
-            return get_ok(
-                response_messages.ENTIDADE_GRAVADA('Usuario')
-            ), 201
-        if not existente:
-            orientadoresDao.deleta_orientador(codOrientador)
-        return get_erro(response_messages.ERRO_INTEGRIDADE('Nome de usuario ou email')), 400
+            return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
+        except SMTPAuthenticationError as se:
+            db.rollback()
+            return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
+        except Exception as ex:
+            db.rollback()
+            return get_erro(ex.__str__()), 400
 
 def cadastro_aluno(professor_user_info):
     try:
@@ -334,31 +334,30 @@ def cadastro_aluno(professor_user_info):
         return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
     if not is_valid_email(email):
         return get_erro(response_messages.VALIDACAO_DEVE('email', 'ser um email valido')), 400
-    
+
     with Db() as db:
-        usuarioDao = UsuarioDAO(db)
-        orientadoresDao = OrientadoresDAO(db)
-        cursosDao = CursosDAO(db)
-        autoresDao = AutoresDAO(db)
+        try:
+            usuarioDao = UsuarioDAO(db)
+            orientadoresDao = OrientadoresDAO(db)
+            cursosDao = CursosDAO(db)
+            autoresDao = AutoresDAO(db)
 
-        curso = cursosDao.get_curso_codCurso(codCurso, False)
-        if not curso:
-            return get_falha(response_messages.NAO_ENCONTRADO('Curso')), 400
+            curso = cursosDao.get_curso_codCurso(codCurso, False)
+            if not curso:
+                return get_falha(response_messages.NAO_ENCONTRADO('Curso')), 400
 
-        autor = autoresDao.get_autor_ra(ra)
-        if not autor:
-            try:
+            autor = autoresDao.get_autor_ra(ra)
+            if not autor:
                 autor = autoresDao.cadastra_autor(nome, email, ra)
                 if not autor:
-                    return get_erro(response_messages.ERRO_INTEGRIDADE('Autor')), 400
-            except DataError:
-                return get_erro(response_messages.VALIDACAO_DEVE('ra', 'ter no maximo 13 caracteres')), 400
-        orientador = orientadoresDao.get_orientador_codUsuario(professor_user_info['codUsuario'])
-        if not orientador:
-            return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
-        
-        password = generate_random_password()
-        if usuarioDao.add_aluno(ra, password, nome, email, autor['codAutor'], orientador['codOrientador'], codCurso):
+                    return get_erro(response_messages.ERRO_INESPERADO()), 500
+
+            orientador = orientadoresDao.get_orientador_codUsuario(professor_user_info['codUsuario'])
+            if not orientador:
+                return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
+
+            password = generate_random_password()
+            usuarioDao.add_aluno(ra, password, nome, email, autor['codAutor'], orientador['codOrientador'], codCurso)
 
             msg = mailer.generate_message_html(
                 'Nova conta de Autor',
@@ -375,10 +374,13 @@ def cadastro_aluno(professor_user_info):
             )
             mailer.send_email(email, msg)
 
-            return get_ok(
-                response_messages.ENTIDADE_GRAVADA('Usuario')
-            ), 201
-        return get_erro(response_messages.ERRO_INTEGRIDADE('Nome de usuario ou email')), 400
+            return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
+        except SMTPAuthenticationError as se:
+            db.rollback()
+            return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
+        except Exception as ex:
+            db.rollback()
+            return get_erro(ex.__str__()), 400
 
 def desativa_usuario(codUsuario, is_user):
     if is_user:
@@ -388,12 +390,14 @@ def desativa_usuario(codUsuario, is_user):
         usuarioDao = UsuarioDAO(db)
 
         usr = usuarioDao.get_usuario_ativo(codUsuario)
-        if usr:
-            if usr['tipoUsuario'] == TiposUsuario.Coordenador.value:
-                return get_erro(response_messages.SEM_PERMICAO('apagar um usuario do tipo Coordenador')), 400
-            usuarioDao.desativa_usuario(codUsuario)
-            return get_ok(response_messages.ENTIDADE_DESATIVADA('Usuario')), 200
-        return get_erro(response_messages.NAO_ENCONTRADO('Usuário')), 404
+        if not usr:
+            return get_erro(response_messages.NAO_ENCONTRADO('Usuário')), 404
+
+        if usr['tipoUsuario'] == TiposUsuario.Coordenador.value:
+            return get_erro(response_messages.SEM_PERMICAO('desativar um usuario do tipo Coordenador')), 400
+
+        usuarioDao.desativa_usuario(codUsuario)
+        return get_ok(response_messages.ENTIDADE_DESATIVADA('Usuario')), 200
 
 def ativa_usuario(codUsuario, is_user):
     if is_user:
@@ -403,10 +407,11 @@ def ativa_usuario(codUsuario, is_user):
         usuarioDao = UsuarioDAO(db)
 
         usr = usuarioDao.get_usuario_inativo(codUsuario)
-        if usr:
-            usuarioDao.ativa_usuario(codUsuario)
-            return get_ok(response_messages.ENTIDADE_ATIVADA('Usuario')), 200
-        return get_erro(response_messages.NAO_ENCONTRADO('Usuário')), 404
+        if not usr:
+            return get_erro(response_messages.NAO_ENCONTRADO('Usuário')), 404
+
+        usuarioDao.ativa_usuario(codUsuario)
+        return get_ok(response_messages.ENTIDADE_ATIVADA('Usuario')), 200
 
 def deleta_usuario(codUsuario, is_user):
     if is_user:
@@ -417,11 +422,13 @@ def deleta_usuario(codUsuario, is_user):
 
         usr = usuarioDao.get_usuario(codUsuario)
         if usr:
-            if usr['tipoUsuario'] == TiposUsuario.Coordenador.value:
-                return get_erro(response_messages.SEM_PERMICAO('apagar um usuario do tipo Coordenador')), 400
-            usuarioDao.deleta_usuario(codUsuario)
-            return get_ok(response_messages.ENTIDADE_DELETADA('Usuario')), 200
-        return get_erro(response_messages.NAO_ENCONTRADO('Usuário')), 404
+            return get_erro(response_messages.NAO_ENCONTRADO('Usuário')), 404
+
+        if usr['tipoUsuario'] == TiposUsuario.Coordenador.value:
+            return get_erro(response_messages.SEM_PERMICAO('apagar um usuario do tipo Coordenador')), 400
+
+        usuarioDao.deleta_usuario(codUsuario)
+        return get_ok(response_messages.ENTIDADE_DELETADA('Usuario')), 200
 
 def busca_usuarios():
     with Db() as db:
@@ -485,11 +492,14 @@ def busca_usuarios_secretaria_adm(user_info):
                 return get_data(usuarios), 200
             return None, 204
             
-        if user_info['tipoUsuario'] == TiposUsuario.Administrador.value:
+        elif user_info['tipoUsuario'] == TiposUsuario.Administrador.value:
             usuarios = usuarioDao.buscar_usuarios_admin(nome)
             if usuarios:
                 return get_data(usuarios), 200
             return None, 204
+        
+        else:
+            return get_erro(response_messages.TIPO_USUARIO_ERRADO('secretaria ou admin'))
 
 def get_usuario_ativo(id):
     with Db() as db:
@@ -518,29 +528,29 @@ def edita_usuario(codUsuario, is_admin, is_user):
         usuarioDao = UsuarioDAO(db)
 
         usr = usuarioDao.get_usuario_ativo(codUsuario)
-
         if usr:
-            if not is_admin:
-                if usr['tipoUsuario'] == TiposUsuario.Administrador.value:
-                    return get_erro(response_messages.SEM_PERMICAO('alterar um administrador sem ser um administrador')), 400
+            return get_falha(response_messages.NAO_ENCONTRADO('Usuário')), 404
 
-            if nomeUsuario:
-                if not is_valid_username(nomeUsuario):
-                    return get_erro(response_messages.VALIDACAO_DEVE('nomeUsuario', 'ser um nome de usuario válido')), 400
-                usr['nomeUsuario'] = nomeUsuario
-            if nome: 
-                usr['nome'] = nome
-            if email: 
-                if not is_valid_email(email):
-                    return get_erro(response_messages.VALIDACAO_DEVE('email', 'ser um email valido')), 400
-                usr['email'] = email
-            if tipoUsuario: 
-                usr['tipoUsuario'] = tipoUsuario
+        if not is_admin:
+            if usr['tipoUsuario'] == TiposUsuario.Administrador.value:
+                return get_erro(response_messages.SEM_PERMICAO('alterar um administrador sem ser um administrador')), 400
 
-            usuarioDao.edita_usuario(usr)
+        if nomeUsuario:
+            if not is_valid_username(nomeUsuario):
+                return get_erro(response_messages.VALIDACAO_DEVE('nomeUsuario', 'ser um nome de usuario válido')), 400
+            usr['nomeUsuario'] = nomeUsuario
+        if nome: 
+            usr['nome'] = nome
+        if email: 
+            if not is_valid_email(email):
+                return get_erro(response_messages.VALIDACAO_DEVE('email', 'ser um email valido')), 400
+            usr['email'] = email
+        if tipoUsuario: 
+            usr['tipoUsuario'] = tipoUsuario
 
-            return get_ok(response_messages.ENTIDADE_EDITADA('Usuario')), 200
-        return get_falha(response_messages.NAO_ENCONTRADO('Usuário')), 404
+        usuarioDao.edita_usuario(usr)
+
+        return get_ok(response_messages.ENTIDADE_EDITADA('Usuario')), 200
 
 def altera_orientador_aluno(codProjeto, user_info):
     with Db() as db:
@@ -558,22 +568,26 @@ def altera_orientador_aluno(codProjeto, user_info):
 
         if not proj['curso']['abreviacao'] == curso['abreviacao']:
             return get_erro(response_messages.SEM_PERMICAO('ter acesso a esta ação')), 400
-
+        
         try:
-            codOrientador = request.form['codOrientador']
-        except BadRequestKeyError:
-            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"codOrientador"')), 400
+            attr = get_request_form_data_attributes(['codOrientador'])
+        except Exception as ex:
+            return get_erro(ex.__str__()), 400
 
-        if not util.is_cod_valido(codOrientador):
+        if not util.is_cod_valido(attr['codOrientador']):
             return get_erro(response_messages.VALIDACAO_DEVE('codOrientador', 'ser um numero inteiro')), 400
 
-        orientador = orientadoresDao.get_orientador_codigo(codOrientador, False)
+        orientador = orientadoresDao.get_orientador_codigo(attr['codOrientador'], False)
         if not orientador:
             return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
         if not orientador['codUsuario']:
             return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
-        
-        usuarioOrientadoDao.edita_orientador_projeto_novo(codProjeto, orientador['codOrientador'])
+        try:
+            usuarioOrientadoDao.edita_orientador_projeto_novo(codProjeto, orientador['codOrientador'])
+        except Exception as ex:
+            db.rollback()
+            return get_erro(ex.__str__())
+
         return None, 204
 
 def mudar_senha(id):
@@ -590,8 +604,7 @@ def mudar_senha(id):
 
 def recuperar_senha():
     try:
-        email = request.form['email']
-        email = email.lower()
+        email = request.form['email'].lower()
     except BadRequestKeyError: 
         return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"email"')), 400
 
@@ -599,30 +612,39 @@ def recuperar_senha():
         return get_erro(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
     
     with Db() as db:
-        usuarioDao = UsuarioDAO(db)
+        try:
+            usuarioDao = UsuarioDAO(db)
 
-        usuario = usuarioDao.get_usuario_email(email)
-        if not usuario:
-            return get_erro(response_messages.NAO_ENCONTRADO('Email')), 404
+            usuario = usuarioDao.get_usuario_email(email)
+            if not usuario:
+                return get_erro(response_messages.NAO_ENCONTRADO('Email')), 404
 
-        novaSenha = generate_random_password()
-        codUsuario = int(usuario['codUsuario'])
-        mailer.send_email(
-            usuario['email'],
-            mailer.generate_message_html(
-                'Recuperação de senha',
-                usuario['email'], 
-                '''
-                    <h2>Sua senha foi redefinida.</h2>
+            novaSenha = generate_random_password()
+            codUsuario = int(usuario['codUsuario'])
+            
+            mailer.send_email(
+                usuario['email'],
+                mailer.generate_message_html(
+                    'Recuperação de senha',
+                    usuario['email'], 
+                    '''
+                        <h2>Sua senha foi redefinida.</h2>
 
-                    <p>Olá, {0}.</p>
+                        <p>Olá, {0}.</p>
 
-                    <p>A senha do usuário <b>{1}</b> foi redefinida para:</p>
+                        <p>A senha do usuário <b>{1}</b> foi redefinida para:</p>
 
-                    <h3><b>{2}</b></h3>
-                '''.format(usuario['nome'], usuario['nomeUsuario'], novaSenha)
+                        <h3><b>{2}</b></h3>
+                    '''.format(usuario['nome'], usuario['nomeUsuario'], novaSenha)
+                )
             )
-        )
-        usuarioDao.edita_senha(codUsuario, novaSenha)
+            
+            usuarioDao.edita_senha(codUsuario, novaSenha)
 
-        return get_ok(response_messages.EMAIL_ENVIADO_SENHA_NOVA()), 200
+            return get_ok(response_messages.EMAIL_ENVIADO_SENHA_NOVA()), 200
+        except SMTPAuthenticationError as se:
+            db.rollback()
+            return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL())
+        except Exception as ex:
+            db.rollback()
+            return get_erro(ex.__str__())

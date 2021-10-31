@@ -1,4 +1,5 @@
 import jwt, re, string, random, os
+from werkzeug.exceptions import BadRequestKeyError
 from enum import IntEnum
 from functools import wraps
 from flask import request, jsonify, current_app as app
@@ -454,3 +455,14 @@ def get_maior(*args):
                 maior = arg
         
         return maior
+
+def get_request_form_data_attributes(atributos: list):
+    ret = {}
+
+    try:
+        for campo in atributos:
+            ret[campo] = request.form[campo]
+        return ret
+    except BadRequestKeyError:
+        attr_str = ', '.join(list(map((lambda attr: '"{0}"'.format(attr)), atributos)))
+        raise Exception(response_messages.CAMPOS_OBRIGATORIOS(attr_str))
