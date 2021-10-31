@@ -42,6 +42,7 @@ from biblioteca.extensions import(
     aluno_professor_coordenador_token_required,
     is_valid_email,
     get_enum_obj,
+    get_request_form_data_attributes,
     TiposUsuario,
     LinguagemProjeto,
     ModalidadeProjeto,
@@ -509,70 +510,64 @@ def upload_projeto(user_info=None):
         autoresDao = AutoresDAO(db)
             
         try:
-            titulo = request.form['titulo']
-            descricao = request.form['descricao']
-            subTitulo = request.form['subTitulo']
-            dataAvaliacao = request.form['dataAvaliacao']
-            linguagem = int(request.form['linguagem'])
-            modalidade = int(request.form['modalidade'])
-            raCoOrientador = request.form['raCoOrientador']
-            localPublicacao = request.form['localPublicacao']
+            base = ['titulo', 'descricao', 'subTitulo', 'dataAvaliacao', 'linguagem', 'modalidade', 'raCoOrientador', 'localPublicacao', 'autores', 'palavras_chave']
             if user_info == None:
-                raOrientador = request.form['raOrientador']
-                codCurso = request.form['codCurso']
+                base = base + ['raOrientador', 'codCurso']
+                attr = get_request_form_data_attributes(base)
             else:
                 orientador = orientadoresDao.get_orientador_orientando_codUsuario(user_info['codUsuario'])
                 curso = cursosDao.get_curso_codUsuario(user_info['codUsuario'])
                 if not (orientador and curso):
                     return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
-                raOrientador = orientador.raOrientador
-                codCurso = curso['codCurso']
-                
-            autores = request.form['autores']
-            palavras = request.form['palavras_chave']
-        except BadRequestKeyError:
-            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "localPublicacao", {}"descricao", "dataAvaliacao", "modalidade", "subTitulo", "autores", "linguagem", "raCoOrientador" e "palavras_chave"'.format('"raOrientador", "codCurso", ' if user_info==None else ''))), 400
+                attr = get_request_form_data_attributes(base)
+                attr['raOrientador'] = orientador.raOrientador
+                attr['codCurso'] = curso['codCurso']
+
+            attr['linguagem'] = int(attr['linguagem'])
+            attr['modalidade'] = int(attr['modalidade'])
         except ValueError:
             return get_erro(response_messages.VALIDACAO_DEVEM('"linguagem" e "modalidade"', 'ser do tipo inteiro')), 400
+        except Exception as ex:
+            return get_erro(ex.__str__()), 400
 
-        if not(titulo and raOrientador and dataAvaliacao and codCurso):
+        if not(attr['titulo'] and attr['raOrientador'] and attr['dataAvaliacao'] and attr['codCurso']):
             return get_erro(response_messages.ATRIBUTO_OBRIGATORIO('"titulo", {}"dataAvaliacao" e "linguagem"'.format('"raOrientador", "codCurso", ' if user_info==None else ''))), 400
-        if not (linguagem) in range(LinguagemProjeto.Espanhol.value + 1):
+        if not (attr['linguagem']) in range(LinguagemProjeto.Espanhol.value + 1):
             return get_falha(response_messages.VALIDACAO_DEVE('linguagem','ser um campo de numeros entre 0 e 2')), 400
-        if not (modalidade) in range(ModalidadeProjeto.GDD.value + 1):
+        if not (attr['modalidade']) in range(ModalidadeProjeto.GDD.value + 1):
             return get_falha(response_messages.VALIDACAO_DEVE('modalidade', 'ser um campo de numeros entre 0 e 2')), 400
 
         projeto = Projetos(
-            tituloProjeto = titulo,
-            subTitulo = subTitulo,
-            descricao = descricao,
-            dataAvaliacao = dataAvaliacao,
-            linguagem = linguagem,
-            modalidade = modalidade,
-            localPublicacao = localPublicacao,
+            tituloProjeto = attr['titulo'],
+            subTitulo = attr['subTitulo'],
+            descricao = attr['descricao'],
+            dataAvaliacao = attr['dataAvaliacao'],
+            linguagem = attr['linguagem'],
+            modalidade = attr['modalidade'],
+            localPublicacao = attr['localPublicacao'],
             autores = [], 
             palavrasChave = [],
-            curso = cursosDao.get_curso_codCurso(codCurso),
-            orientador = orientadoresDao.get_orientador(raOrientador),
-            coOrientador = orientadoresDao.get_orientador(raCoOrientador)
+            curso = cursosDao.get_curso_codCurso(attr['codCurso']),
+            orientador = orientadoresDao.get_orientador(attr['raOrientador']),
+            coOrientador = orientadoresDao.get_orientador(attr['raCoOrientador'])
         )
         
         if not projeto.curso:
             return get_erro(response_messages.VALIDACAO_DEVE('curso', 'conter um código de curso existente')), 400
-        if raOrientador == raCoOrientador:
+        if attr['raOrientador'] == attr['raCoOrientador']:
             return get_erro(response_messages.VALIDACAO_DEVE('orientador', 'ser diferente do coOrientador')), 400
         if not projeto.orientador:
             return get_falha(response_messages.ATRIBUTO_INVALIDO('raOrientador')), 400
-        if raCoOrientador:
+        if attr['raCoOrientador']:
             if not projeto.coOrientador:
                 return get_falha(response_messages.ATRIBUTO_INVALIDO('raCoOrientador')), 400
         
         try:
-            autores_obj = json.loads(autores)
+            autores_obj = json.loads(attr['autores'])
         except JSONDecodeError:
             return get_erro(response_messages.VALIDACAO_DEVE('autores', 'ser um array contendo objetos JSON com os atributos: "nome", "ra" e "email"')), 400
         try:
-            palavras_obj = json.loads(palavras)
+            palavras_obj = json.loads(attr['palavras'])
         except JSONDecodeError:
             return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'ser um array contendo objetos JSON com o atributo: "palavra"')), 400
 
@@ -621,7 +616,7 @@ def upload_projeto(user_info=None):
                 return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'conter o campo "palavra"')), 400
 
         file = request.files['file']
-        filename = __get_nome_arquivo_projeto(titulo, file.filename, projeto.curso.abreviacao)
+        filename = __get_nome_arquivo_projeto(attr['titulo'], file.filename, projeto.curso.abreviacao)
         
         projeto.nomeArquivo = filename
         try:
@@ -843,18 +838,16 @@ def edita_projeto(codProjeto, has_file):
         proj = projetosDao.get_projeto(codProjeto)
         if proj:
             try:
-                titulo = request.form['tituloProjeto']
-                descricao = request.form['descricao']
-                subtitulo = request.form['subTitulo']
-            except BadRequestKeyError:
-                return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"tituloProjeto","descricao" e "subTitulo"')), 400
+                attr = get_request_form_data_attributes(['tituloProjeto', 'descricao', 'subTitulo'])
+            except Exception as ex:
+                return get_erro(ex.__str__()), 400
 
-            if titulo:
-                projetosDao.edita_titulo(codProjeto, titulo)
-            if descricao:
-                projetosDao.edita_descricao(codProjeto, descricao)
-            if subtitulo:
-                projetosDao.edita_subtitulo(codProjeto, subtitulo)
+            if attr['tituloProjeto']:
+                projetosDao.edita_titulo(codProjeto, attr['tituloProjeto'])
+            if attr['descricao']:
+                projetosDao.edita_descricao(codProjeto, attr['descricao'])
+            if attr['subTitulo']:
+                projetosDao.edita_subtitulo(codProjeto, attr['subTitulo'])
             
             if has_file:
                 filepath = os.path.join(
@@ -886,18 +879,16 @@ def edita_projeto_aluno(codProjeto, user_info, has_file):
                 return get_erro(response_messages.SEM_PERMICAO('editar este projeto')), 400
             
             try:
-                titulo = request.form['tituloProjeto']
-                descricao = request.form['descricao']
-                subtitulo = request.form['subTitulo']
-            except BadRequestKeyError:
-                return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"tituloProjeto","descricao" e "subTitulo"')), 400
+                attr = get_request_form_data_attributes(['tituloProjeto', 'descricao', 'subTitulo'])
+            except Exception as ex:
+                return get_erro(ex.__str__()), 400
 
-            if titulo:
-                projetosDao.edita_titulo(codProjeto, titulo)
-            if descricao:
-                projetosDao.edita_descricao(codProjeto, descricao)
-            if subtitulo:
-                projetosDao.edita_subtitulo(codProjeto, subtitulo)
+            if attr['tituloProjeto']:
+                projetosDao.edita_titulo(codProjeto, attr['tituloProjeto'])
+            if attr['descricao']:
+                projetosDao.edita_descricao(codProjeto, attr['descricao'])
+            if attr['subTitulo']:
+                projetosDao.edita_subtitulo(codProjeto, attr['subTitulo'])
             
             if has_file:
                 filepath = os.path.join(
@@ -917,29 +908,31 @@ def edita_publicacao(codProjeto, codOrientador, db):
     projetosDao = ProjetosDAO(db)
         
     proj = projetosDao.get_projeto_orientador(codOrientador, codProjeto)
-    if proj:
-        try:
-            publicacao = request.form['publicacaoProjeto']
-        except BadRequestKeyError:
-            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"publicacaoProjeto"')), 400
+    if not proj:
+        return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
 
-        if not publicacao:
-            return get_erro(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
+    try:
+        attr = get_request_form_data_attributes(['publicacaoProjeto'])
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
 
-        projetosDao.edita_publicacao(codProjeto, publicacao)
+    if not attr['publicacaoProjeto']:
+        return get_erro(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
 
-        return get_ok(response_messages.ENTIDADE_EDITADA('Publicação')), 200
-    return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
+    projetosDao.edita_publicacao(codProjeto, attr['publicacaoProjeto'])
+
+    return get_ok(response_messages.ENTIDADE_EDITADA('Publicação')), 200
 
 def get_projeto(codProjeto):
     with Db() as db:
         projetosDao = ProjetosDAO(db)
             
         ret = projetosDao.get_projeto(codProjeto, True)
-        if ret:
-            projetosDao.add_view(codProjeto)
-            return get_data(ret), 200
-        return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
+        if not ret:
+            return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
+
+        projetosDao.add_view(codProjeto)
+        return get_data(ret), 200
 
 def get_projeto_autor(user_info):
     with Db() as db:

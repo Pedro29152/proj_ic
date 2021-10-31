@@ -173,17 +173,14 @@ class RecuperaraSenha(Resource):
 
 def login():
     try:
-        user = request.form['username']
-        senha = request.form['password']
-    except BadRequestKeyError:
-        return get_erro(
-            response_messages.CAMPOS_OBRIGATORIOS('"username" e "password"')
-        ), 400
-    
+        attr = get_request_form_data_attributes(['username', 'password'])
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
+
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
 
-        usr = usuarioDao.verifica_usr(user, senha)
+        usr = usuarioDao.verifica_usr(attr['username'], attr['password'])
         if not usr:
             return get_erro(response_messages.USUARIO_SENHA_INCORRETOS()), 401
 
@@ -209,65 +206,53 @@ def login():
 
 def cadastro_usuario():
     try:
-        user = request.form['username']
-        senha = request.form['password']
-        tipoUsuario = int(request.form['tipoUsuario'])
-        nome = request.form['nome']
-        email = request.form['email']
-    except BadRequestKeyError:
-        return get_erro(
-            response_messages.CAMPOS_OBRIGATORIOS('"username", "tipoUsuario", "email", "nome" e "password"')
-        ), 400
+        attr = get_request_form_data_attributes(['username', 'password', 'tipoUsuario', 'nome', 'email'])
+        attr['tipoUsuario'] = int(attr['tipoUsuario'])
     except ValueError:
-        return get_erro(
-            response_messages.VALIDACAO_DEVE('tipoUsuario', 'ser do tipo inteiro')
-        ), 400
+        return get_erro(response_messages.VALIDACAO_DEVE('tipoUsuario', 'ser do tipo inteiro')), 400
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
 
-    if not (user and tipoUsuario and senha and email and nome):
+    if not (attr['username'] and attr['tipoUsuario'] and attr['password'] and attr['email'] and attr['nome']):
         return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
-    if not is_valid_email(email):
+    if not is_valid_email(attr['email']):
         return get_erro(response_messages.VALIDACAO_DEVE('email',  'ser um email valido')), 400
-    if not is_valid_username(user):
+    if not is_valid_username(attr['username']):
         return get_erro(response_messages.VALIDACAO_DEVE('username', 'ser um nome de usuario valido')), 400
-    if not (tipoUsuario - 1) in range(TiposUsuario.Coordenador.value):
+    if not (attr['tipoUsuario'] - 1) in range(TiposUsuario.Coordenador.value):
         return get_falha(response_messages.ATRIBUTO_INVALIDO('tipoUsuario')), 400
-    if tipoUsuario == TiposUsuario.Aluno.value:
+    if attr['tipoUsuario'] == TiposUsuario.Aluno.value:
         return get_falha(response_messages.NOVA_ROTA_CADASTRO('aluno', '"/api/usuarios/cadastro/aluno"')), 400
-    if tipoUsuario == TiposUsuario.Professor.value:
+    if attr['tipoUsuario'] == TiposUsuario.Professor.value:
         return get_falha(response_messages.NOVA_ROTA_CADASTRO('orientador' '"/api/usuarios/cadastro/orientador/novo"')), 400
 
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
 
         try:
-            usuarioDao.add_usr(user, senha, tipoUsuario, nome, email)
+            usuarioDao.add_usr(attr['username'], attr['password'], attr['tipoUsuario'], attr['nome'], attr['email'])
             return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
         except IntegrityError as ie:
             db.rollback()
             return get_erro(ie.__str__()), 400
 
 def cadastro_professor(existente=True):
-    campos_adicionais = ''
     try:
-        nome = request.form['nome']
-        email = request.form['email']
+        base = ['nome', 'email']
         if existente:
-            campos_adicionais = '"codOrientador"'
-            codOrientador = request.form['codOrientador']
-            if not (email and nome and codOrientador):
+            attr = get_request_form_data_attributes(base + ['codOrientador'])
+
+            if not (attr['email'] and attr['nome'] and attr['codOrientador']):
                 return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
         else:
-            campos_adicionais = '"currLattes", "ra"'
-            currLattes = request.form['currLattes']
-            ra = request.form['ra']
-            if not (email and nome and currLattes and ra):
-                return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
-    except BadRequestKeyError:
-        return get_erro(
-            response_messages.CAMPOS_OBRIGATORIOS('{0}, "nome" e "email" em seu corpo'.format(campos_adicionais))
-        ), 400
+            attr = get_request_form_data_attributes(base + ['currLattes', 'ra'])
 
-    if not is_valid_email(email):
+            if not (attr['email'] and attr['nome'] and attr['currLattes'] and attr['ra']):
+                return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
+
+    if not is_valid_email(attr['email']):
         return get_erro(response_messages.VALIDACAO_DEVE('email', 'ser um email valido')), 400
 
     with Db() as db:
@@ -277,28 +262,28 @@ def cadastro_professor(existente=True):
 
             if not existente:
                 orientador = Orientadores(
-                    nomeOrientador=nome,
-                    raOrientador=ra,
-                    email=email,
-                    currLattes=currLattes,
+                    nomeOrientador=attr['nome'],
+                    raOrientador=attr['ra'],
+                    email=attr['email'],
+                    currLattes=attr['currLattes'],
                     db=db
                 )
                 orientador.grava_orientador()
 
-                codOrientador = orientador.codOrientador
+                attr['codOrientador'] = orientador.codOrientador
             else:
-                if not orientadoresDao.exists(codOrientador):
+                if not orientadoresDao.exists(attr['codOrientador']):
                     return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 400
                     
-            orientador = orientadoresDao.get_orientador_codigo(codOrientador, is_instance= False)
+            orientador = orientadoresDao.get_orientador_codigo(attr['codOrientador'], is_instance= False)
             user = orientador['raOrientador']
             password = generate_random_password()
 
-            usuarioDao.add_orientador(user, password, nome, email, codOrientador)
+            usuarioDao.add_orientador(user, password, attr['nome'], attr['email'], attr['codOrientador'])
             
             msg = mailer.generate_message_html(
                 'Nova conta de Orientador',
-                email,
+                attr['email'],
                 '''
                     <h2>Você foi cadastrado no sistema BTA</h2>
 
@@ -309,7 +294,7 @@ def cadastro_professor(existente=True):
                     <p>Senha: <b>{1}</b></p>
                 '''.format(user, password)
             )
-            mailer.send_email(email, msg)
+            mailer.send_email(attr['email'], msg)
 
             return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
         except SMTPAuthenticationError as se:
@@ -321,18 +306,13 @@ def cadastro_professor(existente=True):
 
 def cadastro_aluno(professor_user_info):
     try:
-        nome = request.form['nome']
-        email = request.form['email']
-        ra = request.form['ra_aluno']
-        codCurso = request.form['codCurso']
-    except BadRequestKeyError:
-        return get_erro(
-            response_messages.CAMPOS_OBRIGATORIOS('"email", "nome", "ra_aluno" e "codCurso"')
-        ), 400
+        attr = get_request_form_data_attributes(['nome', 'email', 'ra_aluno', 'codCurso'])
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
 
-    if not (email and nome and ra and codCurso):
+    if not (attr['email'] and attr['nome'] and attr['ra_aluno'] and attr['codCurso']):
         return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
-    if not is_valid_email(email):
+    if not is_valid_email(attr['email']):
         return get_erro(response_messages.VALIDACAO_DEVE('email', 'ser um email valido')), 400
 
     with Db() as db:
@@ -342,13 +322,13 @@ def cadastro_aluno(professor_user_info):
             cursosDao = CursosDAO(db)
             autoresDao = AutoresDAO(db)
 
-            curso = cursosDao.get_curso_codCurso(codCurso, False)
+            curso = cursosDao.get_curso_codCurso(attr['codCurso'], False)
             if not curso:
                 return get_falha(response_messages.NAO_ENCONTRADO('Curso')), 400
 
-            autor = autoresDao.get_autor_ra(ra)
+            autor = autoresDao.get_autor_ra(attr['ra_aluno'])
             if not autor:
-                autor = autoresDao.cadastra_autor(nome, email, ra)
+                autor = autoresDao.cadastra_autor(attr['nome'], attr['email'], attr['ra_aluno'])
                 if not autor:
                     return get_erro(response_messages.ERRO_INESPERADO()), 500
 
@@ -357,11 +337,11 @@ def cadastro_aluno(professor_user_info):
                 return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
 
             password = generate_random_password()
-            usuarioDao.add_aluno(ra, password, nome, email, autor['codAutor'], orientador['codOrientador'], codCurso)
+            usuarioDao.add_aluno(attr['ra_aluno'], password, attr['nome'], attr['email'], autor['codAutor'], orientador['codOrientador'], attr['codCurso'])
 
             msg = mailer.generate_message_html(
                 'Nova conta de Autor',
-                email,
+                attr['email'],
                 '''
                     <h2>Você foi cadastrado no sistema BTA</h2>
 
@@ -370,9 +350,9 @@ def cadastro_aluno(professor_user_info):
 
                     <p>Nome de usuário: <b>{0}</b></p>
                     <p>Senha: <b>{1}</b></p>
-                '''.format(ra, password)
+                '''.format(attr['ra_aluno'], password)
             )
-            mailer.send_email(email, msg)
+            mailer.send_email(attr['email'], msg)
 
             return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
         except SMTPAuthenticationError as se:
@@ -514,39 +494,39 @@ def get_usuario_ativo(id):
 
 def edita_usuario(codUsuario, is_admin, is_user):
     try:
-        nome = request.form['nome']
-        email = request.form['email']
-        tipoUsuario = None
-        nomeUsuario = None
+        base = ['nome', 'email']
         if is_admin and not is_user:
-            nomeUsuario = request.form['nomeUsuario']
-            tipoUsuario = request.form['tipoUsuario']
-    except BadRequestKeyError:
-        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nome", "email", "tipoUsuario" e "nomeUsuario"')), 400
+            attr = get_request_form_data_attributes(base + ['nomeUsuario', 'tipoUsuario'])
+        else:
+            attr = get_request_form_data_attributes(base)
+            attr['nomeUsuario'] = None
+            attr['tipoUsuario'] = None
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
 
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
 
         usr = usuarioDao.get_usuario_ativo(codUsuario)
-        if usr:
+        if not usr:
             return get_falha(response_messages.NAO_ENCONTRADO('Usuário')), 404
 
         if not is_admin:
             if usr['tipoUsuario'] == TiposUsuario.Administrador.value:
                 return get_erro(response_messages.SEM_PERMICAO('alterar um administrador sem ser um administrador')), 400
 
-        if nomeUsuario:
-            if not is_valid_username(nomeUsuario):
+        if attr['nomeUsuario']:
+            if not is_valid_username(attr['nomeUsuario']):
                 return get_erro(response_messages.VALIDACAO_DEVE('nomeUsuario', 'ser um nome de usuario válido')), 400
-            usr['nomeUsuario'] = nomeUsuario
-        if nome: 
-            usr['nome'] = nome
-        if email: 
-            if not is_valid_email(email):
+            usr['nomeUsuario'] = attr['nomeUsuario']
+        if attr['nome']: 
+            usr['nome'] = attr['nome']
+        if attr['email']: 
+            if not is_valid_email(attr['email']):
                 return get_erro(response_messages.VALIDACAO_DEVE('email', 'ser um email valido')), 400
-            usr['email'] = email
-        if tipoUsuario: 
-            usr['tipoUsuario'] = tipoUsuario
+            usr['email'] = attr['email']
+        if attr['tipoUsuario']: 
+            usr['tipoUsuario'] = attr['tipoUsuario']
 
         usuarioDao.edita_usuario(usr)
 
@@ -592,30 +572,31 @@ def altera_orientador_aluno(codProjeto, user_info):
 
 def mudar_senha(id):
     try:
-        senha = request.form['senha']
-    except BadRequestKeyError:
-        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"senha"')), 400
+        attr = get_request_form_data_attributes(['senha'])
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
 
     with Db() as db:
         usuarioDao = UsuarioDAO(db)
 
-        usuarioDao.edita_senha(id, senha)
+        usuarioDao.edita_senha(id, attr['senha'])
         return get_ok(response_messages.ENTIDADE_EDITADA('senha')), 200
 
 def recuperar_senha():
     try:
-        email = request.form['email'].lower()
-    except BadRequestKeyError: 
-        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"email"')), 400
+        attr = get_request_form_data_attributes(['email'])
+        attr['email'] = attr['email'].lower()
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
 
-    if not email:
+    if not attr['email']:
         return get_erro(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
     
     with Db() as db:
         try:
             usuarioDao = UsuarioDAO(db)
 
-            usuario = usuarioDao.get_usuario_email(email)
+            usuario = usuarioDao.get_usuario_email(attr['email'])
             if not usuario:
                 return get_erro(response_messages.NAO_ENCONTRADO('Email')), 404
 

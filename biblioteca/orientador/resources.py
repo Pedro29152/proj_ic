@@ -31,6 +31,7 @@ from biblioteca.extensions import(
     token_required,
     is_valid_email,
     is_valid_http_link,
+    get_request_form_data_attributes,
     TiposUsuario
 )
 
@@ -123,11 +124,13 @@ class GetRevisaoResource(Resource):
 def cadastro_orientador():
     with Db() as db:
         try:
+            attr = get_request_form_data_attributes(['nomeOrientador', 'raOrientador', 'email', 'linkCurrLattes'])
+
             orientadores = Orientadores(
-                nomeOrientador=request.form['nomeOrientador'],
-                raOrientador=request.form['raOrientador'],
-                email=request.form['email'],
-                currLattes=request.form['linkCurrLattes'],
+                nomeOrientador=attr['nomeOrientador'],
+                raOrientador=attr['raOrientador'],
+                email=attr['email'],
+                currLattes=attr['linkCurrLattes'],
                 db=db
             )
             
@@ -149,23 +152,20 @@ def edita_orientador(codOrientador):
             return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 404
 
         try:
-            nomeOrientador = request.form['nomeOrientador']
-            raOrientador = request.form['raOrientador']
-            email = request.form['email']
-            currLattes = request.form['linkCurrLattes']
-
-            if nomeOrientador:
-                ori.nomeOrientador = nomeOrientador
-            if raOrientador:
-                ori.raOrientador = raOrientador
-            if email:
-                if not is_valid_email(email):
+            attr = get_request_form_data_attributes(['nomeOrientador', 'raOrientador', 'email', 'linkCurrLattes'])
+            
+            if attr['nomeOrientador']:
+                ori.nomeOrientador = attr['nomeOrientador']
+            if attr['raOrientador']:
+                ori.raOrientador = attr['raOrientador']
+            if attr['email']:
+                if not is_valid_email(attr['email']):
                     raise AttributeError(response_messages.VALIDACAO_DEVE('email', 'ser um email valido'))
-                ori.email = email
-            if currLattes:
-                if not is_valid_http_link(currLattes):
+                ori.email = attr['email']
+            if attr['linkCurrLattes']:
+                if not is_valid_http_link(attr['linkCurrLattes']):
                     raise AttributeError(response_messages.VALIDACAO_DEVE('currLattes', 'ser um link http/https valido'))
-                ori.currLattes = currLattes
+                ori.currLattes = attr['linkCurrLattes']
 
             ori.edita_orientador()
 
@@ -179,6 +179,9 @@ def edita_orientador(codOrientador):
             return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou raAutor')), 400
         except DataError:
             return get_erro(response_messages.VALIDACAO_DEVE('raOrientador', 'ter no maximo 5 caracteres e seu nome no maximo 200')), 400
+        except Exception as ex:
+            return get_erro(ex.__str__()), 400
+
 
 def get_orientador(codOrientador):
     with Db() as db:
@@ -257,17 +260,17 @@ def solicitar_revisao(codProjeto, professor_user_info):
             return get_erro(response_messages.NAO_ENCONTRADO('Trabalho')), 404
 
         try:
-            mensagem = request.form['mensagem']
-        except BadRequestKeyError:
-            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"mensagem"')), 400
+            attr = get_request_form_data_attributes(['mensagem'])
+        except Exception as ex:
+            return get_erro(ex.__str__()), 400
 
         usuarioOrientado = usuarioOrientadoDao.get_usuario_orientado_codProjeto_codOrientador(codProjeto, orientador['codOrientador'])
         if usuarioOrientado:
-            usuarioDao.gerar_solitacao(usuarioOrientado['codUsuarioOrientado'], mensagem)
+            usuarioDao.gerar_solitacao(usuarioOrientado['codUsuarioOrientado'], attr['mensagem'])
 
             for autor in proj['autores']:
                 try:
-                    enviar_email_revisao(autor, proj['tituloProjeto'], mensagem)
+                    enviar_email_revisao(autor, proj['tituloProjeto'], attr['mensagem'])
                 except SMTPAuthenticationError:
                     db.rollback()
                     return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL())

@@ -7,7 +7,7 @@ from mysql.connector.errors import IntegrityError
 from .slide_dao import SlideDAO
 from biblioteca.db import Db
 from biblioteca import response_messages
-from biblioteca.extensions import admin_token_required
+from biblioteca.extensions import admin_token_required, get_request_form_data_attributes
 from biblioteca.responses import (
     get_bad_request,
     get_response_code,
@@ -41,21 +41,17 @@ class BuscarSlidesResource(Resource):
                 return get_response_code(r, code)
             
             try:
-                titulo = request.form['titulo']
-                subTitulo = request.form['subTitulo']
+                attr = get_request_form_data_attributes(['titulo', 'subTitulo', 'title', 'subTitle'])
+            except Exception as ex:
+                return get_erro(ex.__str__()), 400
 
-                title = request.form['title']
-                subTitle = request.form['subTitle']
-            except:
-                return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "subTitulo", "title" e "subTitle"'))
-            
-            if titulo and not title:
+            if attr['titulo'] and not attr['title']:
                 return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"title"'))
-            if title and not titulo:
+            if attr['title'] and not attr['titulo']:
                 return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"titulo"'))
-            if subTitulo and not subTitle:
+            if attr['subTitulo'] and not attr['subTitle']:
                 return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitle"'))
-            if subTitle and not subTitulo:
+            if attr['subTitle'] and not attr['subTitulo']:
                 return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitulo"'))
 
             file = request.files['file']
@@ -63,7 +59,7 @@ class BuscarSlidesResource(Resource):
             if len(filename) > 255:
                 return get_erro(response_messages.NOME_ARQUIVO_MUITO_GRANDE())
             try:
-                slideDao.adiciona_slide(titulo, subTitulo, title, subTitle, '/static/slides/{0}'.format(filename))
+                slideDao.adiciona_slide(attr['titulo'], attr['subTitulo'], attr['title'], attr['subTitle'], '/static/slides/{0}'.format(filename))
             except IntegrityError:
                 return get_bad_request(response_messages.ERRO_INTEGRIDADE('Imagem'))
 
@@ -102,23 +98,19 @@ class SlideIdResource(Resource):
                 return get_not_found(response_messages.NAO_ENCONTRADO('Slide'))
             
             try:
-                titulo = request.form['titulo']
-                subTitulo = request.form['subTitulo']
+                attr = get_request_form_data_attributes(['titulo', 'subTitulo', 'title', 'subTitle'])
+            except Exception as ex:
+                return get_erro(ex.__str__()), 400
 
-                title = request.form['title']
-                subTitle = request.form['subTitle']
-            except:
-                return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "subTitulo", "title" e "subTitle"'))
+            if attr['titulo']:
+                slide['titulo'] = attr['titulo']
+            if attr['subTitulo']:
+                slide['subtitulo'] = attr['subTitulo']
 
-            if titulo:
-                slide['titulo'] = titulo
-            if subTitulo:
-                slide['subtitulo'] = subTitulo
-
-            if title:
-                slide['title'] = title
-            if subTitle:
-                slide['subtitle'] = subTitle
+            if attr['title']:
+                slide['title'] = attr['title']
+            if attr['subTitle']:
+                slide['subtitle'] = attr['subTitle']
 
             slideDao.edita_slide(slide)
 

@@ -20,6 +20,7 @@ from biblioteca.extensions import (
     token_required,
     admin_token_required,
     generate_random_password,
+    get_request_form_data_attributes,
     TiposUsuario
 )
 from .cursos_dao import CursosDAO
@@ -51,18 +52,18 @@ class AtivaCursoResource(Resource):
     @secretaria_token_required
     def post(self, id):
         try:
-            codUsuario = request.form['codUsuario'] 
-        except BadRequestKeyError:
-            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"codUsuario"')), 400
+            attr = get_request_form_data_attributes(['codUsuario'])
+        except Exception as ex:
+            return get_erro(ex.__str__()), 400
 
-        if not (codUsuario):
+        if not (attr['codUsuario']):
             return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
 
         with Db() as db:
             cursosDao = CursosDAO(db)
             usuarioDao = UsuarioDAO(db)
 
-            user = usuarioDao.get_usuario_ativo(codUsuario)
+            user = usuarioDao.get_usuario_ativo(attr['codUsuario'])
             if not user:
                 return get_falha(response_messages.USUARIO_NAO_EXISTE()), 400
 
@@ -102,19 +103,16 @@ class CountCursosResource(Resource):
 
 def cadastro_curso():
     try:
-        nomeCurso = request.form['nomeCurso'] 
-        abreviacao = request.form['abreviacao']
-        nome = request.form['nome']
-        email = request.form['email']
-    except BadRequestKeyError:
-        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nome", "email", "nomeCurso" e "abreviacao"')), 400
+        attr = get_request_form_data_attributes(['nomeCurso', 'abreviacao', 'nome', 'email'])
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
 
-    if not (nomeCurso and abreviacao and nome and email):
+    if not (attr['nomeCurso'] and attr['abreviacao'] and attr['nome'] and attr['email']):
         return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
-    if len(abreviacao) > 3:
+    if len(attr['abreviacao']) > 3:
         return get_erro(response_messages.VALIDACAO_DEVE('abreviação', 'ter no máximo 3 caracteres'))
     
-    username = 'coordenador_{}'.format(abreviacao.lower())
+    username = 'coordenador_{}'.format(attr['abreviacao'].lower())
     password = generate_random_password()
 
     with Db() as db:
@@ -122,7 +120,7 @@ def cadastro_curso():
         cursosDao = CursosDAO(db)
 
         try:
-            user = usuarioDao.add_usr(username, password, TiposUsuario.Coordenador.value, nome, email)
+            user = usuarioDao.add_usr(username, password, TiposUsuario.Coordenador.value, attr['nome'], attr['email'])
             if not user:
                 db.rollback()
                 return get_erro(response_messages.ERRO_INESPERADO()), 500
@@ -131,8 +129,8 @@ def cadastro_curso():
             return get_erro(ie.__str__()), 400
 
         curso = Cursos(
-            nomeCurso, 
-            abreviacao,
+            attr['nomeCurso'], 
+            attr['abreviacao'],
             user['codUsuario'],
             db=db
         )
@@ -140,7 +138,7 @@ def cadastro_curso():
         try:
             curso.grava_curso()
 
-            __enviar_email_cadastro_curso(email, abreviacao, nomeCurso, username, password)
+            __enviar_email_cadastro_curso(attr['email'], attr['abreviacao'], attr['nomeCurso'], username, password)
 
             return get_ok(response_messages.ENTIDADE_GRAVADA('Curso')), 201
         except IntegrityError:
@@ -148,7 +146,7 @@ def cadastro_curso():
                 try:
                     cursosDao.reativa_curso(curso)
 
-                    __enviar_email_cadastro_curso(email, abreviacao, nomeCurso, username, password)                        
+                    __enviar_email_cadastro_curso(attr['email'], attr['abreviacao'], attr['nomeCurso'], username, password)                        
 
                     return get_ok(response_messages.CURSO_REATIVADO()), 200
                 except SMTPAuthenticationError as se:
@@ -195,13 +193,12 @@ def edita_curso(codCurso):
             return get_erro(response_messages.NAO_ENCONTRADO('Codigo de curso')), 404
 
         try:
-            descricaoCurso = request.form['nomeCurso'] 
-            abreviacao = request.form['abreviacao']
+            attr = get_request_form_data_attributes(['nomeCurso', 'abreviacao'])
 
-            if descricaoCurso:
-                curso.descricaoCurso = descricaoCurso
-            if abreviacao:
-                curso.abreviacao = abreviacao
+            if attr['nomeCurso']:
+                curso.descricaoCurso = attr['nomeCurso']
+            if attr['abreviacao']:
+                curso.abreviacao = attr['abreviacao']
 
             curso.edita_curso()
             
@@ -213,6 +210,8 @@ def edita_curso(codCurso):
             return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeCurso" e "abreviacao"')), 400
         except IntegrityError:
             return get_erro(response_messages.ERRO_INTEGRIDADE('Abreviacao ou Nome do Curso')), 400
+        except Exception as ex:
+            return get_erro(ex.__str__()), 400
 
 def buscar_todos_cursos():
     with Db() as db:

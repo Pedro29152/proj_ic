@@ -25,6 +25,7 @@ from biblioteca.extensions import (
     token_required,
     TiposUsuario,
     is_valid_email,
+    get_request_form_data_attributes,
     get_enum_obj
 )
 
@@ -83,16 +84,13 @@ class AllCountsResource(Resource):
 class ContatoResource(Resource):
     def post(self):
         try:
-            email = request.form['email']
-            nome = request.form['nome']
-            assunto = request.form['assunto']
-            mensagem = request.form['mensagem']
-        except BadRequestKeyError:
-            return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"email", "nome", "mensagem" e "assunto"'))
+            attr = get_request_form_data_attributes(['email', 'nome', 'assunto', 'mensagem'])
+        except Exception as ex:
+            return get_erro(ex.__str__()), 400
 
-        if not (email and nome and assunto and mensagem):
+        if not (attr['email'] and attr['nome'] and attr['assunto'] and attr['mensagem']):
             return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"email", "nome", "mensagem" e "assunto"'))
-        if not is_valid_email(email):
+        if not is_valid_email(attr['email']):
             return get_bad_request(response_messages.VALIDACAO_DEVE('email', 'ser um e-mail válido'))
 
         CONTACT_MAIL = getenv('CONTACT_EMAIL')
@@ -107,7 +105,7 @@ class ContatoResource(Resource):
                 <p>{2}</p>
 
                 <p>{3}</p>
-            '''.format(email, nome, assunto, mensagem))
+            '''.format(attr['email'], attr['nome'], attr['assunto'], attr['mensagem']))
         mailer.send_email(CONTACT_MAIL, msg)
 
         return get_success(response_messages.EMAIL_ENVIADO())
