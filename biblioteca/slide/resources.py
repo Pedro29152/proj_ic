@@ -67,11 +67,15 @@ class BuscarSlidesResource(Resource):
             except IntegrityError:
                 return get_bad_request(response_messages.ERRO_INTEGRIDADE('Imagem'))
 
-            filepath = os.path.join(
-                app.config['SLIDES_FOLDER'],
-                filename
-            )
-            file.save(filepath)
+            try:
+                filepath = os.path.join(
+                    app.config['SLIDES_FOLDER'],
+                    filename
+                )
+                file.save(filepath)
+            except Exception as ex:
+                db.rollback()
+                raise ex
 
             return get_success(response_messages.ENTIDADE_GRAVADA('Slide'))
 
@@ -105,15 +109,6 @@ class SlideIdResource(Resource):
                 subTitle = request.form['subTitle']
             except:
                 return get_bad_request(response_messages.CAMPOS_OBRIGATORIOS('"titulo", "subTitulo", "title" e "subTitle"'))
-            
-            if (titulo and not title) and not slide['titulo']:
-                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"title"'))
-            if (title and not titulo) and not slide['title']:
-                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"titulo"'))
-            if (subTitulo and not subTitle) and not slide['subtitle']:
-                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitle"'))
-            if (subTitle and not subTitulo) and not slide['subtitulo']:
-                return get_bad_request(response_messages.ATRIBUTO_OBRIGATORIO('"subTitulo"'))
 
             if titulo:
                 slide['titulo'] = titulo
