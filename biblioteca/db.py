@@ -3,11 +3,13 @@ from os import getenv
 from . import response_messages
 
 class Db:
-    def __init__(self, host=None, user=None, password=None, database=None):
+    def __init__(self, host=None, user=None, password=None, database=None, commit_on_exit=True):
         host = host if host else getenv('MYSQL_HOST')
         user = user if user else getenv('MYSQL_USER')
         password = password if password else getenv('MYSQL_PASSWORD')
         database = database if database else getenv('MYSQL_DATABASE')
+
+        self.__commit_on_exit = commit_on_exit
 
         self.__conn, self.__cursor = self.__conecta(host, user, password, database)
         self.__closed = False
@@ -60,7 +62,8 @@ class Db:
         self.__conn.rollback()        
 
     def close(self):
-        self.commit()
+        if self.__commit_on_exit:
+            self.commit()
         self.__conn.close()
         self.__closed = True
 
