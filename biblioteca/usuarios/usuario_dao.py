@@ -139,7 +139,7 @@ class UsuarioDAO:
                 (nomeUsuario, senha, tipoUsuario, ativo, nome, email) 
                 values(%s, %s, %s, 1, %s, %s)
             '''
-            self.db.gravar(query,(usuario, generate_password_hash(senha),tipoUsuario, nome, email.lower()))
+            self.db.gravar(query,(usuario, generate_password_hash(senha), tipoUsuario, nome, email.lower()))
             return self.get_usuario_username(usuario)
         except IntegrityError as ie:
             raise IntegrityError(response_messages.ERRO_INTEGRIDADE('Email ou nome de usuario'))

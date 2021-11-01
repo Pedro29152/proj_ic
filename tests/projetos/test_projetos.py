@@ -1,15 +1,9 @@
 import json
 
-def test_busca_projetos_carregados(client):
-    response = client.get('/api/projetos')
-    
-    data = json.loads(response.data.decode('utf-8'))['data']
-    is_filled = True
-    for item in data:
-        if not (item['autores'] and item['curso'] and item['orientadores'] and item['palavrasChave']):
-            is_filled = False
-    
-    assert  is_filled
+def test_busca_projetos_carregados_2XX(client):
+    response = client['client'].get('/api/projetos')
+
+    assert response.status_code >= 200 and response.status_code < 300
 
 
 # def test_cadastro_projeto(client):        

@@ -401,7 +401,7 @@ def deleta_usuario(codUsuario, is_user):
         usuarioDao = UsuarioDAO(db)
 
         usr = usuarioDao.get_usuario(codUsuario)
-        if usr:
+        if not usr:
             return get_erro(response_messages.NAO_ENCONTRADO('Usuário')), 404
 
         if usr['tipoUsuario'] == TiposUsuario.Coordenador.value:

@@ -1,4 +1,5 @@
 from os.path import dirname, isfile, join
+import json
 
 import pytest
 from dotenv import load_dotenv
@@ -27,8 +28,15 @@ def client():
     ctx = flask_app.app_context()
     ctx.push()
 
+    reponse = testing_client.post('/api/auth/login', data={'username': 'admin', 'password':'123'})
+    admin_token = json.loads(reponse.data.decode('UTF-8'))['token']
+
+    
     # retorna o client criado
-    yield testing_client  # this is where the testing happens!
+    yield {
+        'client': testing_client,
+        'admin_token':admin_token
+    }  # this is where the testing happens!
 
     # remove o contexto ao terminar os testes
     ctx.pop()

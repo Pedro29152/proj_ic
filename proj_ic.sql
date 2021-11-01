@@ -259,7 +259,7 @@ DROP TABLE IF EXISTS `proj_ic`.`usuarios`;
 CREATE TABLE `proj_ic`.`usuarios` (
   `codUsuario` int(11) NOT NULL AUTO_INCREMENT,
   `nomeUsuario` varchar(50) NOT NULL,
-  `senha` varchar(100) NOT NULL,
+  `senha` varchar(150) NOT NULL,
   `tipoUsuario` int(11) NOT NULL,
   `ativo` int(11) NOT NULL DEFAULT '1',
   `nome` varchar(255) NOT NULL,
