@@ -71,3 +71,15 @@ class Db:
         return self
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
+
+def get_db():
+    from flask import g
+
+    if 'db' not in g:
+        g.db = Db()
+
+    return g.db
+
+from werkzeug.local import LocalProxy
+
+DB_CTX = LocalProxy(get_db)
