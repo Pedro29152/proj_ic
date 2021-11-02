@@ -1,5 +1,7 @@
 from flask import jsonify
 
+from biblioteca import response_messages
+
 def get_ok(message='OK'):
     return {
         'status':'OK',
@@ -51,7 +53,9 @@ def get_bad_request(data):
     res.status_code = 400
     return res
 
-def get_not_found(data):
+def get_not_found(data=None):
+    if not data:
+        data=response_messages.PAGINA_NAO_ENCONTRADA()
     res = jsonify(get_erro(data))
     res.status_code = 404
     return res
@@ -59,6 +63,11 @@ def get_not_found(data):
 def get_no_content():
     res = jsonify(None)
     res.status_code = 204
+    return res
+
+def get_method_not_allowed():
+    res = jsonify(get_falha(response_messages.METODO_NAO_PERMITIDO()))
+    res.status_code = 405
     return res
 
 def get_response_code(data, cod):

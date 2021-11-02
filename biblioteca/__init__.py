@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, session, g
 from flask_cors import CORS
-from werkzeug.exceptions import InternalServerError
+from werkzeug.exceptions import MethodNotAllowed, NotFound
 
 import traceback
 from json import dumps
@@ -29,11 +29,10 @@ def create_app(config_name):
 
     # executa a chamada da função de configuração
     configure_api(app)
-    
-    @app.route('/', defaults={'path': ''})
-    @app.route('/<path:path>')
-    def catch_all(path):
-        return render_template("index.html")
+    @app.route('/')
+    def catch_all():
+        import setup
+        return render_template("index.html", versao=setup.__version__, descricao=setup.__description__, descricao_longa=setup.__long_description__)
 
     @app.before_request
     def before():
@@ -47,9 +46,7 @@ def create_app(config_name):
         if not reqValues:
             reqValues = None
 
-        db = DB_CTX
-
-        usuarioDao = UsuarioDAO(db)
+        usuarioDao = UsuarioDAO(DB_CTX)
         
         try:
             if request.path == '/api/auth/login':
@@ -76,9 +73,7 @@ def create_app(config_name):
 
     @app.after_request
     def after(response):
-        db = DB_CTX
-
-        loggerDao = LoggerDAO(db)
+        loggerDao = LoggerDAO(DB_CTX)
 
         try:
             if session['log']:
@@ -102,8 +97,13 @@ def create_app(config_name):
 
     @app.errorhandler(Exception)
     def internal_error(exception):
-        db = DB_CTX
-        loggerDao = LoggerDAO(db)
+        if isinstance(exception, MethodNotAllowed):
+            return responses.get_method_not_allowed()
+
+        if isinstance(exception, NotFound):
+            return responses.get_not_found()
+
+        loggerDao = LoggerDAO(DB_CTX)
             
         ex = traceback.format_exc()
         

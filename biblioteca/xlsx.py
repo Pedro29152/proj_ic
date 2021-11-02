@@ -6,7 +6,7 @@ from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill
 
-from biblioteca.db import Db
+from biblioteca.db import DB_CTX
 from biblioteca.curso.cursos_dao import CursosDAO
 from biblioteca.autor.autores_dao import AutoresDAO
 from biblioteca.projeto.projetos_dao import ProjetosDAO
@@ -41,302 +41,298 @@ INFO_FONT = Font(
 
 
 def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= None, has_filtro_orientador=False, codOrientador=None, user=None):
-    with Db() as db:
-        projetosDao = ProjetosDAO(db)
+    projetosDao = ProjetosDAO(DB_CTX)
 
-        if has_filtro_orientador:
-            if not codOrientador:
-                return None
-            projs = projetosDao.busca_reltorio_projeto_orientador(codOrientador, proj_attr=proj_attr, proj_attr_esp=proj_attr_esp, data_i=data_i, data_f=data_f)
-        else:
-            projs = projetosDao.busca_projeto(proj_attr=proj_attr, proj_attr_esp=proj_attr_esp, data_i=data_i, data_f=data_f)
-        if not projs:
+    if has_filtro_orientador:
+        if not codOrientador:
             return None
-        
-        atributos = list(projs[0].keys())
-        atributos.remove('codProjeto')
-        atributos.remove('codCurso')
-        
-        
-        info = [
-            'FATEC de Carapicuíba',
-            'Gerado por: {}'.format(user['nome']),
-            'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
-        ]
+        projs = projetosDao.busca_reltorio_projeto_orientador(codOrientador, proj_attr=proj_attr, proj_attr_esp=proj_attr_esp, data_i=data_i, data_f=data_f)
+    else:
+        projs = projetosDao.busca_projeto(proj_attr=proj_attr, proj_attr_esp=proj_attr_esp, data_i=data_i, data_f=data_f)
+    if not projs:
+        return None
+    
+    atributos = list(projs[0].keys())
+    atributos.remove('codProjeto')
+    atributos.remove('codCurso')
+    
+    
+    info = [
+        'FATEC de Carapicuíba',
+        'Gerado por: {}'.format(user['nome']),
+        'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
+    ]
 
-        header = __generate_header(atributos)
+    header = __generate_header(atributos)
 
-        column_widths = __format_column_widths( 
-            __get_base_column_widths_info(info), 
-            __get_base_column_widths_header(header),
-            __get_base_column_widths(atributos)
-        )
+    column_widths = __format_column_widths( 
+        __get_base_column_widths_info(info), 
+        __get_base_column_widths_header(header),
+        __get_base_column_widths(atributos)
+    )
 
-        dif = len(header) - len(info)
-        for i in range(dif if dif > 0 else 0):
-            info.append('')
+    dif = len(header) - len(info)
+    for i in range(dif if dif > 0 else 0):
+        info.append('')
 
-        wb = __generate_workbook(
-            title='Relatorio Trabalhos',
-            info=info,
-            header=header
-        )
-        ws = wb.active
+    wb = __generate_workbook(
+        title='Relatorio Trabalhos',
+        info=info,
+        header=header
+    )
+    ws = wb.active
 
-        for i, projeto in enumerate(projs):
-            linha = []
+    for i, projeto in enumerate(projs):
+        linha = []
 
-            for j, atributo in enumerate(atributos):
-                val = projeto[atributo]
-                if atributo == 'autores':
-                    texto = ''
-                    for item in val:
-                        if not texto:
-                            texto = item['nomeAutor']
-                        else:
-                            texto += f', {item["nomeAutor"]}'
-                    linha.append(texto)
-                elif atributo == 'orientadores':
-                    texto = ''
-                    for item in val:
-                        if not texto:
-                            texto = item['nomeOrientador']
-                        else:
-                            texto += f', {item["nomeOrientador"]}'
-                    linha.append(texto)
-                elif atributo == 'palavrasChave':
-                    texto = ''
-                    for item in val:
-                        if not texto:
-                            texto = item['palavraChave']
-                        else:
-                            texto += f', {item["palavraChave"]}'
-                    linha.append(texto)
-                elif atributo == 'curso':
-                    linha.append(val['abreviacao'])
-                elif atributo == 'linguagem':
-                    linha.append(get_enum_obj(LinguagemProjeto)[val])
-                elif atributo == 'modalidade':
-                    linha.append(get_enum_obj(ModalidadeProjeto)[val])
-                elif atributo == 'localPublicacao':
-                    try:
-                        pub = json.loads(val)
+        for j, atributo in enumerate(atributos):
+            val = projeto[atributo]
+            if atributo == 'autores':
+                texto = ''
+                for item in val:
+                    if not texto:
+                        texto = item['nomeAutor']
+                    else:
+                        texto += f', {item["nomeAutor"]}'
+                linha.append(texto)
+            elif atributo == 'orientadores':
+                texto = ''
+                for item in val:
+                    if not texto:
+                        texto = item['nomeOrientador']
+                    else:
+                        texto += f', {item["nomeOrientador"]}'
+                linha.append(texto)
+            elif atributo == 'palavrasChave':
+                texto = ''
+                for item in val:
+                    if not texto:
+                        texto = item['palavraChave']
+                    else:
+                        texto += f', {item["palavraChave"]}'
+                linha.append(texto)
+            elif atributo == 'curso':
+                linha.append(val['abreviacao'])
+            elif atributo == 'linguagem':
+                linha.append(get_enum_obj(LinguagemProjeto)[val])
+            elif atributo == 'modalidade':
+                linha.append(get_enum_obj(ModalidadeProjeto)[val])
+            elif atributo == 'localPublicacao':
+                try:
+                    pub = json.loads(val)
 
-                        if isinstance(pub, list):
-                            texto = ''
-                            for item in pub:
-                                c = list(item.keys())
-                                if not texto:
-                                    texto = item[c[0]]
-                                else:
-                                    texto += f', {item[c[0]]}'
-                            linha.append(texto)
-                        elif isinstance(pub, dict):
-                            c = list(pub.keys())
-                            linha.append(pub[c[0]])
-                        else:
-                            linha.append('')
-                    except JSONDecodeError:
-                        linha.append(val)   
-                else:
-                    linha.append(val)
-                
-                tam_cell = (len(str(linha[j])) + 3)
-                if tam_cell > 80:
-                    tam_cell = 80
-                
-                if len(column_widths) > j:
-                    if tam_cell > column_widths[j]:
-                        column_widths[j] = tam_cell
-                else:
-                    column_widths += [tam_cell]
+                    if isinstance(pub, list):
+                        texto = ''
+                        for item in pub:
+                            c = list(item.keys())
+                            if not texto:
+                                texto = item[c[0]]
+                            else:
+                                texto += f', {item[c[0]]}'
+                        linha.append(texto)
+                    elif isinstance(pub, dict):
+                        c = list(pub.keys())
+                        linha.append(pub[c[0]])
+                    else:
+                        linha.append('')
+                except JSONDecodeError:
+                    linha.append(val)   
+            else:
+                linha.append(val)
+            
+            tam_cell = (len(str(linha[j])) + 3)
+            if tam_cell > 80:
+                tam_cell = 80
+            
+            if len(column_widths) > j:
+                if tam_cell > column_widths[j]:
+                    column_widths[j] = tam_cell
+            else:
+                column_widths += [tam_cell]
 
-            ws.append(linha)
+        ws.append(linha)
 
-        for i, column_width in enumerate(column_widths):
-            ws.column_dimensions[get_column_letter(i+1)].width = column_width
-        
-        return wb
+    for i, column_width in enumerate(column_widths):
+        ws.column_dimensions[get_column_letter(i+1)].width = column_width
+    
+    return wb
 
 def get_cursos_workbook(data_i= None, data_f= None, user=None):
-    with Db() as db:
-        cursosDao = CursosDAO(db)
+    cursosDao = CursosDAO(DB_CTX)
+    
+    cursos = cursosDao.get_relatorio_cursos(data_i=data_i, data_f=data_f)
+    if not cursos:
+        return None
+
+    atributos = list(cursos[0].keys())
+
+    info = [
+        'FATEC de Carapicuíba',
+        'Gerado por: {}'.format(user['nome']),
+        'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
+    ]
+    
+    header = __generate_header(atributos)
+
+    column_widths = __format_column_widths( 
+        __get_base_column_widths_info(info), 
+        __get_base_column_widths_header(header),
+        __get_base_column_widths(atributos)
+    )
+
+    dif = len(header) - len(info)
+    for i in range(dif if dif > 0 else 0):
+        info.append('')
+
+    wb = __generate_workbook(
+        title='Relatorio Cursos',
+        info=info,
+        header= __generate_header(atributos)
+    )
+    ws = wb.active
+
+    for i, curso in enumerate(cursos):
+        linha = []
         
-        cursos = cursosDao.get_relatorio_cursos(data_i=data_i, data_f=data_f)
-        if not cursos:
-            return None
-
-        atributos = list(cursos[0].keys())
-
-        info = [
-            'FATEC de Carapicuíba',
-            'Gerado por: {}'.format(user['nome']),
-            'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
-        ]
-        
-        header = __generate_header(atributos)
-
-        column_widths = __format_column_widths( 
-            __get_base_column_widths_info(info), 
-            __get_base_column_widths_header(header),
-            __get_base_column_widths(atributos)
-        )
-
-        dif = len(header) - len(info)
-        for i in range(dif if dif > 0 else 0):
-            info.append('')
-
-        wb = __generate_workbook(
-            title='Relatorio Cursos',
-            info=info,
-            header= __generate_header(atributos)
-        )
-        ws = wb.active
-
-        for i, curso in enumerate(cursos):
-            linha = []
+        for j, atributo in enumerate(atributos):
+            val = curso[atributo]
             
-            for j, atributo in enumerate(atributos):
-                val = curso[atributo]
-                
-                linha.append(val)
+            linha.append(val)
 
-                tam_cell = (len(str(linha[j])) + 3)
-                if tam_cell > 80:
-                    tam_cell = 80
-                
-                if len(column_widths) > j:
-                    if tam_cell > column_widths[j]:
-                        column_widths[j] = tam_cell
-                else:
-                    column_widths += [tam_cell]
+            tam_cell = (len(str(linha[j])) + 3)
+            if tam_cell > 80:
+                tam_cell = 80
+            
+            if len(column_widths) > j:
+                if tam_cell > column_widths[j]:
+                    column_widths[j] = tam_cell
+            else:
+                column_widths += [tam_cell]
 
-            ws.append(linha)
+        ws.append(linha)
 
-        for i, column_width in enumerate(column_widths):
-            ws.column_dimensions[get_column_letter(i+1)].width = column_width
-        
-        return wb
+    for i, column_width in enumerate(column_widths):
+        ws.column_dimensions[get_column_letter(i+1)].width = column_width
+    
+    return wb
 
 def get_orientadores_workbook(data_i= None, data_f= None, user=None):
-    with Db() as db:
-        orientadoresDao = OrientadoresDAO(db)
+    orientadoresDao = OrientadoresDAO(DB_CTX)
 
-        orientadores = orientadoresDao.get_relatorio_orientadores(data_i=data_i, data_f=data_f)
-        if not orientadores:
-            return None
+    orientadores = orientadoresDao.get_relatorio_orientadores(data_i=data_i, data_f=data_f)
+    if not orientadores:
+        return None
 
-        atributos = list(orientadores[0].keys())
+    atributos = list(orientadores[0].keys())
 
-        info = [
-            'FATEC de Carapicuíba',
-            'Gerado por: {}'.format(user['nome']),
-            'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
-        ]
-        
-        header = __generate_header(atributos)
+    info = [
+        'FATEC de Carapicuíba',
+        'Gerado por: {}'.format(user['nome']),
+        'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
+    ]
+    
+    header = __generate_header(atributos)
 
-        column_widths = __format_column_widths( 
-            __get_base_column_widths_info(info), 
-            __get_base_column_widths_header(header),
-            __get_base_column_widths(atributos)
-        )
+    column_widths = __format_column_widths( 
+        __get_base_column_widths_info(info), 
+        __get_base_column_widths_header(header),
+        __get_base_column_widths(atributos)
+    )
 
-        dif = len(header) - len(info)
-        for i in range(dif if dif > 0 else 0):
-            info.append('')
+    dif = len(header) - len(info)
+    for i in range(dif if dif > 0 else 0):
+        info.append('')
 
-        wb = __generate_workbook(
-            title='Relatorio Orientadores',
-            info=info,
-            header= __generate_header(atributos)
-        )
-        ws = wb.active
+    wb = __generate_workbook(
+        title='Relatorio Orientadores',
+        info=info,
+        header= __generate_header(atributos)
+    )
+    ws = wb.active
 
-        for i, orientador in enumerate(orientadores):
-            linha = []
+    for i, orientador in enumerate(orientadores):
+        linha = []
 
-            for j, atributo in enumerate(atributos):
-                val = orientador[atributo]
-                
-                linha.append(val)
+        for j, atributo in enumerate(atributos):
+            val = orientador[atributo]
+            
+            linha.append(val)
 
-                tam_cell = (len(str(linha[j])) + 3)
-                if tam_cell > 80:
-                    tam_cell = 80
-                
-                if len(column_widths) > j:
-                    if tam_cell > column_widths[j]:
-                        column_widths[j] = tam_cell
-                else:
-                    column_widths += [tam_cell]
+            tam_cell = (len(str(linha[j])) + 3)
+            if tam_cell > 80:
+                tam_cell = 80
+            
+            if len(column_widths) > j:
+                if tam_cell > column_widths[j]:
+                    column_widths[j] = tam_cell
+            else:
+                column_widths += [tam_cell]
 
-            ws.append(linha)
+        ws.append(linha)
 
-        for i, column_width in enumerate(column_widths):
-            ws.column_dimensions[get_column_letter(i+1)].width = column_width
-        
-        return wb
+    for i, column_width in enumerate(column_widths):
+        ws.column_dimensions[get_column_letter(i+1)].width = column_width
+    
+    return wb
 
 def get_autores_workbook(data_i=None, data_f=None, user=None):
-    with Db()as db:
-        autoresDao = AutoresDAO(db)
+    autoresDao = AutoresDAO(DB_CTX)
 
-        autores = autoresDao.get_relatorio_autores(data_i=data_i, data_f=data_f)
-        if not autores:
-            return None
+    autores = autoresDao.get_relatorio_autores(data_i=data_i, data_f=data_f)
+    if not autores:
+        return None
 
-        atributos = list(autores[0].keys())
+    atributos = list(autores[0].keys())
 
-        info = [
-            'FATEC de Carapicuíba',
-            'Gerado por: {}'.format(user['nome']),
-            'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
-        ]
-        
-        header = __generate_header(atributos)
+    info = [
+        'FATEC de Carapicuíba',
+        'Gerado por: {}'.format(user['nome']),
+        'Data: {}'.format(datetime.now().strftime('%d/%m/%Y %H:%M'))
+    ]
+    
+    header = __generate_header(atributos)
 
-        column_widths = __format_column_widths( 
-            __get_base_column_widths_info(info), 
-            __get_base_column_widths_header(header),
-            __get_base_column_widths(atributos)
-        )
+    column_widths = __format_column_widths( 
+        __get_base_column_widths_info(info), 
+        __get_base_column_widths_header(header),
+        __get_base_column_widths(atributos)
+    )
 
-        dif = len(header) - len(info)
-        for i in range(dif if dif > 0 else 0):
-            info.append('')
+    dif = len(header) - len(info)
+    for i in range(dif if dif > 0 else 0):
+        info.append('')
 
-        wb = __generate_workbook(
-            title='Relatorio de Autores',
-            info=info,
-            header= __generate_header(atributos)
-        )
-        ws = wb.active
+    wb = __generate_workbook(
+        title='Relatorio de Autores',
+        info=info,
+        header= __generate_header(atributos)
+    )
+    ws = wb.active
 
-        for i, autor in enumerate(autores):
-            linha = []
+    for i, autor in enumerate(autores):
+        linha = []
 
-            for j, atributo in enumerate(atributos):
-                val = autor[atributo]
-                
-                linha.append(val)
+        for j, atributo in enumerate(atributos):
+            val = autor[atributo]
+            
+            linha.append(val)
 
-                tam_cell = (len(str(linha[j])) + 3)
-                if tam_cell > 80:
-                    tam_cell = 80
-                
-                if len(column_widths) > j:
-                    if tam_cell > column_widths[j]:
-                        column_widths[j] = tam_cell
-                else:
-                    column_widths += [tam_cell]
+            tam_cell = (len(str(linha[j])) + 3)
+            if tam_cell > 80:
+                tam_cell = 80
+            
+            if len(column_widths) > j:
+                if tam_cell > column_widths[j]:
+                    column_widths[j] = tam_cell
+            else:
+                column_widths += [tam_cell]
 
-            ws.append(linha)
+        ws.append(linha)
 
-        for i, column_width in enumerate(column_widths):
-            ws.column_dimensions[get_column_letter(i+1)].width = column_width
-        
-        return wb
+    for i, column_width in enumerate(column_widths):
+        ws.column_dimensions[get_column_letter(i+1)].width = column_width
+    
+    return wb
 
 def __generate_header(attr):
     ret = [separate_camel_case(key) for key in attr]

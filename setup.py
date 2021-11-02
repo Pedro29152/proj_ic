@@ -4,7 +4,7 @@
 from setuptools import find_packages, setup
 
 __version__ = '1.2.0'
-__description__ = 'Biblioteca de Trabalhos Acadêmicos'
+__description__ = 'BTA - Biblioteca de Trabalhos Acadêmicos'
 __long_description__ = 'Biblioteca Virtual de Trabalhos Acadêmicos Prof. Me. Silvio José Rosa'
 
 __author__ = 'Pedro Vitorio'
@@ -15,13 +15,12 @@ testing_extras = [
     'pytest-cov',
 ]
 
-setup(
+'''setup(
     name='biblioteca-api',
     version=__version__,
     author=__author__,
     author_email=__author_email__,
     packages=find_packages(),
-    license='MIT',
     description=__description__,
     long_description=__long_description__,
     url='http://www.bta.fateccarapicuiba.edu.br/',
@@ -36,4 +35,4 @@ setup(
     extras_require={
         'testing': testing_extras,
     }
-)
+)'''

@@ -3,7 +3,7 @@ from flask_restful import Resource
 from werkzeug.exceptions import BadRequestKeyError
 from os import getenv
 
-from biblioteca.db import Db
+from biblioteca.db import DB_CTX
 from biblioteca import mailer, response_messages
 from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.projeto.projetos_dao import ProjetosDAO
@@ -32,54 +32,53 @@ from biblioteca.extensions import (
 class AllCountsResource(Resource):
     @token_required
     def get(self, user_info):
-        with Db() as db:
-            usuarioDao = UsuarioDAO(db)
-            projetosDao = ProjetosDAO(db)
-            orientadoresDao = OrientadoresDAO(db)
-            cursosDao = CursosDAO(db)
+        usuarioDao = UsuarioDAO(DB_CTX)
+        projetosDao = ProjetosDAO(DB_CTX)
+        orientadoresDao = OrientadoresDAO(DB_CTX)
+        cursosDao = CursosDAO(DB_CTX)
 
-            if (user_info['tipoUsuario'] == TiposUsuario.Aluno.value):
-                return get_unauthorized(response_messages.SEM_AUTORIZACAO())
-            if (user_info['tipoUsuario'] == TiposUsuario.Professor.value):
-                orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
-                if not orientador:
-                    return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
+        if (user_info['tipoUsuario'] == TiposUsuario.Aluno.value):
+            return get_unauthorized(response_messages.SEM_AUTORIZACAO())
+        if (user_info['tipoUsuario'] == TiposUsuario.Professor.value):
+            orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
+            if not orientador:
+                return get_bad_request(response_messages.USUARIO_NAO_RELACIONADO())
 
-                usuarios_count = usuarioDao.get_count(codOrientador=orientador['codOrientador'])
-                projetos_count = projetosDao.get_count(codOrientador=orientador['codOrientador'])
-                cursos_count = cursosDao.get_count()
+            usuarios_count = usuarioDao.get_count(codOrientador=orientador['codOrientador'])
+            projetos_count = projetosDao.get_count(codOrientador=orientador['codOrientador'])
+            cursos_count = cursosDao.get_count()
 
-                return get_data({
-                    'usuariosCount': usuarios_count,
-                    'projetosCount': projetos_count,
-                    'cursosCount': cursos_count,
-                })
-            if (user_info['tipoUsuario'] == TiposUsuario.Secretaria.value):
-                usuarios_count = usuarioDao.get_count()
-                projetos_count = projetosDao.get_count()
-                orientadores_count = orientadoresDao.get_count()
-                cursos_count = cursosDao.get_count()
+            return get_data({
+                'usuariosCount': usuarios_count,
+                'projetosCount': projetos_count,
+                'cursosCount': cursos_count,
+            })
+        if (user_info['tipoUsuario'] == TiposUsuario.Secretaria.value):
+            usuarios_count = usuarioDao.get_count()
+            projetos_count = projetosDao.get_count()
+            orientadores_count = orientadoresDao.get_count()
+            cursos_count = cursosDao.get_count()
 
-                return get_data({
-                    'usuariosCount': usuarios_count,
-                    'projetosCount': projetos_count,
-                    'orientadoresCount': orientadores_count,
-                    'cursosCount': cursos_count,
-                })
-            if (user_info['tipoUsuario'] == TiposUsuario.Coordenador.value):
-                return "WIP"
-            if (user_info['tipoUsuario'] == TiposUsuario.Administrador.value):
-                usuarios_count = usuarioDao.get_count()
-                projetos_count = projetosDao.get_count()
-                orientadores_count = orientadoresDao.get_count()
-                cursos_count = cursosDao.get_count()
+            return get_data({
+                'usuariosCount': usuarios_count,
+                'projetosCount': projetos_count,
+                'orientadoresCount': orientadores_count,
+                'cursosCount': cursos_count,
+            })
+        if (user_info['tipoUsuario'] == TiposUsuario.Coordenador.value):
+            return "WIP"
+        if (user_info['tipoUsuario'] == TiposUsuario.Administrador.value):
+            usuarios_count = usuarioDao.get_count()
+            projetos_count = projetosDao.get_count()
+            orientadores_count = orientadoresDao.get_count()
+            cursos_count = cursosDao.get_count()
 
-                return get_data({
-                    'usuariosCount': usuarios_count,
-                    'projetosCount': projetos_count,
-                    'orientadoresCount': orientadores_count,
-                    'cursosCount': cursos_count,
-                })
+            return get_data({
+                'usuariosCount': usuarios_count,
+                'projetosCount': projetos_count,
+                'orientadoresCount': orientadores_count,
+                'cursosCount': cursos_count,
+            })
 
 class ContatoResource(Resource):
     def post(self):

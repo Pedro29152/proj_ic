@@ -1,4 +1,3 @@
-from biblioteca.db import Db
 from biblioteca import response_messages
 from biblioteca import extensions
 from mysql.connector.errors import DataError, IntegrityError

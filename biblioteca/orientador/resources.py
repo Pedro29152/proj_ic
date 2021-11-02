@@ -6,7 +6,7 @@ from mysql.connector.errors import DataError, IntegrityError
 
 from .schemas import Orientadores
 from .orientadores_dao import OrientadoresDAO
-from biblioteca.db import Db
+from biblioteca.db import DB_CTX
 from biblioteca import mailer, response_messages
 from biblioteca.usuarios.usuario_orientado_dao import UsuarioOrientadoDAO
 from biblioteca.projeto.projetos_dao import ProjetosDAO
@@ -77,11 +77,10 @@ class DesativaOrientadorResource(Resource):
 class CountOrientadoresResource(Resource):
     @secretaria_token_required
     def get(self):
-        with Db() as db:
-            orientadoresDao = OrientadoresDAO(db)
+        orientadoresDao = OrientadoresDAO(DB_CTX)
 
-            count = orientadoresDao.get_count()
-            return get_count(count)
+        count = orientadoresDao.get_count()
+        return get_count(count)
 
 class SolicitarRevisaoResource(Resource):
     @professor_token_required
@@ -98,196 +97,184 @@ class VerificarRevisoesResource(Resource):
 class BuscarRevisoesResource(Resource):
     @secretaria_token_required
     def get(self):
-        with Db() as db:
-            orientadoresDao = OrientadoresDAO(db)
-                
-            ret = orientadoresDao.buscar_revisoes()
-            if ret:
-                return get_response_code(ret, 200)
-            return get_no_content()
+        orientadoresDao = OrientadoresDAO(DB_CTX)
+            
+        ret = orientadoresDao.buscar_revisoes()
+        if ret:
+            return get_response_code(ret, 200)
+        return get_no_content()
 
 class GetRevisaoResource(Resource):
     @secretaria_aluno_token_required
     def get(self, id, user_info):
-        with Db() as db:
-            orientadoresDao = OrientadoresDAO(db)
-                
-            if user_info['tipoUsuario'] == TiposUsuario.Aluno.value:
-                ret = orientadoresDao.get_revisao_codUsuario_autor(id, user_info['codUsuario'])    
-            else:
-                ret = orientadoresDao.get_revisao(id)
+        orientadoresDao = OrientadoresDAO(DB_CTX)
             
-            if ret:
-                return get_response_code(ret, 200)
-            return get_not_found(response_messages.NAO_ENCONTRADO('Revisão'))
+        if user_info['tipoUsuario'] == TiposUsuario.Aluno.value:
+            ret = orientadoresDao.get_revisao_codUsuario_autor(id, user_info['codUsuario'])    
+        else:
+            ret = orientadoresDao.get_revisao(id)
+        
+        if ret:
+            return get_response_code(ret, 200)
+        return get_not_found(response_messages.NAO_ENCONTRADO('Revisão'))
 
 def cadastro_orientador():
-    with Db() as db:
-        try:
-            attr = get_request_form_data_attributes(['nomeOrientador', 'raOrientador', 'email', 'linkCurrLattes'])
+    try:
+        attr = get_request_form_data_attributes(['nomeOrientador', 'raOrientador', 'email', 'linkCurrLattes'])
 
-            orientadores = Orientadores(
-                nomeOrientador=attr['nomeOrientador'],
-                raOrientador=attr['raOrientador'],
-                email=attr['email'],
-                currLattes=attr['linkCurrLattes'],
-                db=db
-            )
-            
-            orientadores.grava_orientador()
+        orientadores = Orientadores(
+            nomeOrientador=attr['nomeOrientador'],
+            raOrientador=attr['raOrientador'],
+            email=attr['email'],
+            currLattes=attr['linkCurrLattes'],
+            db=DB_CTX
+        )
+        
+        orientadores.grava_orientador()
 
-            return get_ok(response_messages.ENTIDADE_GRAVADA('Orientador')), 201
-        except BadRequestKeyError:
-            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"')), 400
-        except Exception as ex:
-            return get_erro(ex.__str__()), 400
-
+        return get_ok(response_messages.ENTIDADE_GRAVADA('Orientador')), 201
+    except BadRequestKeyError:
+        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"')), 400
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
 
 def edita_orientador(codOrientador):
-    with Db() as db:
-        orientadoresDao = OrientadoresDAO(db)
-            
-        ori = orientadoresDao.get_orientador_codigo(codOrientador)
-        if not ori:
-            return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 404
+    orientadoresDao = OrientadoresDAO(DB_CTX)
+        
+    ori = orientadoresDao.get_orientador_codigo(codOrientador)
+    if not ori:
+        return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 404
 
-        try:
-            attr = get_request_form_data_attributes(['nomeOrientador', 'raOrientador', 'email', 'linkCurrLattes'])
-            
-            if attr['nomeOrientador']:
-                ori.nomeOrientador = attr['nomeOrientador']
-            if attr['raOrientador']:
-                ori.raOrientador = attr['raOrientador']
-            if attr['email']:
-                if not is_valid_email(attr['email']):
-                    raise AttributeError(response_messages.VALIDACAO_DEVE('email', 'ser um email valido'))
-                ori.email = attr['email']
-            if attr['linkCurrLattes']:
-                if not is_valid_http_link(attr['linkCurrLattes']):
-                    raise AttributeError(response_messages.VALIDACAO_DEVE('currLattes', 'ser um link http/https valido'))
-                ori.currLattes = attr['linkCurrLattes']
+    try:
+        attr = get_request_form_data_attributes(['nomeOrientador', 'raOrientador', 'email', 'linkCurrLattes'])
+        
+        if attr['nomeOrientador']:
+            ori.nomeOrientador = attr['nomeOrientador']
+        if attr['raOrientador']:
+            ori.raOrientador = attr['raOrientador']
+        if attr['email']:
+            if not is_valid_email(attr['email']):
+                raise AttributeError(response_messages.VALIDACAO_DEVE('email', 'ser um email valido'))
+            ori.email = attr['email']
+        if attr['linkCurrLattes']:
+            if not is_valid_http_link(attr['linkCurrLattes']):
+                raise AttributeError(response_messages.VALIDACAO_DEVE('currLattes', 'ser um link http/https valido'))
+            ori.currLattes = attr['linkCurrLattes']
 
-            ori.edita_orientador()
+        ori.edita_orientador()
 
-            return get_ok(response_messages.ENTIDADE_EDITADA('Orientador')), 200
+        return get_ok(response_messages.ENTIDADE_EDITADA('Orientador')), 200
 
-        except AttributeError as ex:
-            return get_erro(ex.__str__()), 400
-        except BadRequestKeyError:
-            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"')), 400
-        except IntegrityError:
-            return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou raAutor')), 400
-        except DataError:
-            return get_erro(response_messages.VALIDACAO_DEVE('raOrientador', 'ter no maximo 5 caracteres e seu nome no maximo 200')), 400
-        except Exception as ex:
-            return get_erro(ex.__str__()), 400
-
+    except AttributeError as ex:
+        return get_erro(ex.__str__()), 400
+    except BadRequestKeyError:
+        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeOrientador", "raOrientador", "email" e "linkCurrLattes"')), 400
+    except IntegrityError:
+        return get_erro(response_messages.ERRO_INTEGRIDADE('Email ou raAutor')), 400
+    except DataError:
+        return get_erro(response_messages.VALIDACAO_DEVE('raOrientador', 'ter no maximo 5 caracteres e seu nome no maximo 200')), 400
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
 
 def get_orientador(codOrientador):
-    with Db() as db:
-        orientadoresDao = OrientadoresDAO(db)
-            
-        ori = orientadoresDao.get_orientador_codigo(codOrientador, False)
-        if not ori:
-            return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 404
-        return ori, 200
+    orientadoresDao = OrientadoresDAO(DB_CTX)
+        
+    ori = orientadoresDao.get_orientador_codigo(codOrientador, False)
+    if not ori:
+        return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 404
+    return ori, 200
 
 def busca_orientadores():
-    with Db() as db:
-        orientadoresDao = OrientadoresDAO(db)
-            
-        query = request.args.get('nomeOrientador')
-
-        if query:
-            ret = orientadoresDao.busca_orientadores_nome(query)
-        else:
-            ret = orientadoresDao.busca_orientadores()
+    orientadoresDao = OrientadoresDAO(DB_CTX)
         
-        if ret:
-            return get_data(ret), 200
-        else:
-            return None, 204
+    query = request.args.get('nomeOrientador')
+
+    if query:
+        ret = orientadoresDao.busca_orientadores_nome(query)
+    else:
+        ret = orientadoresDao.busca_orientadores()
+    
+    if ret:
+        return get_data(ret), 200
+    else:
+        return None, 204
 
 def busca_todos_orientadores():
-    with Db() as db:
-        orientadoresDao = OrientadoresDAO(db)
-            
-        query = request.args.get('nomeOrientador')
-
-        if query:
-            ret = orientadoresDao.busca_todos_orientadores_nome(query)
-        else:
-            ret = orientadoresDao.busca_todos_orientadores()
+    orientadoresDao = OrientadoresDAO(DB_CTX)
         
-        if ret:
-            return get_data(ret), 200
-        else:
-            return None, 204
+    query = request.args.get('nomeOrientador')
+
+    if query:
+        ret = orientadoresDao.busca_todos_orientadores_nome(query)
+    else:
+        ret = orientadoresDao.busca_todos_orientadores()
+    
+    if ret:
+        return get_data(ret), 200
+    else:
+        return None, 204
 
 def ativa_orientador(id):
-    with Db() as db:
-        orientadoresDao = OrientadoresDAO(db)
-            
-        if orientadoresDao.exists(id):
-            orientadoresDao.ativa_orientador(id)
-        else:
-            return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 404
-        return get_ok(response_messages.ENTIDADE_ATIVADA('Orientador')), 200
+    orientadoresDao = OrientadoresDAO(DB_CTX)
+        
+    if orientadoresDao.exists(id):
+        orientadoresDao.ativa_orientador(id)
+    else:
+        return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 404
+    return get_ok(response_messages.ENTIDADE_ATIVADA('Orientador')), 200
 
 def desativa_orientador(id):
-    with Db() as db:
-        orientadoresDao = OrientadoresDAO(db)
-            
-        if orientadoresDao.exists(id):
-            orientadoresDao.desativa_orientador(id)
-        else:
-            return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 404
-        return get_ok(response_messages.ENTIDADE_DESATIVADA('Orientador')), 200
+    orientadoresDao = OrientadoresDAO(DB_CTX)
+        
+    if orientadoresDao.exists(id):
+        orientadoresDao.desativa_orientador(id)
+    else:
+        return get_erro(response_messages.NAO_ENCONTRADO('Orientador')), 404
+    return get_ok(response_messages.ENTIDADE_DESATIVADA('Orientador')), 200
 
 def solicitar_revisao(codProjeto, professor_user_info):
-    with Db() as db:
-        usuarioDao = UsuarioDAO(db)
-        projetosDao = ProjetosDAO(db)
-        orientadoresDao = OrientadoresDAO(db)
-        usuarioOrientadoDao = UsuarioOrientadoDAO(db)
+    usuarioDao = UsuarioDAO(DB_CTX)
+    projetosDao = ProjetosDAO(DB_CTX)
+    orientadoresDao = OrientadoresDAO(DB_CTX)
+    usuarioOrientadoDao = UsuarioOrientadoDAO(DB_CTX)
 
-        orientador = orientadoresDao.get_orientador_codUsuario(professor_user_info['codUsuario'])
-        if not orientador:
-            return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
-        
-        proj = projetosDao.get_projeto_novo(codProjeto, True)
-        if not proj:
-            return get_erro(response_messages.NAO_ENCONTRADO('Trabalho')), 404
+    orientador = orientadoresDao.get_orientador_codUsuario(professor_user_info['codUsuario'])
+    if not orientador:
+        return get_erro(response_messages.USUARIO_NAO_RELACIONADO()), 400
+    
+    proj = projetosDao.get_projeto_novo(codProjeto, True)
+    if not proj:
+        return get_erro(response_messages.NAO_ENCONTRADO('Trabalho')), 404
 
-        try:
-            attr = get_request_form_data_attributes(['mensagem'])
-        except Exception as ex:
-            return get_erro(ex.__str__()), 400
+    try:
+        attr = get_request_form_data_attributes(['mensagem'])
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
 
-        usuarioOrientado = usuarioOrientadoDao.get_usuario_orientado_codProjeto_codOrientador(codProjeto, orientador['codOrientador'])
-        if usuarioOrientado:
-            usuarioDao.gerar_solitacao(usuarioOrientado['codUsuarioOrientado'], attr['mensagem'])
-
-            for autor in proj['autores']:
-                try:
-                    enviar_email_revisao(autor, proj['tituloProjeto'], attr['mensagem'])
-                except SMTPAuthenticationError:
-                    db.rollback()
-                    return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL())
-
-            return get_ok(response_messages.SOLICITACAO_REVISAO_ENVIADA()), 200
+    usuarioOrientado = usuarioOrientadoDao.get_usuario_orientado_codProjeto_codOrientador(codProjeto, orientador['codOrientador'])
+    if not usuarioOrientado:
         return get_erro(response_messages.ORIENTACAO_NECESSARIA()), 400
 
-def verificar_revisoes(user_info):
-    with Db() as db:
-        usuarioDao = UsuarioDAO(db)
-        usuarioOrientadoDao = UsuarioOrientadoDAO(db)
+    usuarioDao.gerar_solitacao(usuarioOrientado['codUsuarioOrientado'], attr['mensagem'])
 
-        usuarioOrientado = usuarioOrientadoDao.get_usuario_orientado_aluno(user_info['codUsuario'])
-        revisao = usuarioDao.verificar_revisao(usuarioOrientado['codUsuarioOrientado'])
-        if revisao:
-            return get_data(revisao), 200
-        return None, 204
+    for autor in proj['autores']:
+        try:
+            enviar_email_revisao(autor, proj['tituloProjeto'], attr['mensagem'])
+        except SMTPAuthenticationError:
+            DB_CTX.rollback()
+            return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL())
+
+    return get_ok(response_messages.SOLICITACAO_REVISAO_ENVIADA()), 200
+
+def verificar_revisoes(user_info):
+    usuarioDao = UsuarioDAO(DB_CTX)
+    usuarioOrientadoDao = UsuarioOrientadoDAO(DB_CTX)
+
+    usuarioOrientado = usuarioOrientadoDao.get_usuario_orientado_aluno(user_info['codUsuario'])
+    revisao = usuarioDao.verificar_revisao(usuarioOrientado['codUsuarioOrientado'])
+    if revisao:
+        return get_data(revisao), 200
+    return None, 204
 
 def enviar_email_revisao(autor, titulo_projeto, mensagem):
     msg = mailer.generate_message_html(

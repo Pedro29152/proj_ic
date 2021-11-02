@@ -4,7 +4,7 @@ from werkzeug import exceptions
 from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import IntegrityError
 
-from biblioteca.db import Db
+from biblioteca.db import DB_CTX
 from biblioteca import mailer, response_messages
 from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.responses import (
@@ -59,30 +59,28 @@ class AtivaCursoResource(Resource):
         if not (attr['codUsuario']):
             return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
 
-        with Db() as db:
-            cursosDao = CursosDAO(db)
-            usuarioDao = UsuarioDAO(db)
+        cursosDao = CursosDAO(DB_CTX)
+        usuarioDao = UsuarioDAO(DB_CTX)
 
-            user = usuarioDao.get_usuario_ativo(attr['codUsuario'])
-            if not user:
-                return get_falha(response_messages.USUARIO_NAO_EXISTE()), 400
+        user = usuarioDao.get_usuario_ativo(attr['codUsuario'])
+        if not user:
+            return get_falha(response_messages.USUARIO_NAO_EXISTE()), 400
 
-            if not user['tipoUsuario'] == TiposUsuario.Coordenador.value:
-                return  get_falha(response_messages.TIPO_USUARIO_ERRADO('Coordenador')), 400
+        if not user['tipoUsuario'] == TiposUsuario.Coordenador.value:
+            return  get_falha(response_messages.TIPO_USUARIO_ERRADO('Coordenador')), 400
 
-            cursosDao.ativa_curso(id, user['codUsuario'])
+        cursosDao.ativa_curso(id, user['codUsuario'])
 
-            return get_ok(response_messages.ENTIDADE_ATIVADA('Curso'))
+        return get_ok(response_messages.ENTIDADE_ATIVADA('Curso'))
 
 class DesativaCursoResource(Resource):
     @secretaria_token_required
     def post(self, id):
-        with Db() as db:
-            cursosDao = CursosDAO(db)
-                
-            cursosDao.desativa_curso(id)
+        cursosDao = CursosDAO(DB_CTX)
+            
+        cursosDao.desativa_curso(id)
 
-            return get_ok(response_messages.ENTIDADE_DESATIVADA('Curso'))
+        return get_ok(response_messages.ENTIDADE_DESATIVADA('Curso'))
 
 class TodosCursosResource(Resource):
     @secretaria_token_required
@@ -93,12 +91,11 @@ class TodosCursosResource(Resource):
 class CountCursosResource(Resource):
     @secretaria_token_required
     def get(self):
-        with Db() as db:
-            cursosDao = CursosDAO(db)
+        cursosDao = CursosDAO(DB_CTX)
 
-            count = cursosDao.get_count()
+        count = cursosDao.get_count()
 
-            return get_count_res(count)
+        return get_count_res(count)
 
 
 def cadastro_curso():
@@ -115,112 +112,107 @@ def cadastro_curso():
     username = 'coordenador_{}'.format(attr['abreviacao'].lower())
     password = generate_random_password()
 
-    with Db() as db:
-        usuarioDao = UsuarioDAO(db)
-        cursosDao = CursosDAO(db)
+    usuarioDao = UsuarioDAO(DB_CTX)
+    cursosDao = CursosDAO(DB_CTX)
 
-        try:
-            user = usuarioDao.add_usr(username, password, TiposUsuario.Coordenador.value, attr['nome'], attr['email'])
-            if not user:
-                db.rollback()
+    try:
+        user = usuarioDao.add_usr(username, password, TiposUsuario.Coordenador.value, attr['nome'], attr['email'])
+        if not user:
+            DB_CTX.rollback()
+            return get_erro(response_messages.ERRO_INESPERADO()), 500
+    except IntegrityError as ie:
+        DB_CTX.rollback()
+        return get_erro(ie.__str__()), 400
+
+    curso = Cursos(
+        attr['nomeCurso'], 
+        attr['abreviacao'],
+        user['codUsuario'],
+        db=DB_CTX
+    )
+
+    try:
+        curso.grava_curso()
+
+        __enviar_email_cadastro_curso(attr['email'], attr['abreviacao'], attr['nomeCurso'], username, password)
+
+        return get_ok(response_messages.ENTIDADE_GRAVADA('Curso')), 201
+    except IntegrityError:
+        if not cursosDao.is_ativo(curso):
+            try:
+                cursosDao.reativa_curso(curso)
+
+                __enviar_email_cadastro_curso(attr['email'], attr['abreviacao'], attr['nomeCurso'], username, password)                        
+
+                return get_ok(response_messages.CURSO_REATIVADO()), 200
+            except SMTPAuthenticationError as se:
+                DB_CTX.rollback()
+                return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
+            except Exception as ex:
+                DB_CTX.rollback()
                 return get_erro(response_messages.ERRO_INESPERADO()), 500
-        except IntegrityError as ie:
-            db.rollback()
-            return get_erro(ie.__str__()), 400
-
-        curso = Cursos(
-            attr['nomeCurso'], 
-            attr['abreviacao'],
-            user['codUsuario'],
-            db=db
-        )
-
-        try:
-            curso.grava_curso()
-
-            __enviar_email_cadastro_curso(attr['email'], attr['abreviacao'], attr['nomeCurso'], username, password)
-
-            return get_ok(response_messages.ENTIDADE_GRAVADA('Curso')), 201
-        except IntegrityError:
-            if not cursosDao.is_ativo(curso):
-                try:
-                    cursosDao.reativa_curso(curso)
-
-                    __enviar_email_cadastro_curso(attr['email'], attr['abreviacao'], attr['nomeCurso'], username, password)                        
-
-                    return get_ok(response_messages.CURSO_REATIVADO()), 200
-                except SMTPAuthenticationError as se:
-                    db.rollback()
-                    return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
-                except Exception as ex:
-                    db.rollback()
-                    return get_erro(response_messages.ERRO_INESPERADO()), 500
-            else:
-                db.rollback()
-                return get_erro(response_messages.ERRO_INTEGRIDADE('Nome ou breviacao')), 400
-        except SMTPAuthenticationError as se:
-            db.rollback()
-            return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
+        else:
+            DB_CTX.rollback()
+            return get_erro(response_messages.ERRO_INTEGRIDADE('Nome ou breviacao')), 400
+    except SMTPAuthenticationError as se:
+        DB_CTX.rollback()
+        return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
 
 def buscar_cursos():
-        with Db() as db:
-            cursosDao = CursosDAO(db)
+        cursosDao = CursosDAO(DB_CTX)
 
-            cursos = cursosDao.busca_cursos()
-            
-            if cursos:
-                return get_data(cursos), 200
-            return None, 204
-
-def get_curso(codCurso):
-    with Db() as db:
-        usuarioDao = UsuarioDAO(db)
-        cursosDao = CursosDAO(db)
-
-        curso = cursosDao.get_curso_codCurso(codCurso, False)
-        coord = usuarioDao.get_user_coordenador(curso['codCurso'])
-        curso.update(coord)
-        if not curso:
-            return get_erro(response_messages.NAO_ENCONTRADO('Codigo de curso')), 404
-        return curso, 200
-
-def edita_curso(codCurso):
-    with Db() as db:
-        cursosDao = CursosDAO(db)
-
-        curso = cursosDao.get_curso_codCurso(codCurso)
-        if not curso:
-            return get_erro(response_messages.NAO_ENCONTRADO('Codigo de curso')), 404
-
-        try:
-            attr = get_request_form_data_attributes(['nomeCurso', 'abreviacao'])
-
-            if attr['nomeCurso']:
-                curso.descricaoCurso = attr['nomeCurso']
-            if attr['abreviacao']:
-                curso.abreviacao = attr['abreviacao']
-
-            curso.edita_curso()
-            
-            return get_ok(response_messages.ENTIDADE_EDITADA('Curso')), 200
-
-        except AttributeError as ex:
-            return get_erro(ex.__str__()), 400
-        except BadRequestKeyError:
-            return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeCurso" e "abreviacao"')), 400
-        except IntegrityError:
-            return get_erro(response_messages.ERRO_INTEGRIDADE('Abreviacao ou Nome do Curso')), 400
-        except Exception as ex:
-            return get_erro(ex.__str__()), 400
-
-def buscar_todos_cursos():
-    with Db() as db:
-        cursosDao = CursosDAO(db)
-
-        cursos = cursosDao.busca_cursos_inativo()
+        cursos = cursosDao.busca_cursos()
+        
         if cursos:
             return get_data(cursos), 200
         return None, 204
+
+def get_curso(codCurso):
+    usuarioDao = UsuarioDAO(DB_CTX)
+    cursosDao = CursosDAO(DB_CTX)
+
+    curso = cursosDao.get_curso_codCurso(codCurso, False)
+    coord = usuarioDao.get_user_coordenador(curso['codCurso'])
+    curso.update(coord)
+    if not curso:
+        return get_erro(response_messages.NAO_ENCONTRADO('Codigo de curso')), 404
+    return curso, 200
+
+def edita_curso(codCurso):
+    cursosDao = CursosDAO(DB_CTX)
+
+    curso = cursosDao.get_curso_codCurso(codCurso)
+    if not curso:
+        return get_erro(response_messages.NAO_ENCONTRADO('Codigo de curso')), 404
+
+    try:
+        attr = get_request_form_data_attributes(['nomeCurso', 'abreviacao'])
+
+        if attr['nomeCurso']:
+            curso.descricaoCurso = attr['nomeCurso']
+        if attr['abreviacao']:
+            curso.abreviacao = attr['abreviacao']
+
+        curso.edita_curso()
+        
+        return get_ok(response_messages.ENTIDADE_EDITADA('Curso')), 200
+
+    except AttributeError as ex:
+        return get_erro(ex.__str__()), 400
+    except BadRequestKeyError:
+        return get_erro(response_messages.CAMPOS_OBRIGATORIOS('"nomeCurso" e "abreviacao"')), 400
+    except IntegrityError:
+        return get_erro(response_messages.ERRO_INTEGRIDADE('Abreviacao ou Nome do Curso')), 400
+    except Exception as ex:
+        return get_erro(ex.__str__()), 400
+
+def buscar_todos_cursos():
+    cursosDao = CursosDAO(DB_CTX)
+
+    cursos = cursosDao.busca_cursos_inativo()
+    if cursos:
+        return get_data(cursos), 200
+    return None, 204
 
 def __enviar_email_cadastro_curso(email, abreviacao, nomeCurso, username, password):
     msg = mailer.generate_message_html(

@@ -1,7 +1,6 @@
 from mysql.connector.errors import DataError, IntegrityError
 from biblioteca.autor.autores_dao import AutoresDAO
 
-from biblioteca.db import Db
 from biblioteca.extensions import is_valid_email
 
 class Projetos:

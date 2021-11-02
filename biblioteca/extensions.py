@@ -6,7 +6,7 @@ from flask import request, jsonify, current_app as app
 from datetime import datetime
 from dateutil import parser 
 
-from biblioteca.db import Db
+from biblioteca.db import DB_CTX
 from biblioteca import response_messages
 from biblioteca.autor import autores_dao
 from biblioteca.responses import (
@@ -169,45 +169,45 @@ def professor_coordenador_secretaria_token_required(f):
 def aluno_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        with Db()as db:
-            autoresDao = autores_dao.AutoresDAO(db)
+        autoresDao = autores_dao.AutoresDAO(DB_CTX)
 
-            success, data = check_tipo_usuario([
-                TiposUsuario.Aluno.value
-            ], has_user_info=True)
+        success, data = check_tipo_usuario([
+            TiposUsuario.Aluno.value
+        ], has_user_info=True)
 
-            if(success):
-                is_valid = autoresDao.is_aluno_valido(data['user_info']['codUsuario'])
-                if not is_valid:
-                    return get_unauthorized(response_messages.ACESSO_EXPIRADO())
-                kwargs.update(data)
-                return f(*args, **kwargs)            
-            return data
+        if(success):
+            is_valid = autoresDao.is_aluno_valido(data['user_info']['codUsuario'])
+            if not is_valid:
+                return get_unauthorized(response_messages.ACESSO_EXPIRADO())
+            kwargs.update(data)
+            return f(*args, **kwargs)            
+        return data
+    
     return decorated
 
 def aluno_professor_coordenador_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        with Db()as db:
-            autoresDao = autores_dao.AutoresDAO(db)
+        autoresDao = autores_dao.AutoresDAO(DB_CTX)
 
-            success, data = check_tipo_usuario([
-                TiposUsuario.Aluno.value,
-                TiposUsuario.Professor.value,
-                TiposUsuario.Coordenador
-            ], has_user_info=True)
+        success, data = check_tipo_usuario([
+            TiposUsuario.Aluno.value,
+            TiposUsuario.Professor.value,
+            TiposUsuario.Coordenador
+        ], has_user_info=True)
 
-            if(success):
-                if data['user_info']['tipoUsuario'] == TiposUsuario.Aluno.value:
-                    is_valid = autoresDao.is_aluno_valido(data['user_info']['codUsuario'])
-                else:
-                    is_valid = True
-                
-                if not is_valid:
-                    return get_unauthorized(response_messages.ACESSO_EXPIRADO())
-                kwargs.update(data)
-                return f(*args, **kwargs)            
-            return data
+        if(success):
+            if data['user_info']['tipoUsuario'] == TiposUsuario.Aluno.value:
+                is_valid = autoresDao.is_aluno_valido(data['user_info']['codUsuario'])
+            else:
+                is_valid = True
+            
+            if not is_valid:
+                return get_unauthorized(response_messages.ACESSO_EXPIRADO())
+            kwargs.update(data)
+            return f(*args, **kwargs)            
+        return data
+    
     return decorated
 
 def coordenador_token_required(f):
@@ -308,54 +308,54 @@ def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has
     is_user = False
     is_admin = False
     is_secretaria = False
-    with Db() as db:
-        try:
-            usuarioDao = usuario_dao.UsuarioDAO(db)
 
-            authorized = False
-            data = get_token_data()
-            current_user = usuarioDao.busca_usuarios_nome(data['username'])
+    try:
+        usuarioDao = usuario_dao.UsuarioDAO(DB_CTX)
 
-            if not current_user:
-                raise Exception(response_messages.SEM_AUTORIZACAO())
+        authorized = False
+        data = get_token_data()
+        current_user = usuarioDao.busca_usuarios_nome(data['username'])
 
-            if has_is_user:
-                if not id:
-                    raise AttributeError(response_messages.PARAMETRO_NAO_ENVIADO('"id"'))
-                if id == current_user['codUsuario']:
-                    authorized = True 
-                    is_user = True
+        if not current_user:
+            raise Exception(response_messages.SEM_AUTORIZACAO())
 
-            if has_is_admin:
-                if current_user['tipoUsuario'] == TiposUsuario.Administrador.value:
-                    authorized = True
-                    is_admin = True
-            if has_is_secretaria:
-                if current_user['tipoUsuario'] == TiposUsuario.Secretaria.value:
-                    authorized = True
-                    is_secretaria = True
-
-            if not authorized:
-                for item in tipos_usuario:
-                    if item == current_user['tipoUsuario']:
-                        authorized = True
-
-            if not authorized:
-                raise Exception(response_messages.SEM_AUTORIZACAO())
-        except Exception as ex:
-            return False, get_unauthorized(ex.__str__())
-
-        res_data = {}
         if has_is_user:
-            res_data.update({ 'is_user': is_user })
-        if has_is_admin:
-            res_data.update({ 'is_admin': is_admin })
-        if has_is_secretaria:
-            res_data.update({ 'is_secretaria': is_secretaria })
-        if has_user_info:
-            res_data.update({ 'user_info': current_user })
+            if not id:
+                raise AttributeError(response_messages.PARAMETRO_NAO_ENVIADO('"id"'))
+            if id == current_user['codUsuario']:
+                authorized = True 
+                is_user = True
 
-        return True, res_data   
+        if has_is_admin:
+            if current_user['tipoUsuario'] == TiposUsuario.Administrador.value:
+                authorized = True
+                is_admin = True
+        if has_is_secretaria:
+            if current_user['tipoUsuario'] == TiposUsuario.Secretaria.value:
+                authorized = True
+                is_secretaria = True
+
+        if not authorized:
+            for item in tipos_usuario:
+                if item == current_user['tipoUsuario']:
+                    authorized = True
+
+        if not authorized:
+            raise Exception(response_messages.SEM_AUTORIZACAO())
+    except Exception as ex:
+        return False, get_unauthorized(ex.__str__())
+
+    res_data = {}
+    if has_is_user:
+        res_data.update({ 'is_user': is_user })
+    if has_is_admin:
+        res_data.update({ 'is_admin': is_admin })
+    if has_is_secretaria:
+        res_data.update({ 'is_secretaria': is_secretaria })
+    if has_user_info:
+        res_data.update({ 'user_info': current_user })
+
+    return True, res_data   
 
 def get_token_data():
     auth_header = request.headers.get('AUTHORIZATION')

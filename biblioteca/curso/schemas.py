@@ -1,4 +1,4 @@
-from biblioteca.db import Db, response_messages
+from biblioteca import response_messages
 
 class Cursos:
     def __init__(self, descricaoCurso="", abreviacao="", codUsuario="", codCurso=0, db=None):

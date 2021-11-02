@@ -122,6 +122,16 @@ def ERRO_INESPERADO():
         'Um erro inesperado ocorreu', 
         'An unexpected error has ocurred'
     )
+def METODO_NAO_PERMITIDO():
+    return get_msg(
+        'Método não permitido', 
+        'Method not allowed'
+    )
+def PAGINA_NAO_ENCONTRADA():
+    return get_msg(
+        'Página não encontrada', 
+        'Page not found'
+    )
 
 def ARQUIVO_NAO_ENVIADO():
     return get_msg(
