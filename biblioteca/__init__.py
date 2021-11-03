@@ -121,9 +121,10 @@ def create_app(config_name):
                     info= ex
                 )
                 session.clear()
-        except:
-            pass
+        except Exception as ex:
+            traceback.print_exc()
 
+        traceback.print_exc()
         return responses.get_response_code(response_messages.ERRO_INESPERADO(), 500)
     
     @app.teardown_appcontext
