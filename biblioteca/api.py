@@ -115,9 +115,10 @@ from biblioteca.relatorios.resources import (
 # Clase que retorna a tela de index da API
 class Index(Resource):
     def get(self):
+        import setup
         return {
-            'name': 'Biblioteca de Trabalhos Científicos',
-            'versao':'0.1.0'
+            'name': setup.__description__,
+            'version':setup.__version__
         }
 
 # Instânciamos a API do FlaskRestful
