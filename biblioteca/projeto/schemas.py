@@ -79,11 +79,8 @@ class Autores:
             query = 'INSERT INTO autores(raAutor, nomeAutor, email) values(%s,%s,%s)'
             self.db.gravar(query, (self.raAutor, self.nomeAutor, self.email))
         except IntegrityError as ie:
-            if ie.errno == 1062:
-                pass
-            else:
-                self.db.rollback()
-                raise ie
+            self.db.rollback()
+            raise ie
         except Exception as ex:
             self.db.rollback()
             raise ex
