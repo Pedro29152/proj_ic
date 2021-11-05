@@ -52,6 +52,12 @@ def generate_message_text(assunto, receiver_email, text_message):
     return msg.as_string()
 
 def send_email(receiver_email, message):
+    if not app.config['SEND_EMAILS']:
+        print('''------------------------------------------------------
+Email enviado para: {0}
+------------------------------------------------------'''.format(receiver_email))
+        return
+
     smtp_server = getenv('MAILER_SMTP_SERVER')
     password = getenv('MAILER_PASSWORD')
     sender_email = getenv('MAILER_SENDER_EMAIL')

@@ -15,6 +15,7 @@ class Config:
     SECRET_KEY = getenv('SECRET_KEY')
     APP_PORT = int(getenv('APP_PORT'))
     DEBUG = eval(getenv('DEBUG').title())
+    SEND_EMAILS = eval(getenv('SEND_EMAILS').title())
 
 class DevelopmentConfig(Config):
     FLASK_ENV = 'development'
