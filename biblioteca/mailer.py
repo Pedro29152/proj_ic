@@ -53,9 +53,6 @@ def generate_message_text(assunto, receiver_email, text_message):
 
 def send_email(receiver_email, message):
     if not app.config['SEND_EMAILS']:
-        print('''------------------------------------------------------
-Email enviado para: {0}
-------------------------------------------------------'''.format(receiver_email))
         return
 
     smtp_server = getenv('MAILER_SMTP_SERVER')
