@@ -32,6 +32,15 @@ def get_data(data):
         'data': data
     }
 
+def get_page(data, size, complete_size, page):
+    return {
+        'status': 'OK',
+        'data': data,
+        'size': size,
+        'complete_size': complete_size,
+        'page': page
+    }
+
 def get_count(count):
     return {
         'status': 'OK',
@@ -49,7 +58,7 @@ def get_unauthorized(data):
     return res
 
 def get_bad_request(data):
-    res = jsonify(get_negado(data))
+    res = jsonify(get_falha(data))
     res.status_code = 400
     return res
 

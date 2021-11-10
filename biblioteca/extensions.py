@@ -469,3 +469,29 @@ def get_request_form_data_attributes(atributos: list):
     except BadRequestKeyError:
         attr_str = ', '.join(list(map((lambda attr: '"{0}"'.format(attr)), atributos)))
         raise Exception(response_messages.CAMPOS_OBRIGATORIOS(attr_str))
+
+def get_pagination_parameters(default_page_size=20, max_page_size=100):
+    page = request.args.get('p')
+    page_size = request.args.get('size')
+    if page:
+        if not page_size:
+            page_size = default_page_size
+
+        try:
+            page = int(page)
+            page_size = int(page_size)
+        except ValueError:
+            raise ValueError(response_messages.VALIDACAO_DEVEM('p e size', 'ser do tipo inteiro'))
+        if page < 1:
+            page = 1
+        if page_size > max_page_size:
+            page_size = max_page_size
+        if page_size < 1:
+            page_size = 1
+
+        return {
+            'page': page,
+            'page_size': page_size
+        }
+    return None
+    

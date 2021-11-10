@@ -122,7 +122,7 @@ class ProjetosDAO:
 
         return ret
 
-    def busca_projeto_tipo_pag(self, tipo, query = '', ordem = 0, crescente = True, pag = 1):
+    def busca_projeto_tipo_pag(self, tipo, query, ordem, crescente, page, page_size):
         queryBase = query
         query = '%' + query + '%'
 
@@ -130,42 +130,42 @@ class ProjetosDAO:
 
         if tipo == 'titulo':
             ret = self.__busca_projeto_full(
-                QUERY_TITULO + 
-                self.__ordena(ordem,crescente) + self.__get_limit(pag),
+                QUERY_TITULO +
+                self.__ordena(ordem,crescente) + self.__get_limit(page, page_size),
                 (query,)   
             )
         elif tipo == 'curso':
             ret = self.__busca_projeto_full(
                 QUERY_CURSO + 
-                self.__ordena(ordem,crescente) + self.__get_limit(pag),
+                self.__ordena(ordem,crescente) + self.__get_limit(page, page_size),
                 (query, query)
             )
         elif tipo == 'descricao':
             ret = self.__busca_projeto_full(
                 QUERY_DESCRICAO + 
-                self.__ordena(ordem,crescente) + self.__get_limit(pag),
+                self.__ordena(ordem,crescente) + self.__get_limit(page, page_size),
                 (query,)
             )
         elif tipo == 'orientadores':
             ret = self.__busca_projeto_full(
-                QUERY_ORIENTADOR + self.__ordena(ordem,crescente) + self.__get_limit(pag),
+                QUERY_ORIENTADOR + self.__ordena(ordem,crescente) + self.__get_limit(page, page_size),
                 (query,)
             )
         elif tipo == 'autor':
             ret = self.__busca_projeto_full(
-                QUERY_AUTOR + self.__ordena(ordem,crescente) + self.__get_limit(pag),
+                QUERY_AUTOR + self.__ordena(ordem,crescente) + self.__get_limit(page, page_size),
                 (query,)
             )
         elif tipo == 'palavrasChave':
             ret = self.__busca_projeto_full(
                 QUERY_PALAVRAS_CHAVE +
-                self.__ordena(ordem, crescente) + self.__get_limit(pag),
+                self.__ordena(ordem, crescente) + self.__get_limit(page, page_size),
                 (query,)
             )
         elif tipo == 'modalidade':
             ret = self.__busca_projeto_full(
                 QUERY_MODALIDADE +
-                self.__ordena(ordem, crescente) + self.__get_limit(pag),
+                self.__ordena(ordem, crescente) + self.__get_limit(page, page_size),
                 (queryBase,)
             )
         else:
@@ -261,8 +261,8 @@ class ProjetosDAO:
 
         return ret
 
-    def busca_projeto_pag(self, pag):
-        query = 'select * from projetos where ativo = 1 and status = 1 ' + self.__get_limit(pag)
+    def busca_projeto_pag(self, page, page_size):
+        query = 'select * from projetos where ativo = 1 and status = 1 ' + self.__get_limit(page, page_size)
 
         ret = self.db.busca(
             query,None
@@ -272,33 +272,19 @@ class ProjetosDAO:
 
         return ret
 
-    def busca_projeto_ranking(self, titulo, tipo, ordem):
-        titulo = '%{}%'.format(titulo)
-        
-        query = 'select * from projetos where tituloProjeto like (%s) and ativo = 1 and status = 1 '
-        
-        if tipo == 'numVisitas':
-            query += 'order by numVisitas' + ordem
-        elif tipo == 'numDownloads':
-            query += 'order by numDownloads' + ordem
-        else:
-            query += 'order by numVisitas' + ordem
-
-        return self.__busca_projeto_full(query, (titulo,))
-
-    def busca_projeto_ranking_pag(self, titulo, tipo, ordem, pag):
+    def busca_projeto_ranking_pag(self, titulo, tipo, ordem, page, page_size):
         titulo = '%{}%'.format(titulo)
 
         query = 'select * from projetos where tituloProjeto like (%s) and ativo = 1 and status = 1 '
         
         if tipo == 'numVisitas':
-            query += 'order by numVisitas' + ordem
+            query += 'order by numVisitas {0}, numDownloads {0}'.format(ordem)
         elif tipo == 'numDownloads':
-            query += 'order by numDownloads' + ordem
+            query += 'order by numDownloads {0}, numVisitas {0}'.format(ordem)
         else:
-            query += 'order by numVisitas' + ordem
+            query += 'order by numVisitas {0}, numDownloads {0}'.format(ordem)
         
-        query += self.__get_limit(pag, 5)
+        query += self.__get_limit(page, page_size)
 
         return self.__busca_projeto_full(query, (titulo,))
 
@@ -411,10 +397,10 @@ class ProjetosDAO:
 
     def get_count(self, codOrientador=None):
         if codOrientador:
-            query = 'select count(*) as projetos from projetos natural join projeto_orientador where ativo = 1 and codOrientador = (%s)'
+            query = 'select count(*) as projetos from projetos natural join projeto_orientador where ativo = 1 and status = 1 and codOrientador = (%s)'
             ret = self.db.busca_um(query, (codOrientador,))
         else:
-            query = 'select count(*) as projetos from projetos where ativo = 1'
+            query = 'select count(*) as projetos from projetos where ativo = 1 and status = 1'
             ret = self.db.busca_um(query, None)
         return ret['projetos']
 
@@ -774,8 +760,8 @@ class ProjetosDAO:
 
         self.db.gravar(query, (codOrientador, codProjeto, tipo))
 
-    def __get_limit(self, pag, tam = 20):
-        fi = ((pag - 1) * tam)
+    def __get_limit(self, page, tam = 20):
+        fi = ((page - 1) * tam)
 
         return ' LIMIT {}, {}'.format(fi, tam)
 

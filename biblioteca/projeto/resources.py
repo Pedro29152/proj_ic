@@ -24,6 +24,7 @@ from biblioteca.responses import (
     get_falha,
     get_erro,
     get_ok,
+    get_page,
     get_count as get_res_count,
     get_bad_request,
     get_response_code,
@@ -42,6 +43,7 @@ from biblioteca.extensions import(
     is_valid_email,
     get_enum_obj,
     get_request_form_data_attributes,
+    get_pagination_parameters,
     TiposUsuario,
     LinguagemProjeto,
     ModalidadeProjeto,
@@ -50,6 +52,9 @@ from biblioteca.extensions import(
 from .projetos_dao import ProjetosDAO
 from .schemas import Projetos, Autores, PalavrasChave
 
+DEFAULT_PAGE_SIZE = 20
+DEFAULT_PAGE_SIZE_RANKING = 5
+
 MINIMO_AUTORES = 2
 MAXIMO_AUTORES = 5
 MINIMO_PALAVRAS_CHAVE = 1
@@ -57,27 +62,30 @@ MAXIMO_PALAVRAS_CHAVE = 5
 ALLOWED_EXTENSIONS = set(['pdf'])
 
 class BuscaProjetoResource(Resource):
-    #Parametros: "query", "ordem", "crescente" e "page"
     def get(self, id=None):
-        projs = None
-        cod = 200
-        if request.args.get('page'):
-            page = request.args.get('page')
-            projs, cod = busca_pag(id, page)
-        else:
-            projs, cod = busca(id)
+        try:
+            pagination = get_pagination_parameters(default_page_size=DEFAULT_PAGE_SIZE)
+        except ValueError as ve:
+            return get_bad_request(ve.__str__())
         
+        if pagination:
+            projs, cod = busca_pag(id, pagination['page'], pagination['page_size'])
+        else:
+            projs, cod = busca_pag(id)
+
         return get_response_code(projs, cod)
 
 class BuscaRankingResource(Resource):
     def get(self):
-        projs = None
-        cod = 200
-        if request.args.get('page'):
-            page = request.args.get('page')
-            projs, cod = busca_ranking_pag(page)
+        try:
+            pagination = get_pagination_parameters(default_page_size=DEFAULT_PAGE_SIZE_RANKING)
+        except ValueError as ve:
+            return get_bad_request(ve.__str__())
+        
+        if pagination:
+            projs, cod = busca_ranking_pag(pagination['page'], pagination['page_size'])
         else:
-            projs, cod = busca_ranking()
+            projs, cod = busca_ranking_pag()
 
         return get_response_code(projs, cod)
 
@@ -389,41 +397,32 @@ class AtivaProjetoResource(Resource):
         return get_response_code(status, cod)
 
 
-def busca(tipo = ''):
+def busca_pag(tipo='', page=1, page_size=DEFAULT_PAGE_SIZE):
     db = get_db()
     projetosDao = ProjetosDAO(db)
-
+    
     dados, ordem, cres = __get_filtro()
 
     if tipo:
-        ret = projetosDao.busca_projeto_tipo(tipo,dados,ordem,cres)
+        ret = projetosDao.busca_projeto_tipo_pag(tipo, dados, ordem, cres, page, page_size)
     else:
-        ret = projetosDao.busca_projeto()
+        ret = projetosDao.busca_projeto_pag(page, page_size)
 
     if ret:
-        return get_data(ret), 200
-    else:
-        return None, 204
+        return get_page(ret, size=len(ret), complete_size=projetosDao.get_count(), page=page), 200
+    return None, 204
 
-def busca_pag(tipo='', pag = 1):
-    dados, ordem, cres = __get_filtro()
-    try:
-        pag = int(pag)
-    except ValueError:
-        return get_erro(response_messages.VALIDACAO_DEVE('"page"', 'ser do tipo inteiro')), 404
-
+def busca_ranking_pag(page = 1, page_size=DEFAULT_PAGE_SIZE_RANKING):
     db = get_db()
     projetosDao = ProjetosDAO(db)
-
-    if tipo: 
-        ret = projetosDao.busca_projeto_tipo_pag(tipo,dados,ordem,cres,pag)
-    else:
-        ret = projetosDao.busca_projeto_pag(pag)
+        
+    query, tipo, ordem = __get_filtro_rank()
+    
+    ret = projetosDao.busca_projeto_ranking_pag(query, tipo, ordem, page, page_size)
 
     if ret:
-        return get_data(ret), 200
-    else:
-        return None, 204
+        return get_page(ret, size=len(ret), complete_size=projetosDao.get_count(), page=page), 200
+    return None, 204
 
 def busca_projetos_orientador(codOrientador):
     db = get_db()
@@ -956,37 +955,6 @@ def get_projeto_autor(user_info):
         return None, 404
     return get_data(proj), 200
 
-def busca_ranking():
-    db = get_db()
-    projetosDao = ProjetosDAO(db)
-
-    query, tipo, ordem = __get_filtro_rank()
-
-    ret = projetosDao.busca_projeto_ranking(query, tipo, ordem)
-
-    if ret == None:
-        return None, 204
-
-    return get_data(ret), 200
-
-def busca_ranking_pag(page = 1):
-    db = get_db()
-    projetosDao = ProjetosDAO(db)
-        
-    query, tipo, ordem = __get_filtro_rank()
-    
-    try:
-        page = int(page)
-    except:
-        return get_erro(response_messages.VALIDACAO_DEVE('page', 'ser do tipo inteiro')), 404
-
-    ret = projetosDao.busca_projeto_ranking_pag(query, tipo, ordem, page)
-
-    if ret == None:
-        return None, 204
-
-    return get_data(ret), 200
-
 def get_count():
     db = get_db()
     projetosDao = ProjetosDAO(db)
@@ -1105,14 +1073,9 @@ def __get_filtro_rank():
     
     tipo = request.args.get('tipo')
     if not tipo:
-        tipo = 'numVisitas'
+        tipo = 'numDownloads'
 
-    ordem = request.args.get('ordem')
-    if ordem:
-        if(not (ordem == '' or ordem == 'desc')):
-            ordem = ''
-    else:
-        ordem = ''
+    ordem = 'desc'
 
     return query, tipo, ordem
 def __adicionar_cabecalio(paths, output):
