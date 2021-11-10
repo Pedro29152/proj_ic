@@ -775,10 +775,9 @@ class ProjetosDAO:
         self.db.gravar(query, (codOrientador, codProjeto, tipo))
 
     def __get_limit(self, pag, tam = 20):
-        fi = 1 + ((pag - 1) * tam)
-        ff = pag * tam
+        fi = ((pag - 1) * tam)
 
-        return ' LIMIT {}, {}'.format(fi, ff)
+        return ' LIMIT {}, {}'.format(fi, tam)
 
     def __busca_projeto_full(self, query, *args):
         ret = self.db.busca(query, *args)
