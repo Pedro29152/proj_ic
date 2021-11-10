@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask_restful import Resource, request
 
-from biblioteca.db import DB_CTX
+from biblioteca.db import get_db
 from biblioteca import response_messages 
 from biblioteca.dashboard.dashboard_dao import DashboardDAO
 from biblioteca.orientador.orientadores_dao import OrientadoresDAO
@@ -22,7 +22,8 @@ class CountProjetosSemestre(Resource):
         if not semestre:
             semestre = 1
         
-        dashboardDao = DashboardDAO(DB_CTX)
+        db = get_db()
+        dashboardDao = DashboardDAO(db)
 
         count_semestre = dashboardDao.get_count_projetos_semestre(ano, semestre)
 
@@ -36,7 +37,8 @@ class CountProjetosAnos(Resource):
         if anoF < anoI:
             return get_no_content()
         
-        dashboardDao = DashboardDAO(DB_CTX)
+        db = get_db()
+        dashboardDao = DashboardDAO(db)
             
         count_ano = dashboardDao.get_count_projetos_semestres(anoI, anoF)
         
@@ -50,7 +52,8 @@ class CountProjetosCurso(Resource):
         if anoF < anoI:
             return get_no_content()
 
-        dashboardDao = DashboardDAO(DB_CTX)
+        db = get_db()
+        dashboardDao = DashboardDAO(db)
 
         ret = dashboardDao.get_count_projetos_curso(anoI, anoF)
         if ret == None:
@@ -76,7 +79,8 @@ class CountProjetosOrientador(Resource):
                     oris = tuple()
                     break
 
-        dashboardDao = DashboardDAO(DB_CTX)
+        db = get_db()
+        dashboardDao = DashboardDAO(db)
             
         ret = dashboardDao.get_count_projetos_orientador(anoI, anoF, orientadores= oris)
         if ret == None:
@@ -90,8 +94,9 @@ class CountProjetosOrientadorSelf(Resource):
         if anoF < anoI:
             return get_no_content()
 
-        orientadoresDao = OrientadoresDAO(DB_CTX)
-        dashboardDao = DashboardDAO(DB_CTX)
+        db = get_db()
+        orientadoresDao = OrientadoresDAO(db)
+        dashboardDao = DashboardDAO(db)
 
         orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
         if not orientador:
@@ -110,7 +115,8 @@ class CountProjetosFormandos(Resource):
         if anoF < anoI:
             return get_no_content()
 
-        dashboardDao = DashboardDAO(DB_CTX)
+        db = get_db()
+        dashboardDao = DashboardDAO(db)
             
         ret = dashboardDao.get_count_projetos_formandos_curso(anoI, anoF)
         if ret == None:
@@ -124,7 +130,8 @@ class CountProjetoStatus(Resource):
         if anoF < anoI:
             return get_no_content()
 
-        dashboardDao = DashboardDAO(DB_CTX)
+        db = get_db()
+        dashboardDao = DashboardDAO(db)
             
         ret = dashboardDao.get_count_projetos_status(anoI, anoF)
         if ret == None:
@@ -137,7 +144,8 @@ class CountProjetoModalidade(Resource):
         if anoF < anoI:
             return get_no_content()
     
-        dashboardDao = DashboardDAO(DB_CTX)
+        db = get_db()
+        dashboardDao = DashboardDAO(db)
             
         ret = dashboardDao.get_count_projetos_modalidade(anoI, anoF)
         if ret == None:
@@ -151,7 +159,8 @@ class CountSolicitacoesRevisao(Resource):
         if anoF < anoI:
             return get_no_content()
     
-        dashboardDao = DashboardDAO(DB_CTX)
+        db = get_db()
+        dashboardDao = DashboardDAO(db)
             
         ret = dashboardDao.get_count_solicitacoes_revisao(anoI, anoF)
         if ret == None:
@@ -161,7 +170,8 @@ class CountSolicitacoesRevisao(Resource):
 class CountUsuariosTipo(Resource):
     @admin_token_required
     def get(self):
-        dashboardDao = DashboardDAO(DB_CTX)
+        db = get_db()
+        dashboardDao = DashboardDAO(db)
             
         ret = dashboardDao.get_count_usuarios_tipo()
         if ret == None:
@@ -170,7 +180,8 @@ class CountUsuariosTipo(Resource):
 
 class GetAnos(Resource):
     def get(self):
-        dashboardDao = DashboardDAO(DB_CTX)
+        db = get_db()
+        dashboardDao = DashboardDAO(db)
             
         ret = dashboardDao.get_anos()
         if ret == None:
@@ -187,7 +198,8 @@ def get_anoI_anoF():
     except:
         anoF = None
 
-    dashboardDao = DashboardDAO(DB_CTX)
+    db = get_db()
+    dashboardDao = DashboardDAO(db)
         
     anos = dashboardDao.get_anos()
     if not anos:

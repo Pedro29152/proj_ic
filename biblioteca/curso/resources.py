@@ -4,7 +4,7 @@ from werkzeug import exceptions
 from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import IntegrityError
 
-from biblioteca.db import DB_CTX
+from biblioteca.db import get_db
 from biblioteca import mailer, response_messages
 from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.responses import (
@@ -59,8 +59,9 @@ class AtivaCursoResource(Resource):
         if not (attr['codUsuario']):
             return get_falha(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
 
-        cursosDao = CursosDAO(DB_CTX)
-        usuarioDao = UsuarioDAO(DB_CTX)
+        db = get_db()
+        cursosDao = CursosDAO(db)
+        usuarioDao = UsuarioDAO(db)
 
         user = usuarioDao.get_usuario_ativo(attr['codUsuario'])
         if not user:
@@ -76,7 +77,8 @@ class AtivaCursoResource(Resource):
 class DesativaCursoResource(Resource):
     @secretaria_token_required
     def post(self, id):
-        cursosDao = CursosDAO(DB_CTX)
+        db = get_db()
+        cursosDao = CursosDAO(db)
             
         cursosDao.desativa_curso(id)
 
@@ -91,7 +93,8 @@ class TodosCursosResource(Resource):
 class CountCursosResource(Resource):
     @secretaria_token_required
     def get(self):
-        cursosDao = CursosDAO(DB_CTX)
+        db = get_db()
+        cursosDao = CursosDAO(db)
 
         count = cursosDao.get_count()
 
@@ -112,23 +115,24 @@ def cadastro_curso():
     username = 'coordenador_{}'.format(attr['abreviacao'].lower())
     password = generate_random_password()
 
-    usuarioDao = UsuarioDAO(DB_CTX)
-    cursosDao = CursosDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
+    cursosDao = CursosDAO(db)
 
     try:
         user = usuarioDao.add_usr(username, password, TiposUsuario.Coordenador.value, attr['nome'], attr['email'])
         if not user:
-            DB_CTX.rollback()
+            db.rollback()
             return get_erro(response_messages.ERRO_INESPERADO()), 500
     except IntegrityError as ie:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(ie.__str__()), 400
 
     curso = Cursos(
         attr['nomeCurso'], 
         attr['abreviacao'],
         user['codUsuario'],
-        db=DB_CTX
+        db=db
     )
 
     try:
@@ -146,20 +150,21 @@ def cadastro_curso():
 
                 return get_ok(response_messages.CURSO_REATIVADO()), 200
             except SMTPAuthenticationError as se:
-                DB_CTX.rollback()
+                db.rollback()
                 return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
             except Exception as ex:
-                DB_CTX.rollback()
+                db.rollback()
                 return get_erro(response_messages.ERRO_INESPERADO()), 500
         else:
-            DB_CTX.rollback()
+            db.rollback()
             return get_erro(response_messages.ERRO_INTEGRIDADE('Nome ou breviacao')), 400
     except SMTPAuthenticationError as se:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
 
 def buscar_cursos():
-        cursosDao = CursosDAO(DB_CTX)
+        db = get_db()
+        cursosDao = CursosDAO(db)
 
         cursos = cursosDao.busca_cursos()
         
@@ -168,8 +173,9 @@ def buscar_cursos():
         return None, 204
 
 def get_curso(codCurso):
-    usuarioDao = UsuarioDAO(DB_CTX)
-    cursosDao = CursosDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
+    cursosDao = CursosDAO(db)
 
     curso = cursosDao.get_curso_codCurso(codCurso, False)
     coord = usuarioDao.get_user_coordenador(curso['codCurso'])
@@ -179,7 +185,8 @@ def get_curso(codCurso):
     return curso, 200
 
 def edita_curso(codCurso):
-    cursosDao = CursosDAO(DB_CTX)
+    db = get_db()
+    cursosDao = CursosDAO(db)
 
     curso = cursosDao.get_curso_codCurso(codCurso)
     if not curso:
@@ -207,7 +214,8 @@ def edita_curso(codCurso):
         return get_erro(ex.__str__()), 400
 
 def buscar_todos_cursos():
-    cursosDao = CursosDAO(DB_CTX)
+    db = get_db()
+    cursosDao = CursosDAO(db)
 
     cursos = cursosDao.busca_cursos_inativo()
     if cursos:

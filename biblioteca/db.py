@@ -79,7 +79,3 @@ def get_db():
         g.db = Db()
 
     return g.db
-
-from werkzeug.local import LocalProxy
-
-DB_CTX = LocalProxy(get_db)

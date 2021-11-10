@@ -6,7 +6,7 @@ from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill
 
-from biblioteca.db import DB_CTX
+from biblioteca.db import get_db
 from biblioteca.curso.cursos_dao import CursosDAO
 from biblioteca.autor.autores_dao import AutoresDAO
 from biblioteca.projeto.projetos_dao import ProjetosDAO
@@ -41,7 +41,8 @@ INFO_FONT = Font(
 
 
 def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= None, has_filtro_orientador=False, codOrientador=None, user=None):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
 
     if has_filtro_orientador:
         if not codOrientador:
@@ -158,7 +159,8 @@ def get_projs_workbook(proj_attr= [], proj_attr_esp=[], data_i= None, data_f= No
     return wb
 
 def get_cursos_workbook(data_i= None, data_f= None, user=None):
-    cursosDao = CursosDAO(DB_CTX)
+    db = get_db()
+    cursosDao = CursosDAO(db)
     
     cursos = cursosDao.get_relatorio_cursos(data_i=data_i, data_f=data_f)
     if not cursos:
@@ -217,7 +219,8 @@ def get_cursos_workbook(data_i= None, data_f= None, user=None):
     return wb
 
 def get_orientadores_workbook(data_i= None, data_f= None, user=None):
-    orientadoresDao = OrientadoresDAO(DB_CTX)
+    db = get_db()
+    orientadoresDao = OrientadoresDAO(db)
 
     orientadores = orientadoresDao.get_relatorio_orientadores(data_i=data_i, data_f=data_f)
     if not orientadores:
@@ -276,7 +279,8 @@ def get_orientadores_workbook(data_i= None, data_f= None, user=None):
     return wb
 
 def get_autores_workbook(data_i=None, data_f=None, user=None):
-    autoresDao = AutoresDAO(DB_CTX)
+    db = get_db()
+    autoresDao = AutoresDAO(db)
 
     autores = autoresDao.get_relatorio_autores(data_i=data_i, data_f=data_f)
     if not autores:

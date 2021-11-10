@@ -2,7 +2,7 @@ from flask import jsonify
 from flask_restful import Resource, request
 
 from .autores_dao import AutoresDAO
-from biblioteca.db import DB_CTX
+from biblioteca.db import get_db
 from biblioteca import response_messages
 from biblioteca.responses import (
     get_data,
@@ -18,7 +18,8 @@ from biblioteca.extensions import (
 class BuscaAlunosResource(Resource):
     @token_required
     def get(self, user_info):
-        autoresDao = AutoresDAO(DB_CTX)
+        db = get_db()
+        autoresDao = AutoresDAO(db)
 
         nomeAutor = request.args.get('nomeAutor')
         ret = autoresDao.busca_autores(nomeAutor)
@@ -29,7 +30,8 @@ class BuscaAlunosResource(Resource):
 class GetAlunoResource(Resource):
     @token_required
     def get(self, id, user_info):
-        autoresDao = AutoresDAO(DB_CTX)
+        db = get_db()
+        autoresDao = AutoresDAO(db)
 
         ret = autoresDao.get_autor(id)
         if ret:
@@ -39,7 +41,8 @@ class GetAlunoResource(Resource):
 class GetSelfAlunoResource(Resource):
     @aluno_token_required
     def get(self, user_info):
-        autoresDao = AutoresDAO(DB_CTX)
+        db = get_db()
+        autoresDao = AutoresDAO(db)
 
         autor = autoresDao.get_autor_codUsuario(user_info['codUsuario'])
         orientador = autoresDao.get_orientador_codAutor(autor['codAutor'])

@@ -5,7 +5,7 @@ from flask import current_app as app
 from mysql.connector.errors import IntegrityError
 
 from .slide_dao import SlideDAO
-from biblioteca.db import DB_CTX
+from biblioteca.db import get_db
 from biblioteca import response_messages
 from biblioteca.extensions import admin_token_required, get_request_form_data_attributes
 from biblioteca.responses import (
@@ -21,14 +21,16 @@ ALLOWED_EXTENSIONS = set(['png', 'gif', 'jpg', 'jpeg'])
 
 class BuscarSlidesResource(Resource):
     def get(self):
-        slideDao = SlideDAO(DB_CTX)
+        db = get_db()
+        slideDao = SlideDAO(db)
 
         ret = slideDao.busca_slides()
         return ret
 
     @admin_token_required
     def post(self):
-        slideDao = SlideDAO(DB_CTX)
+        db = get_db()
+        slideDao = SlideDAO(db)
 
         count = slideDao.get_count()
         if count >= 5:
@@ -68,14 +70,15 @@ class BuscarSlidesResource(Resource):
             )
             file.save(filepath)
         except Exception as ex:
-            DB_CTX.rollback()
+            db.rollback()
             raise ex
 
         return get_success(response_messages.ENTIDADE_GRAVADA('Slide'))
 
 class SlideIdResource(Resource):
     def get(self, id):
-        slideDao = SlideDAO(DB_CTX)
+        db = get_db()
+        slideDao = SlideDAO(db)
 
         slide = slideDao.get_slide(id)
         return get_success(slide)
@@ -87,7 +90,8 @@ class SlideIdResource(Resource):
         if r:
             has_file = False
         
-        slideDao = SlideDAO(DB_CTX)
+        db = get_db()
+        slideDao = SlideDAO(db)
             
         slide = slideDao.get_slide(id)
         if not slide:
@@ -135,7 +139,8 @@ class SlideIdResource(Resource):
 
     @admin_token_required
     def delete(self, id):
-        slideDao = SlideDAO(DB_CTX)
+        db = get_db()
+        slideDao = SlideDAO(db)
 
         count = slideDao.get_count()
         if count <= 1:

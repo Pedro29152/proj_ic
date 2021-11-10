@@ -8,7 +8,7 @@ from datetime import datetime
 from config import config
 
 from .api import configure_api
-from biblioteca.db import DB_CTX
+from biblioteca.db import get_db
 from biblioteca.geral.logger_dao import LoggerDAO
 from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.extensions import get_token_data
@@ -45,8 +45,8 @@ def create_app(config_name):
             reqValues[key] = request.values[key]
         if not reqValues:
             reqValues = None
-
-        usuarioDao = UsuarioDAO(DB_CTX)
+        db = get_db()
+        usuarioDao = UsuarioDAO(db)
         
         try:
             if request.path == '/api/auth/login':
@@ -73,7 +73,8 @@ def create_app(config_name):
 
     @app.after_request
     def after(response):
-        loggerDao = LoggerDAO(DB_CTX)
+        db = get_db()
+        loggerDao = LoggerDAO(db)
 
         try:
             if session['log']:
@@ -102,8 +103,9 @@ def create_app(config_name):
 
         if isinstance(exception, NotFound):
             return responses.get_not_found()
-
-        loggerDao = LoggerDAO(DB_CTX)
+    
+        db = get_db()
+        loggerDao = LoggerDAO(db)
             
         ex = traceback.format_exc()
         

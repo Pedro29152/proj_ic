@@ -6,7 +6,7 @@ from flask import request, jsonify, current_app as app
 from datetime import datetime
 from dateutil import parser 
 
-from biblioteca.db import DB_CTX
+from biblioteca.db import get_db
 from biblioteca import response_messages
 from biblioteca.autor import autores_dao
 from biblioteca.responses import (
@@ -169,7 +169,8 @@ def professor_coordenador_secretaria_token_required(f):
 def aluno_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        autoresDao = autores_dao.AutoresDAO(DB_CTX)
+        db = get_db()
+        autoresDao = autores_dao.AutoresDAO(db)
 
         success, data = check_tipo_usuario([
             TiposUsuario.Aluno.value
@@ -188,7 +189,8 @@ def aluno_token_required(f):
 def aluno_professor_coordenador_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        autoresDao = autores_dao.AutoresDAO(DB_CTX)
+        db = get_db()
+        autoresDao = autores_dao.AutoresDAO(db)
 
         success, data = check_tipo_usuario([
             TiposUsuario.Aluno.value,
@@ -310,7 +312,8 @@ def check_tipo_usuario(tipos_usuario, has_is_user=False, has_is_admin=False, has
     is_secretaria = False
 
     try:
-        usuarioDao = usuario_dao.UsuarioDAO(DB_CTX)
+        db = get_db()
+        usuarioDao = usuario_dao.UsuarioDAO(db)
 
         authorized = False
         data = get_token_data()

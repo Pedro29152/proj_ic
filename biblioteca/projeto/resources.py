@@ -11,7 +11,7 @@ from random import randint
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from mysql.connector.errors import IntegrityError
 
-from biblioteca.db import DB_CTX
+from biblioteca.db import get_db
 from biblioteca import mailer, response_messages
 from biblioteca.curso.cursos_dao import CursosDAO
 from biblioteca.autor.autores_dao import AutoresDAO
@@ -84,7 +84,8 @@ class BuscaRankingResource(Resource):
 class BuscarProjetosOrientador(Resource):
     @professor_token_required
     def get(self, user_info):
-        orientadoresDao = OrientadoresDAO(DB_CTX)
+        db = get_db()
+        orientadoresDao = OrientadoresDAO(db)
             
         orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
         if not orientador:
@@ -96,7 +97,8 @@ class BuscarProjetosOrientador(Resource):
 class BuscarProjetosOrientadorNovo(Resource):
     @professor_token_required
     def get(self, user_info):
-        orientadoresDao = OrientadoresDAO(DB_CTX)
+        db = get_db()
+        orientadoresDao = OrientadoresDAO(db)
             
         orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
         if not orientador:
@@ -108,7 +110,8 @@ class BuscarProjetosOrientadorNovo(Resource):
 class BuscarProjetosCurso(Resource):
     @coordenador_token_required
     def get(self, user_info):
-        cursosDao = CursosDAO(DB_CTX)
+        db = get_db()
+        cursosDao = CursosDAO(db)
 
         curso = cursosDao.get_curso_codUsuario_coordenador(user_info['codUsuario'])
         if not curso:
@@ -120,10 +123,11 @@ class BuscarProjetosCurso(Resource):
 class GetProjetoNovo(Resource):
     @aluno_professor_coordenador_token_required
     def get(self, user_info):
-        projetosDao = ProjetosDAO(DB_CTX)
-        orientadoresDao = OrientadoresDAO(DB_CTX)
-        cursosDao = CursosDAO(DB_CTX)
-        autoresDao = AutoresDAO(DB_CTX)
+        db = get_db()
+        projetosDao = ProjetosDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
+        cursosDao = CursosDAO(db)
+        autoresDao = AutoresDAO(db)
 
         if user_info['tipoUsuario'] == TiposUsuario.Professor.value:
             orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
@@ -175,7 +179,8 @@ class GetProjetoInativoResource(Resource):
 
 class BuscarProjetosOrientadorId(Resource):
     def get(self, id):
-        orientadoresDao = OrientadoresDAO(DB_CTX)
+        db = get_db()
+        orientadoresDao = OrientadoresDAO(db)
             
         orientador = orientadoresDao.get_orientador_codigo(id, False)
         if not orientador:
@@ -187,7 +192,8 @@ class BuscarProjetosOrientadorId(Resource):
 class BuscarAtributosProjetoResource(Resource):
     @admin_token_required
     def get(self):
-        projetosDao = ProjetosDAO(DB_CTX)
+        db = get_db()
+        projetosDao = ProjetosDAO(db)
 
         separate = True
         if not request.args.get('separate') == None:
@@ -261,7 +267,8 @@ class AlteraProjetoAlunoResource(Resource):
 class AlteraLocalPublicacaoResource(Resource):
     @professor_token_required
     def put(self, user_info, id):
-        orientadoresDao = OrientadoresDAO(DB_CTX)
+        db = get_db()
+        orientadoresDao = OrientadoresDAO(db)
             
         orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
         if not orientador:
@@ -300,10 +307,11 @@ class DownloadArquivoProjetoResource(Resource):
 class DownloadArquivoProjetoNovoResource(Resource):
     @aluno_professor_coordenador_token_required
     def get(self, filename, user_info):
-        projetosDao = ProjetosDAO(DB_CTX)
-        orientadoresDao = OrientadoresDAO(DB_CTX)
-        cursosDao = CursosDAO(DB_CTX)
-        autoresDao = AutoresDAO(DB_CTX)
+        db = get_db()
+        projetosDao = ProjetosDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
+        cursosDao = CursosDAO(db)
+        autoresDao = AutoresDAO(db)
 
         attatch = False
         if request.args.get('as_attachment'):
@@ -382,7 +390,8 @@ class AtivaProjetoResource(Resource):
 
 
 def busca(tipo = ''):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
 
     dados, ordem, cres = __get_filtro()
 
@@ -403,10 +412,11 @@ def busca_pag(tipo='', pag = 1):
     except ValueError:
         return get_erro(response_messages.VALIDACAO_DEVE('"page"', 'ser do tipo inteiro')), 404
 
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
 
     if tipo: 
-        ret = projetosDao.busca_projeto_tipo_pag(tipo,dados,ordem,cres)
+        ret = projetosDao.busca_projeto_tipo_pag(tipo,dados,ordem,cres,pag)
     else:
         ret = projetosDao.busca_projeto_pag(pag)
 
@@ -416,7 +426,8 @@ def busca_pag(tipo='', pag = 1):
         return None, 204
 
 def busca_projetos_orientador(codOrientador):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
 
     res = projetosDao.busca_projeto_orientador(codOrientador)
     if not res:
@@ -424,7 +435,8 @@ def busca_projetos_orientador(codOrientador):
     return get_data(res), 200
 
 def busca_projetos_orientador_novo(codOrientador):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     res = projetosDao.busca_projeto_orientador_novo(codOrientador)
     if not res:
@@ -432,7 +444,8 @@ def busca_projetos_orientador_novo(codOrientador):
     return get_data(res), 200
 
 def busca_projetos_curso(codCurso):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     res = projetosDao.buscar_projetos_codCurso_novo(codCurso, True)
     if not res:
@@ -440,7 +453,8 @@ def busca_projetos_curso(codCurso):
     return get_data(res), 200
 
 def busca_projetos_orientador_publico(codOrientador):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
 
     res = projetosDao.busca_projeto_orientador_publico(codOrientador)
     if not res:
@@ -448,7 +462,8 @@ def busca_projetos_orientador_publico(codOrientador):
     return get_data(res), 200   
 
 def busca_projeto_inativo():
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
 
     res = projetosDao.busca_projeto_inativo()
     if res:
@@ -456,7 +471,8 @@ def busca_projeto_inativo():
     return None, 204
 
 def busca_todos_projetos():
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     res = projetosDao.busca_todos_projetos()
     if res:
@@ -464,7 +480,8 @@ def busca_todos_projetos():
     return None, 204
 
 def get_projeto_inativo(id):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     res = projetosDao.get_projeto_inativo(id)
     if res:
@@ -487,11 +504,12 @@ def check_file():
     return get_erro(response_messages.ERRO_INESPERADO()), 500
 
 def upload_projeto(user_info=None):
-    projetosDao = ProjetosDAO(DB_CTX)
-    orientadoresDao = OrientadoresDAO(DB_CTX)
-    usuarioOrientadoDao = UsuarioOrientadoDAO(DB_CTX)
-    cursosDao = CursosDAO(DB_CTX)
-    autoresDao = AutoresDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
+    orientadoresDao = OrientadoresDAO(db)
+    usuarioOrientadoDao = UsuarioOrientadoDAO(db)
+    cursosDao = CursosDAO(db)
+    autoresDao = AutoresDAO(db)
         
     try:
         base = ['titulo', 'descricao', 'subTitulo', 'dataAvaliacao', 'linguagem', 'modalidade', 'raCoOrientador', 'localPublicacao', 'autores', 'palavras_chave']
@@ -574,7 +592,7 @@ def upload_projeto(user_info=None):
             if autores_obj[i - removed]['ra'] == lider['raAutor']:
                 autores_obj.pop(i - removed)
                 removed = removed + 1
-        projeto.autores.append(Autores(lider['raAutor'], lider['nomeAutor'], lider['email'], db=DB_CTX))
+        projeto.autores.append(Autores(lider['raAutor'], lider['nomeAutor'], lider['email'], db=db))
 
         if not projetosDao.is_valid_project(lider['codAutor']):
             return get_erro(response_messages.NAO_PODE_ALTERAR_PROJETO()), 400
@@ -584,7 +602,7 @@ def upload_projeto(user_info=None):
             if item['nome'] and item['ra'] and item['email']:
                 if not is_valid_email(item['email']):
                     return get_erro(response_messages.ATRIBUTO_INVALIDO('email')), 400
-                projeto.autores.append(Autores(item['ra'], item['nome'], item['email'], db=DB_CTX))
+                projeto.autores.append(Autores(item['ra'], item['nome'], item['email'], db=db))
             else:
                 return get_erro(response_messages.VALIDACAO_DEVE('autores', 'conter os campos "nome", "ra" e "email"')), 400
         except KeyError:
@@ -593,7 +611,7 @@ def upload_projeto(user_info=None):
     for item in palavras_obj:
         try:
             if item['palavra']:
-                projeto.palavrasChave.append(PalavrasChave(item['palavra'], db=DB_CTX))
+                projeto.palavrasChave.append(PalavrasChave(item['palavra'], db=db))
             else:
                 return get_erro(response_messages.VALIDACAO_DEVE('palavras_chave', 'conter o campo "palavra"')), 400
         except KeyError:
@@ -626,7 +644,7 @@ def upload_projeto(user_info=None):
             except SMTPAuthenticationError as se:
                 raise Exception(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL())
     except Exception as ex:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(ex.__str__()), 400
 
     filepath = os.path.join(
@@ -643,9 +661,10 @@ def upload_projeto(user_info=None):
     return get_ok(response_messages.ENTIDADE_GRAVADA('Trabalho')), 200
 
 def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
-    projetosDao = ProjetosDAO(DB_CTX)
-    orientadoresDao = OrientadoresDAO(DB_CTX)
-    cursosDao = CursosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
+    orientadoresDao = OrientadoresDAO(db)
+    cursosDao = CursosDAO(db)
         
     proj = projetosDao.get_projeto_novo(codProjeto, True)
     if not proj:
@@ -701,16 +720,17 @@ def aprovar_projeto(codProjeto, user_info, is_admin, is_secretaria):
                 return get_ok(response_messages.TRABALHO_APROVADO()), 200
             return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho')), 400
     except SMTPAuthenticationError as ae:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
     except Exception as ex:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(ex.__str__()), 400
 
 def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
-    projetosDao = ProjetosDAO(DB_CTX)
-    orientadoresDao = OrientadoresDAO(DB_CTX)
-    cursosDao = CursosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
+    orientadoresDao = OrientadoresDAO(db)
+    cursosDao = CursosDAO(db)
         
     proj = projetosDao.get_projeto_novo(codProjeto, True)
     if not proj:
@@ -767,7 +787,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
                 return get_ok(response_messages.TRABALHO_REPROVADO()), 200
             return get_erro(response_messages.SEM_PERMICAO('aprovar este trabalho')), 400
     except SMTPAuthenticationError as se:
-        DB_CTX.rollback()
+        db.rollback()
         if deleted:
             try:
                 shutil.move(tmp_file, arquivo_rm)
@@ -775,7 +795,7 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
                 pass
         return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
     except Exception as ex:
-        DB_CTX.rollback()
+        db.rollback()
         if deleted:
             try:
                 shutil.move(tmp_file, arquivo_rm)
@@ -784,7 +804,8 @@ def recusar_projeto(codProjeto, user_info, is_admin, is_secretaria):
         return get_erro(ex.__str__()), 400
 
 def download_arquivo(filename):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     codProj = projetosDao.is_ativo_filename(filename)
     if codProj:
@@ -794,7 +815,8 @@ def download_arquivo(filename):
         return False
 
 def desativa_projeto(codProjeto):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     if not projetosDao.get_projeto(codProjeto):
         return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
@@ -804,7 +826,8 @@ def desativa_projeto(codProjeto):
     return get_ok(response_messages.ENTIDADE_DESATIVADA('Trabalho')), 200
 
 def ativa_projeto(codProjeto):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     if not projetosDao.get_projeto_inativo(codProjeto):
         return get_falha(response_messages.NAO_ENCONTRADO('Trabalho')), 404
@@ -814,7 +837,8 @@ def ativa_projeto(codProjeto):
     return get_ok(response_messages.ENTIDADE_ATIVADA('Trabalho')), 200
 
 def edita_projeto(codProjeto, has_file):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     proj = projetosDao.get_projeto(codProjeto)
     if not proj:
@@ -846,9 +870,10 @@ def edita_projeto(codProjeto, has_file):
     return get_ok(response_messages.ENTIDADE_EDITADA('Trabalho')), 200
 
 def edita_projeto_aluno(codProjeto, user_info, has_file):
-    projetosDao = ProjetosDAO(DB_CTX)
-    projetoAutorDao = ProjetoAutorDAO(DB_CTX)
-    autoresDao = AutoresDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
+    projetoAutorDao = ProjetoAutorDAO(db)
+    autoresDao = AutoresDAO(db)
         
     proj = projetosDao.get_projeto_novo(codProjeto)
     if not proj:
@@ -887,7 +912,8 @@ def edita_projeto_aluno(codProjeto, user_info, has_file):
     return get_ok(response_messages.ENTIDADE_EDITADA('Trabalho')), 200
 
 def edita_publicacao(codProjeto, codOrientador):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     proj = projetosDao.get_projeto_orientador(codOrientador, codProjeto)
     if not proj:
@@ -906,7 +932,8 @@ def edita_publicacao(codProjeto, codOrientador):
     return get_ok(response_messages.ENTIDADE_EDITADA('Publicação')), 200
 
 def get_projeto(codProjeto):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     ret = projetosDao.get_projeto(codProjeto, True)
     if not ret:
@@ -916,8 +943,9 @@ def get_projeto(codProjeto):
     return get_data(ret), 200
 
 def get_projeto_autor(user_info):
-    projetosDao = ProjetosDAO(DB_CTX)
-    autoresDao = AutoresDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
+    autoresDao = AutoresDAO(db)
         
     autor = autoresDao.get_autor_codUsuario(user_info['codUsuario'])
     if not autor:
@@ -929,7 +957,8 @@ def get_projeto_autor(user_info):
     return get_data(proj), 200
 
 def busca_ranking():
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
 
     query, tipo, ordem = __get_filtro_rank()
 
@@ -941,7 +970,8 @@ def busca_ranking():
     return get_data(ret), 200
 
 def busca_ranking_pag(page = 1):
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     query, tipo, ordem = __get_filtro_rank()
     
@@ -958,7 +988,8 @@ def busca_ranking_pag(page = 1):
     return get_data(ret), 200
 
 def get_count():
-    projetosDao = ProjetosDAO(DB_CTX)
+    db = get_db()
+    projetosDao = ProjetosDAO(db)
         
     count = projetosDao.get_count()
     return get_res_count(count), 200

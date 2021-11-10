@@ -5,7 +5,7 @@ from flask import send_file
 from flask_restful import Resource, request
 from openpyxl.writer.excel import save_virtual_workbook
 
-from biblioteca.db import DB_CTX
+from biblioteca.db import get_db
 from biblioteca import response_messages
 from biblioteca.orientador.orientadores_dao import OrientadoresDAO
 from biblioteca.xlsx import (
@@ -117,7 +117,8 @@ class RelatorioOrientadoresResource(Resource):
 class RelatorioOrientadoresSelfResource(Resource):
     @admin_token_required_user_info
     def get(self, user_info):
-        orientadoresDao = OrientadoresDAO(DB_CTX)
+        db = get_db()
+        orientadoresDao = OrientadoresDAO(db)
             
         orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
         if not orientador:

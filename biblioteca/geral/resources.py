@@ -3,7 +3,7 @@ from flask_restful import Resource
 from werkzeug.exceptions import BadRequestKeyError
 from os import getenv
 
-from biblioteca.db import DB_CTX
+from biblioteca.db import get_db
 from biblioteca import mailer, response_messages
 from biblioteca.usuarios.usuario_dao import UsuarioDAO
 from biblioteca.projeto.projetos_dao import ProjetosDAO
@@ -32,10 +32,11 @@ from biblioteca.extensions import (
 class AllCountsResource(Resource):
     @token_required
     def get(self, user_info):
-        usuarioDao = UsuarioDAO(DB_CTX)
-        projetosDao = ProjetosDAO(DB_CTX)
-        orientadoresDao = OrientadoresDAO(DB_CTX)
-        cursosDao = CursosDAO(DB_CTX)
+        db = get_db()
+        usuarioDao = UsuarioDAO(db)
+        projetosDao = ProjetosDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
+        cursosDao = CursosDAO(db)
 
         if (user_info['tipoUsuario'] == TiposUsuario.Aluno.value):
             return get_unauthorized(response_messages.SEM_AUTORIZACAO())

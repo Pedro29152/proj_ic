@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from . import util
 from .usuario_orientado_dao import UsuarioOrientadoDAO
 from .usuario_dao import UsuarioDAO
-from biblioteca.db import DB_CTX
+from biblioteca.db import get_db
 from biblioteca import mailer, response_messages
 from biblioteca.orientador.schemas import Orientadores
 from biblioteca.curso.cursos_dao import CursosDAO
@@ -109,7 +109,8 @@ class AlterarOrientadorDoAlunoResource(Resource):
 class CountUsuariosResource(Resource):
     @secretaria_token_required
     def get(self):
-        usuarioDao = UsuarioDAO(DB_CTX)
+        db = get_db()
+        usuarioDao = UsuarioDAO(db)
 
         count = usuarioDao.get_count()
         return get_count(count)
@@ -176,7 +177,8 @@ def login():
     except Exception as ex:
         return get_erro(ex.__str__()), 400
 
-    usuarioDao = UsuarioDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
 
     usr = usuarioDao.verifica_usr(attr['username'], attr['password'])
     if not usr:
@@ -224,13 +226,14 @@ def cadastro_usuario():
     if attr['tipoUsuario'] == TiposUsuario.Professor.value:
         return get_falha(response_messages.NOVA_ROTA_CADASTRO('orientador' '"/api/usuarios/cadastro/orientador/novo"')), 400
 
-    usuarioDao = UsuarioDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
 
     try:
         usuarioDao.add_usr(attr['username'], attr['password'], attr['tipoUsuario'], attr['nome'], attr['email'])
         return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
     except IntegrityError as ie:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(ie.__str__()), 400
 
 def cadastro_professor(existente=True):
@@ -252,9 +255,10 @@ def cadastro_professor(existente=True):
     if not is_valid_email(attr['email']):
         return get_erro(response_messages.VALIDACAO_DEVE('email', 'ser um email valido')), 400
 
+    db = get_db()
     try:
-        usuarioDao = UsuarioDAO(DB_CTX)
-        orientadoresDao = OrientadoresDAO(DB_CTX)
+        usuarioDao = UsuarioDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
 
         if not existente:
             orientador = Orientadores(
@@ -262,7 +266,7 @@ def cadastro_professor(existente=True):
                 raOrientador=attr['ra'],
                 email=attr['email'],
                 currLattes=attr['currLattes'],
-                db=DB_CTX
+                db=db
             )
             orientador.grava_orientador()
 
@@ -294,10 +298,10 @@ def cadastro_professor(existente=True):
 
         return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
     except SMTPAuthenticationError as se:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
     except Exception as ex:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(ex.__str__()), 400
 
 def cadastro_aluno(professor_user_info):
@@ -312,10 +316,11 @@ def cadastro_aluno(professor_user_info):
         return get_erro(response_messages.VALIDACAO_DEVE('email', 'ser um email valido')), 400
 
     try:
-        usuarioDao = UsuarioDAO(DB_CTX)
-        orientadoresDao = OrientadoresDAO(DB_CTX)
-        cursosDao = CursosDAO(DB_CTX)
-        autoresDao = AutoresDAO(DB_CTX)
+        db = get_db()
+        usuarioDao = UsuarioDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
+        cursosDao = CursosDAO(db)
+        autoresDao = AutoresDAO(db)
 
         curso = cursosDao.get_curso_codCurso(attr['codCurso'], False)
         if not curso:
@@ -351,17 +356,18 @@ def cadastro_aluno(professor_user_info):
 
         return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
     except SMTPAuthenticationError as se:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
     except Exception as ex:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(ex.__str__()), 400
 
 def desativa_usuario(codUsuario, is_user):
     if is_user:
         return get_erro(response_messages.SEM_PERMICAO('desativar o próprio usuário')), 400
         
-    usuarioDao = UsuarioDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
 
     usr = usuarioDao.get_usuario_ativo(codUsuario)
     if not usr:
@@ -377,7 +383,8 @@ def ativa_usuario(codUsuario, is_user):
     if is_user:
         return get_erro(response_messages.SEM_PERMICAO('ativar o próprio usuário')), 400
 
-    usuarioDao = UsuarioDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
 
     usr = usuarioDao.get_usuario_inativo(codUsuario)
     if not usr:
@@ -390,7 +397,8 @@ def deleta_usuario(codUsuario, is_user):
     if is_user:
         return get_falha(response_messages.SEM_PERMICAO('deletar o próprio usuário')), 400
     
-    usuarioDao = UsuarioDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
 
     usr = usuarioDao.get_usuario(codUsuario)
     if not usr:
@@ -403,7 +411,8 @@ def deleta_usuario(codUsuario, is_user):
     return get_ok(response_messages.ENTIDADE_DELETADA('Usuario')), 200
 
 def busca_usuarios():
-    usuarioDao = UsuarioDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
 
     nome = request.args.get('nomeUsuario')
 
@@ -417,8 +426,9 @@ def busca_usuarios():
     return None, 204
 
 def buscar_usuarios_orientados(user_info):
-    usuarioDao = UsuarioDAO(DB_CTX)
-    orientadoresDao = OrientadoresDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
+    orientadoresDao = OrientadoresDAO(db)
 
     orientador = orientadoresDao.get_orientador_codUsuario(user_info['codUsuario'])
     if not orientador:
@@ -436,7 +446,8 @@ def buscar_usuarios_orientados(user_info):
     return None, 204
 
 def busca_usuarios_inativos():
-    usuarioDao = UsuarioDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
 
     nome = request.args.get('nomeUsuario')
 
@@ -450,7 +461,8 @@ def busca_usuarios_inativos():
     return None, 204
 
 def busca_usuarios_secretaria_adm(user_info):
-    usuarioDao = UsuarioDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
 
     nome = request.args.get('nomeUsuario')
 
@@ -470,7 +482,8 @@ def busca_usuarios_secretaria_adm(user_info):
         return get_erro(response_messages.TIPO_USUARIO_ERRADO('secretaria ou admin'))
 
 def get_usuario_ativo(id):
-    usuarioDao = UsuarioDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
 
     codUsuario = int(id)
 
@@ -491,7 +504,8 @@ def edita_usuario(codUsuario, is_admin, is_user):
     except Exception as ex:
         return get_erro(ex.__str__()), 400
 
-    usuarioDao = UsuarioDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
 
     usr = usuarioDao.get_usuario_ativo(codUsuario)
     if not usr:
@@ -519,10 +533,11 @@ def edita_usuario(codUsuario, is_admin, is_user):
     return get_ok(response_messages.ENTIDADE_EDITADA('Usuario')), 200
 
 def altera_orientador_aluno(codProjeto, user_info):
-        projetosDao = ProjetosDAO(DB_CTX)
-        orientadoresDao = OrientadoresDAO(DB_CTX)
-        usuarioOrientadoDao = UsuarioOrientadoDAO(DB_CTX)
-        cursosDao = CursosDAO(DB_CTX)
+        db = get_db()
+        projetosDao = ProjetosDAO(db)
+        orientadoresDao = OrientadoresDAO(db)
+        usuarioOrientadoDao = UsuarioOrientadoDAO(db)
+        cursosDao = CursosDAO(db)
             
         proj = projetosDao.get_projeto_novo(codProjeto, True)
         if not proj:
@@ -550,7 +565,7 @@ def altera_orientador_aluno(codProjeto, user_info):
         try:
             usuarioOrientadoDao.edita_orientador_projeto_novo(codProjeto, orientador['codOrientador'])
         except Exception as ex:
-            DB_CTX.rollback()
+            db.rollback()
             return get_erro(ex.__str__())
 
         return None, 204
@@ -561,7 +576,8 @@ def mudar_senha(id):
     except Exception as ex:
         return get_erro(ex.__str__()), 400
 
-    usuarioDao = UsuarioDAO(DB_CTX)
+    db = get_db()
+    usuarioDao = UsuarioDAO(db)
 
     usuarioDao.edita_senha(id, attr['senha'])
     return get_ok(response_messages.ENTIDADE_EDITADA('senha')), 200
@@ -576,8 +592,9 @@ def recuperar_senha():
     if not attr['email']:
         return get_erro(response_messages.PREENCHIMENTO_OBRIGATORIO()), 400
     
+    db = get_db()
     try:
-        usuarioDao = UsuarioDAO(DB_CTX)
+        usuarioDao = UsuarioDAO(db)
 
         usuario = usuarioDao.get_usuario_email(attr['email'])
         if not usuario:
@@ -607,8 +624,8 @@ def recuperar_senha():
 
         return get_ok(response_messages.EMAIL_ENVIADO_SENHA_NOVA()), 200
     except SMTPAuthenticationError as se:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL())
     except Exception as ex:
-        DB_CTX.rollback()
+        db.rollback()
         return get_erro(ex.__str__())
