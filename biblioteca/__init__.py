@@ -131,9 +131,10 @@ def create_app(config_name):
     
     @app.teardown_appcontext
     def teardown_db(exception):
-        db_rm = g.pop('db', None)
+        if not app.config['FLASK_ENV'] == 'testing':
+            db_rm = g.pop('db', None)
 
-        if db_rm is not None:
-            db_rm.close()
+            if db_rm is not None:
+                db_rm.close()
 
     return app
