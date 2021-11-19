@@ -1,6 +1,5 @@
 from mysql import connector
 from os import getenv
-from . import response_messages
 
 class Db:
     def __init__(self, host=None, user=None, password=None, database=None, commit_on_exit=True):
@@ -28,7 +27,7 @@ class Db:
 
     def busca(self, query, *args):
         if self.__closed:
-            raise ValueError(response_messages.CONEXAO_FECHADA)
+            raise ValueError('Conexão fechada')
 
         self.__cursor.execute(query, *args)
 
@@ -38,7 +37,7 @@ class Db:
 
     def busca_um(self, query, *args):
         if self.__closed:
-            raise ValueError(response_messages.CONEXAO_FECHADA)
+            raise ValueError('Conexão fechada')
 
         self.__cursor.execute(query, *args)
 
@@ -48,7 +47,7 @@ class Db:
 
     def commit(self):
         if self.__closed:
-            raise ValueError(response_messages.CONEXAO_FECHADA)
+            raise ValueError('Conexão fechada')
         
         self.__conn.commit()
 
@@ -57,7 +56,7 @@ class Db:
 
     def rollback(self):
         if self.__closed:
-            raise ValueError(response_messages.CONEXAO_FECHADA)
+            raise ValueError('Conexão fechada')
         
         self.__conn.rollback()        
 

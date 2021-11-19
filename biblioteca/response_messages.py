@@ -183,11 +183,6 @@ def SEM_PERMICAO(acao):
         'Voce nao pode {0}'.format(acao), 
         'You cannot {0}'.format(acao)
     )
-def CONEXAO_FECHADA():
-    return get_msg(
-        'Conexão fechada',
-        'Connection closed'
-    )
 
 def DADOS_PARAMETRO_INVALIDOS(parametros):
     return get_msg(
