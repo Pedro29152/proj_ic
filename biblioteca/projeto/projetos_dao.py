@@ -21,41 +21,41 @@ from biblioteca.extensions import (
 )
 
 QUERY_CURSO = '''
-    select distinct pj.* 
+    select distinct SQL_CALC_FOUND_ROWS pj.* 
     FROM projetos as pj
     NATURAL JOIN cursos 
     WHERE (descricaoCurso LIKE (%s) OR abreviacao LIKE (%s)) AND ativo = 1 and status = 1 '''
 QUERY_TITULO = '''
-    SELECT * 
+    SELECT SQL_CALC_FOUND_ROWS * 
     FROM projetos 
     WHERE tituloProjeto LIKE (%s) AND ativo = 1 and status = 1
     '''
 QUERY_DESCRICAO = '''
-    SELECT * 
+    SELECT SQL_CALC_FOUND_ROWS * 
     FROM projetos 
     WHERE descricao LIKE (%s) AND ativo = 1 and status = 1 '''
 QUERY_ORIENTADOR = '''
-    select distinct pj.*
+    select distinct SQL_CALC_FOUND_ROWS pj.*
     FROM projetos as pj
     natural join projeto_orientador 
     natural join orientadores 
     where nomeOrientador like (%s) AND ativo = 1 and status = 1 
     '''
 QUERY_AUTOR = '''
-    select distinct pj.*
+    select distinct SQL_CALC_FOUND_ROWS pj.*
     from autores natural 
     join projeto_autor 
     natural join projetos pj 
     where nomeAutor like (%s) AND ativo = 1 and status = 1 
     '''
 QUERY_PALAVRAS_CHAVE = '''
-    select distinct pj.*
+    select distinct SQL_CALC_FOUND_ROWS pj.*
     from palavras_chave natural 
     join projetos pj 
     where palavraChave like (%s) AND ativo = 1 and status = 1 
     '''
 QUERY_MODALIDADE = '''
-    SELECT * 
+    SELECT SQL_CALC_FOUND_ROWS * 
     FROM projetos 
     WHERE modalidade = (%s) AND ativo = 1 and status = 1
     '''
@@ -71,107 +71,53 @@ class ProjetosDAO:
         self.cursosDao = cursosDaoArg if cursosDaoArg else cursos_dao.CursosDAO(self.db, usuarioDaoArg=self.usuarioDao)
         self.autoresDao = autoresDaoArg if autoresDaoArg else autores_dao.AutoresDAO(self.db)
 
-    def busca_projeto_tipo(self, tipo, query = '', ordem = 0, crescente = True):
-        queryBase = query
-        query = '%' + query + '%'
-
-        ret = None
-
-        if tipo == 'titulo':
-            ret = self.__busca_projeto_full(
-                QUERY_TITULO + 
-                self.__ordena(ordem,crescente),
-                (query,)   
-            )
-        elif tipo == 'curso':
-            ret = self.__busca_projeto_full(
-                QUERY_CURSO + 
-                self.__ordena(ordem,crescente),
-                (query, query)
-            )
-        elif tipo == 'descricao':
-            ret = self.__busca_projeto_full(
-                QUERY_DESCRICAO + 
-                self.__ordena(ordem,crescente),
-                (query,)
-            )
-        elif tipo == 'orientadores':
-            ret = self.__busca_projeto_full(
-                QUERY_ORIENTADOR + self.__ordena(ordem,crescente),
-                (query,)
-            )
-        elif tipo == 'autor':
-            ret = self.__busca_projeto_full(
-                QUERY_AUTOR + self.__ordena(ordem,crescente),
-                (query,)
-            )
-        elif tipo == 'palavrasChave':
-            ret = self.__busca_projeto_full(
-                QUERY_PALAVRAS_CHAVE +
-                self.__ordena(ordem, crescente),
-                (query,)
-            )
-        elif tipo == 'modalidade':
-            ret = self.__busca_projeto_full(
-                QUERY_MODALIDADE +
-                self.__ordena(ordem, crescente),
-                (queryBase,)
-            )
-        else:
-            ret = None
-
-        return ret
-
     def busca_projeto_tipo_pag(self, tipo, query, ordem, crescente, page, page_size):
         queryBase = query
         query = '%' + query + '%'
 
-        ret = None
-
+        sqlQuery = None
+        args = None
         if tipo == 'titulo':
-            ret = self.__busca_projeto_full(
-                QUERY_TITULO +
-                self.__ordena(ordem,crescente) + self.__get_limit(page, page_size),
-                (query,)   
-            )
+            sqlQuery = QUERY_TITULO
+            args = (query,)
         elif tipo == 'curso':
-            ret = self.__busca_projeto_full(
-                QUERY_CURSO + 
-                self.__ordena(ordem,crescente) + self.__get_limit(page, page_size),
-                (query, query)
-            )
+            sqlQuery = QUERY_CURSO
+            args = (query, query)
         elif tipo == 'descricao':
-            ret = self.__busca_projeto_full(
-                QUERY_DESCRICAO + 
-                self.__ordena(ordem,crescente) + self.__get_limit(page, page_size),
-                (query,)
-            )
+            sqlQuery = QUERY_DESCRICAO
+            args = (query,)
         elif tipo == 'orientadores':
-            ret = self.__busca_projeto_full(
-                QUERY_ORIENTADOR + self.__ordena(ordem,crescente) + self.__get_limit(page, page_size),
-                (query,)
-            )
+            sqlQuery = QUERY_ORIENTADOR
+            args = (query,)
         elif tipo == 'autor':
-            ret = self.__busca_projeto_full(
-                QUERY_AUTOR + self.__ordena(ordem,crescente) + self.__get_limit(page, page_size),
-                (query,)
-            )
+            sqlQuery = QUERY_AUTOR
+            args = (query,)
         elif tipo == 'palavrasChave':
-            ret = self.__busca_projeto_full(
-                QUERY_PALAVRAS_CHAVE +
-                self.__ordena(ordem, crescente) + self.__get_limit(page, page_size),
-                (query,)
-            )
+            sqlQuery = QUERY_PALAVRAS_CHAVE
+            args = (query,)
         elif tipo == 'modalidade':
-            ret = self.__busca_projeto_full(
-                QUERY_MODALIDADE +
-                self.__ordena(ordem, crescente) + self.__get_limit(page, page_size),
-                (queryBase,)
-            )
-        else:
-            ret = None
+            sqlQuery = QUERY_MODALIDADE
+            args = (queryBase,)
 
-        return ret
+        ret = None
+        if sqlQuery and args:
+            sqlQuery += self.__ordena(ordem, crescente) + self.__get_limit(page, page_size)
+            ret = self.db.busca(sqlQuery, args)
+            count = self.db.busca_um('select FOUND_ROWS() as count')['count']
+
+            self.prenche_projetos(ret)
+
+            return ret, count
+        return ret, 0
+
+    def busca_projeto_pag(self, page, page_size):
+        query = 'select SQL_CALC_FOUND_ROWS * from projetos where ativo = 1 and status = 1 ' + self.__get_limit(page, page_size)
+        ret = self.db.busca(query)
+        count = self.db.busca_um('select FOUND_ROWS() as count')['count']
+
+        self.prenche_projetos(ret)
+
+        return ret, count
 
     def busca_projeto(self, proj_attr=[], proj_attr_esp=None, data_i= None, data_f= None):
         attr = self.busca_atributos_projeto()
@@ -261,21 +207,10 @@ class ProjetosDAO:
 
         return ret
 
-    def busca_projeto_pag(self, page, page_size):
-        query = 'select * from projetos where ativo = 1 and status = 1 ' + self.__get_limit(page, page_size)
-
-        ret = self.db.busca(
-            query,None
-        )
-
-        self.prenche_projetos(ret)
-
-        return ret
-
     def busca_projeto_ranking_pag(self, titulo, tipo, ordem, page, page_size):
         titulo = '%{}%'.format(titulo)
 
-        query = 'select * from projetos where tituloProjeto like (%s) and ativo = 1 and status = 1 '
+        query = 'select SQL_CALC_FOUND_ROWS * from projetos where tituloProjeto like (%s) and ativo = 1 and status = 1 '
         
         if tipo == 'numVisitas':
             query += 'order by numVisitas {0}, numDownloads {0}'.format(ordem)
@@ -286,7 +221,12 @@ class ProjetosDAO:
         
         query += self.__get_limit(page, page_size)
 
-        return self.__busca_projeto_full(query, (titulo,))
+        ret = self.db.busca(query, (titulo,))
+        count = self.db.busca_um('select FOUND_ROWS() as count')['count']
+
+        self.prenche_projetos(ret)
+
+        return ret, count
 
     def busca_projeto_orientador(self, codOrientador):
         query = '''
@@ -764,10 +704,3 @@ class ProjetosDAO:
         fi = ((page - 1) * tam)
 
         return ' LIMIT {}, {}'.format(fi, tam)
-
-    def __busca_projeto_full(self, query, *args):
-        ret = self.db.busca(query, *args)
-
-        self.prenche_projetos(ret)
-        
-        return ret

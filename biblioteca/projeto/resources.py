@@ -404,12 +404,12 @@ def busca_pag(tipo='', page=1, page_size=DEFAULT_PAGE_SIZE):
     dados, ordem, cres = __get_filtro()
 
     if tipo:
-        ret = projetosDao.busca_projeto_tipo_pag(tipo, dados, ordem, cres, page, page_size)
+        ret, count = projetosDao.busca_projeto_tipo_pag(tipo, dados, ordem, cres, page, page_size)
     else:
-        ret = projetosDao.busca_projeto_pag(page, page_size)
+        ret, count = projetosDao.busca_projeto_pag(page, page_size)
 
     if ret:
-        return get_page(ret, size=len(ret), complete_size=projetosDao.get_count(), page=page), 200
+        return get_page(ret, size=len(ret), complete_size=count, page=page), 200
     return None, 204
 
 def busca_ranking_pag(page = 1, page_size=DEFAULT_PAGE_SIZE_RANKING):
@@ -418,10 +418,10 @@ def busca_ranking_pag(page = 1, page_size=DEFAULT_PAGE_SIZE_RANKING):
         
     query, tipo, ordem = __get_filtro_rank()
     
-    ret = projetosDao.busca_projeto_ranking_pag(query, tipo, ordem, page, page_size)
+    ret, count = projetosDao.busca_projeto_ranking_pag(query, tipo, ordem, page, page_size)
 
     if ret:
-        return get_page(ret, size=len(ret), complete_size=projetosDao.get_count(), page=page), 200
+        return get_page(ret, size=len(ret), complete_size=count, page=page), 200
     return None, 204
 
 def busca_projetos_orientador(codOrientador):
