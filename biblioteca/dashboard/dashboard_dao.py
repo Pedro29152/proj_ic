@@ -1,4 +1,5 @@
 from biblioteca.projeto import projetos_dao
+from biblioteca.extensions import ModalidadeProjeto, get_enum_obj
 
 class DashboardDAO:
     def __init__(self, db, projetosDaoArg=None):
@@ -190,25 +191,18 @@ class DashboardDAO:
     def get_count_projetos_modalidade(self, anoI, anoF):
         self.projetosDao.reprova_projetos_invalidos()
 
+        modalidades = get_enum_obj(ModalidadeProjeto)
         query = '''
             select 
                 year(dataAvaliacao) as ano,
-                (case 
-                    when modalidade = 0 then 'Artigo Científico'
-                    when modalidade = 1 then 'Relatório Técnico'
-                    when modalidade = 2 then 'Monografia'
-                    when modalidade = 3 then 'Relatório Técnico de Atividades de Porfólio'
-                    when modalidade = 4 then 'Resumo'
-                    when modalidade = 5 then 'GDD'
-                    else 'erro'
-                end) as modalidade,
+                (case {0} else 'erro' end) as modalidade,
                 sum(case when month(dataAvaliacao) between 1 and 7 then 1 else 0 end)  AS 'semestre1',
                 sum(case when month(dataAvaliacao) between 8 and 12 then 1 else 0 end) AS 'semestre2'
             from projetos
             where (ativo = 1 and status = 1) and year(dataAvaliacao) between %s and %s
             group by year(dataAvaliacao), modalidade
             order by 1
-        '''
+        '''.format(' '.join(["when modalidade = {0} then '{1}'".format(mod, modalidades[mod]) for mod in modalidades]))
         ret = self.db.busca(query, (anoI, anoF))
         if not ret:
             return ret
