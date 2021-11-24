@@ -64,7 +64,7 @@ class RelatorioProjetosResource(Resource):
             user=user_info
         )
         if not projs_wb:
-            return get_bad_request(response_messages.NAO_FOI_POSSIVEL('gerar um relatorio com os parametros enviados'))
+            return get_no_content()
 
         data = datetime.now()
         data_str = f'{data.day}-{data.month}-{data.year}'
@@ -86,7 +86,7 @@ class RelatorioCursosResource(Resource):
             user=user_info
         )
         if not cursos_wb:
-            return get_bad_request(response_messages.NAO_FOI_POSSIVEL('gerar um relatorio com os parametros enviados'))
+            return get_no_content()
 
         data = datetime.now()
         data_str = f'{data.day}-{data.month}-{data.year}'
@@ -108,7 +108,7 @@ class RelatorioOrientadoresResource(Resource):
             user=user_info
         )
         if not orientadores_wb:
-            return get_bad_request(response_messages.NAO_FOI_POSSIVEL('gerar um relatorio com os parametros enviados'))
+            return get_no_content()
 
         data = datetime.now()
         data_str = f'{data.day}-{data.month}-{data.year}'
@@ -186,7 +186,7 @@ class RelatorioAutoresResource(Resource):
             user=user_info
         )
         if not autores_wb:
-            return get_bad_request(response_messages.NAO_FOI_POSSIVEL('gerar um relatorio com os parametros enviados'))
+            return get_no_content()
 
         data = datetime.now()
         data_str = f'{data.day}-{data.month}-{data.year}'
