@@ -89,7 +89,7 @@ class AutoresDAO:
 
         if data_i and data_f:
             query = base_query.format(
-                'and (year(p.dataAvaliacao) between %s and %s)')
+                'and (p.dataAvaliacao between %s and %s)')
             try:
                 ret = self.db.busca(query, (data_i, data_f))
             except ProgrammingError:
