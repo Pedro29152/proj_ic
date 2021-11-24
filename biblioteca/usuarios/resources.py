@@ -1,5 +1,5 @@
 import jwt
-from flask import jsonify
+from flask import jsonify, current_app as app
 from flask_restful import Resource, request, current_app
 from smtplib import SMTPAuthenticationError
 from werkzeug.exceptions import BadRequestKeyError
@@ -295,8 +295,11 @@ def cadastro_professor(existente=True):
             '''.format(user, password)
         )
         mailer.send_email(attr['email'], msg)
-
-        return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
+       
+        ret = get_ok(response_messages.ENTIDADE_GRAVADA('Usuario'))
+        if app.config['FLASK_ENV'] == 'testing':
+            ret['password'] = password
+        return ret, 201
     except SMTPAuthenticationError as se:
         db.rollback()
         return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500
@@ -354,7 +357,10 @@ def cadastro_aluno(professor_user_info):
         )
         mailer.send_email(attr['email'], msg)
 
-        return get_ok(response_messages.ENTIDADE_GRAVADA('Usuario')), 201
+        ret = get_ok(response_messages.ENTIDADE_GRAVADA('Usuario'))
+        if app.config['FLASK_ENV'] == 'testing':
+            ret['password'] = password
+        return ret, 201
     except SMTPAuthenticationError as se:
         db.rollback()
         return get_erro(response_messages.NAO_FOI_POSSIVEL_ENVIAR_EMAIL()), 500

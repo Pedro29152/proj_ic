@@ -1,5 +1,6 @@
 from smtplib import SMTPAuthenticationError
-from flask_restful import Resource, request
+from flask import current_app as app
+from flask_restful import Resource
 from werkzeug import exceptions
 from werkzeug.exceptions import BadRequestKeyError
 from mysql.connector.errors import IntegrityError
@@ -139,8 +140,11 @@ def cadastro_curso():
         curso.grava_curso()
 
         __enviar_email_cadastro_curso(attr['email'], attr['abreviacao'], attr['nomeCurso'], username, password)
-
-        return get_ok(response_messages.ENTIDADE_GRAVADA('Curso')), 201
+        
+        ret = get_ok(response_messages.ENTIDADE_GRAVADA('Curso'))
+        if app.config['FLASK_ENV'] == 'testing':
+            ret['password'] = password
+        return ret, 201
     except IntegrityError:
         if not cursosDao.is_ativo(curso):
             try:
