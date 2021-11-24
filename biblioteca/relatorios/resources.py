@@ -115,7 +115,7 @@ class RelatorioOrientadoresResource(Resource):
         return get_excel(orientadores_wb, title='Relatorio-Orientadores-{0}'.format(data_str))
 
 class RelatorioOrientadoresSelfResource(Resource):
-    @admin_token_required_user_info
+    @professor_token_required
     def get(self, user_info):
         db = get_db()
         orientadoresDao = OrientadoresDAO(db)
@@ -161,7 +161,7 @@ class RelatorioOrientadoresSelfResource(Resource):
             user=user_info
         )
         if not projs_wb:
-            return get_bad_request(response_messages.NAO_FOI_POSSIVEL('gerar um relatorio com os parametros enviados'))
+            return get_no_content()
 
         data = datetime.now()
         data_str = f'{data.day}-{data.month}-{data.year}'
