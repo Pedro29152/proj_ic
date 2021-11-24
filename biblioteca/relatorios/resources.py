@@ -1,9 +1,10 @@
+import tempfile, os
+
 from io import BytesIO
 from datetime import datetime
 
 from flask import send_file
 from flask_restful import Resource, request
-from openpyxl.writer.excel import save_virtual_workbook
 
 from biblioteca.db import get_db
 from biblioteca import response_messages
@@ -194,11 +195,13 @@ class RelatorioAutoresResource(Resource):
 
 
 def get_excel(xlsx_wb, title='arquivo'):
-    file = BytesIO(save_virtual_workbook(xlsx_wb))
+    with open(os.path.join(tempfile.gettempdir(), title), 'wb+') as tmp_file:
+        xlsx_wb.save(tmp_file.name)
+        file = BytesIO(tmp_file.read())
 
-    title += '.xlsx'
+        title += '.xlsx'
 
-    return send_file(file, 
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        attachment_filename=title,
-        as_attachment=True)
+        return send_file(file, 
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            download_name=title,
+            as_attachment=True)
